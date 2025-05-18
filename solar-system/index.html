@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>3D Solar System</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
+
+        #control-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(111, 110, 110, 0.7);
+            border-radius: 10px;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        button {
+            background-color: #444;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #666;
+        }
+        
+        .view-btn {
+            width: 100%;
+            margin: 2px;
+        }
+        
+        .view-btn.active {
+            background-color: #007bff;
+        }
+        
+        .view-buttons, .camera-controls {
+            margin-left: 10px;
+        }
+        
+        .camera-btn {
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+            padding: 0;
+            margin: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #direction-indicator {
+            width: 80px;
+            height: 40px;
+            background-color: #333;
+            border-radius: 5px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #direction-text {
+            height: 60%;
+            font-size: 16px;
+            color: white;
+            white-space: nowrap;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        
+        /* Highlight the center direction */
+        #direction-text {
+            background: linear-gradient(
+                to right,
+                rgba(0, 0, 0, 0) 0%,
+                rgba(0, 0, 0, 0) 40%,
+                rgba(255, 255, 255, 0.3) 45%,
+                rgba(255, 255, 255, 0.3) 55%,
+                rgba(0, 0, 0, 0) 60%,
+                rgba(0, 0, 0, 0) 100%
+            );
+        }
+        
+        #direction-degrees {
+            height: 40%;
+            font-size: 12px;
+            color: #aaa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-top: 1px solid #555;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: white;
+        }
+
+        .slider-container label, table label {
+            font-size: 14px;
+            white-space: nowrap;
+            color: white;
+        }
+
+        table {
+            color: white;
+        }
+
+        input[type="range"] {
+            width: 150px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="control-panel">
+        <button id="fit-view-btn">Fit View</button>
+        <button id="toggle-realistic-btn">Realistic: ON</button>
+        <button id="toggle-axes-btn">Axes: OFF</button>
+        <button id="toggle-earth-only-btn">Earth Only: OFF</button>
+        <button id="toggle-orbit-btn">Orbit: ON</button>
+        <table>
+            <tr>
+                <td>
+                    <label for="spin-speed">Spin:</label>
+                </td>
+                <td>
+                    <div class="slider-container">
+                        <input type="range" id="spin-speed" min="0" max="100" step="0.1" value="1">
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="orbit-speed">Orbit Speed:</label>
+                </td>
+                <td>
+                    <div class="slider-container">
+                        <input type="range" id="orbit-speed" min="0" max="100" step="0.1" value="1">
+                    </div>
+                </td>
+            </tr>
+        </table>
+        <div class="slider-container">
+            <label for="orbit-visibility">Orbit Lines:</label>
+            <input type="range" id="orbit-visibility" min="0" max="1" step="0.01" value="1">
+        </div>
+        <table class="view-buttons">
+            <tr>
+                <td colspan="2" style="text-align: center; padding-bottom: 5px;">
+                    <label>Perspective:</label>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <button id="view-space" class="view-btn active">Space View</button>
+                </td>
+                <td>
+                    <button id="view-budapest" class="view-btn">Budapest</button>
+                </td>
+            </tr>
+        </table>
+        
+        <table class="camera-controls">
+            <tr>
+                <td colspan="3" style="text-align: center; padding-bottom: 5px;">
+                    <label>Camera Controls:</label>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td style="text-align: center;">
+                    <button id="camera-up" class="camera-btn">▲</button>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td style="text-align: right;">
+                    <button id="camera-left" class="camera-btn">◀</button>
+                </td>
+                <td>
+                    <div id="direction-indicator">
+                        <div id="direction-text" class="scrolling-text">N-NE-E-SE-S-SW-W-NW-</div>
+                        <div id="direction-degrees">0°</div>
+                    </div>
+                </td>
+                <td style="text-align: left;">
+                    <button id="camera-right" class="camera-btn">▶</button>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td style="text-align: center;">
+                    <button id="camera-down" class="camera-btn">▼</button>
+                </td>
+                <td></td>
+            </tr>
+        </table>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+    <script src="js/camera-controls.js"></script>
+    <script src="js/solar-system.js"></script>
+    <script src="js/budapest-view.js"></script>
+    <script src="js/budapest-sphere.js"></script>
+    
+    <script>
+    // Initialize Budapest sphere when the page loads
+    window.addEventListener('load', () => {
+        // Wait a bit for the solar system to initialize
+        setTimeout(() => {
+            if (typeof createBudapestSphere === 'function') {
+                createBudapestSphere();
+            }
+        }, 500);
+    });
+    </script>
+</body>
+</html>
