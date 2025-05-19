@@ -1,7 +1,7 @@
 // Initialize the scene, camera, and renderer
 let scene, camera, renderer;
 let controls;
-let earth;
+let solarSystem;
 
 function init() {
     // Create the scene
@@ -15,7 +15,6 @@ function init() {
         1, // Near clipping plane
         1000000 // Far clipping plane - increased to see the orbit
     );
-    camera.position.set(0, 100000, 200000); // Positioned to see the orbit
     
     // Create the renderer
     renderer = new THREE.WebGLRenderer({
@@ -40,12 +39,37 @@ function init() {
     directionalLight.position.set(1, 1, 1);
     scene.add(directionalLight);
     
-    // Create Earth using the Earth class
-    earth = new Earth(12000); // 12000m diameter
-    scene.add(earth.getObject());
+    // Create solar system
+    solarSystem = new SolarSystem();
+    scene.add(solarSystem.getObject());
     
-    // Show Earth's console pane
-    earth.show();
+    // Set initial top view to see the entire orbit
+    const maxOrbitRadius = solarSystem.earth ? solarSystem.earth.orbitRadius : 150000;
+    
+    // Calculate camera distance based on field of view to ensure the entire orbit is visible
+    // We need to position the camera so that the diameter of the orbit (2 * radius) fits in the view
+    const orbitDiameter = maxOrbitRadius * 2;
+    const aspectRatio = window.innerWidth / window.innerHeight;
+    const vFov = camera.fov * Math.PI / 180;
+    
+    // Calculate the required distance based on the smaller dimension (width or height)
+    let distance;
+    if (aspectRatio >= 1.0) {
+        // Width is greater than or equal to height, so height is the limiting factor
+        distance = orbitDiameter / (2 * Math.tan(vFov / 2));
+    } else {
+        // Height is greater than width, so width is the limiting factor
+        distance = orbitDiameter / (2 * Math.tan((vFov * aspectRatio) / 2));
+    }
+    
+    // Add 10% margin to ensure the orbit is fully visible
+    distance *= 1.1;
+    
+    camera.position.set(0, distance, 0);
+    camera.lookAt(0, 0, 0);
+    
+    // Show solar system controls
+    solarSystem.show();
     
     // Handle window resize
     window.addEventListener('resize', onWindowResize);
@@ -57,8 +81,8 @@ function init() {
 function animate() {
     requestAnimationFrame(animate);
     
-    // Update Earth if needed
-    earth.update(Date.now());
+    // Update solar system
+    solarSystem.update(Date.now());
     
     controls.update();
     renderer.render(scene, camera);

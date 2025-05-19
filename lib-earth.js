@@ -17,7 +17,8 @@ class Earth {
         this.maxRotationSpeed = 0.01; // Maximum rotation speed
 
         // Orbit properties
-        this.orbitRadius = 145000000 / 1000; // 145,000,000 km converted to a smaller scale
+        this.actualOrbitRadius = 145000000; // 145,000,000 km
+        this.orbitRadius = this.actualOrbitRadius / 1000; // Scaled down by 1000
         this.orbitEnabled = false; // Disabled by default
         this.orbitSpeed = 0.0001; // Initial orbit speed
         this.maxOrbitSpeed = 0.001; // Maximum orbit speed
@@ -223,6 +224,45 @@ class Earth {
         this.group.rotation.z = THREE.MathUtils.degToRad(this.axialTilt);
     }
 
+    makeDraggable(element, dragHandle) {
+        let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+        
+        dragHandle.onmousedown = dragMouseDown;
+        
+        function dragMouseDown(e) {
+            e = e || window.event;
+            e.preventDefault();
+            // Get the mouse cursor position at startup
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+            document.onmouseup = closeDragElement;
+            // Call a function whenever the cursor moves
+            document.onmousemove = elementDrag;
+        }
+        
+        function elementDrag(e) {
+            e = e || window.event;
+            e.preventDefault();
+            // Calculate the new cursor position
+            pos1 = pos3 - e.clientX;
+            pos2 = pos4 - e.clientY;
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+            // Set the element's new position
+            element.style.top = (element.offsetTop - pos2) + "px";
+            element.style.left = (element.offsetLeft - pos1) + "px";
+            // Remove the bottom/right positioning once we start dragging
+            element.style.bottom = 'auto';
+            element.style.right = 'auto';
+        }
+        
+        function closeDragElement() {
+            // Stop moving when mouse button is released
+            document.onmouseup = null;
+            document.onmousemove = null;
+        }
+    }
+
     createConsolePane() {
         // Create console pane
         this.consolePane = document.createElement('div');
@@ -230,19 +270,43 @@ class Earth {
         this.consolePane.style.position = 'absolute';
         this.consolePane.style.bottom = '20px';
         this.consolePane.style.right = '20px';
-        this.consolePane.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+        this.consolePane.style.backgroundColor = 'rgba(80, 80, 80, 0.8)'; // Lighter gray
         this.consolePane.style.color = 'white';
-        this.consolePane.style.padding = '15px';
+        this.consolePane.style.padding = '0'; // No padding for the container
         this.consolePane.style.borderRadius = '5px';
         this.consolePane.style.fontFamily = 'Arial, sans-serif';
         this.consolePane.style.display = 'none'; // Hidden by default
         this.consolePane.style.width = '250px';
+        this.consolePane.style.boxShadow = '0 4px 8px rgba(0,0,0,0.5)'; // Add shadow for better visibility
 
-        // Add title
+        // Create header for dragging
+        const header = document.createElement('div');
+        header.style.backgroundColor = 'rgba(100, 100, 100, 0.9)'; // Darker than the body
+        header.style.padding = '10px 15px';
+        header.style.borderTopLeftRadius = '5px';
+        header.style.borderTopRightRadius = '5px';
+        header.style.cursor = 'move'; // Change cursor to indicate draggable
+        header.style.borderBottom = '1px solid #666';
+        
+        // Add title to header
         const title = document.createElement('h3');
         title.textContent = 'Earth Controls';
-        title.style.margin = '0 0 15px 0';
-        this.consolePane.appendChild(title);
+        title.style.margin = '0';
+        header.appendChild(title);
+        
+        // Add the header to the console pane
+        this.consolePane.appendChild(header);
+        
+        // Create content container with padding
+        const content = document.createElement('div');
+        content.style.padding = '15px';
+        this.consolePane.appendChild(content);
+        
+        // Make the console pane draggable
+        this.makeDraggable(this.consolePane, header);
+        
+        // Store content container for adding controls
+        this.consoleContent = content;
 
         // Create sections for better organization
         this.createVisibilitySection();
@@ -260,7 +324,7 @@ class Earth {
         sectionHeader.style.margin = '0 0 10px 0';
         sectionHeader.style.borderBottom = '1px solid #555';
         sectionHeader.style.paddingBottom = '5px';
-        this.consolePane.appendChild(sectionHeader);
+        this.consoleContent.appendChild(sectionHeader);
 
         // Front view toggle - commented out as requested
         /*
@@ -290,7 +354,7 @@ class Earth {
 
         closeUpToggleContainer.appendChild(closeUpToggleLabel);
         closeUpToggleContainer.appendChild(closeUpToggle);
-        this.consolePane.appendChild(closeUpToggleContainer);
+        this.consoleContent.appendChild(closeUpToggleContainer);
         */
 
         // Add side view toggle
@@ -326,7 +390,7 @@ class Earth {
 
         sideViewToggleContainer.appendChild(sideViewToggleLabel);
         sideViewToggleContainer.appendChild(sideViewToggle);
-        this.consolePane.appendChild(sideViewToggleContainer);
+        this.consoleContent.appendChild(sideViewToggleContainer);
 
         // Add latitude circles toggle
         const latitudeToggleContainer = document.createElement('div');
@@ -346,7 +410,7 @@ class Earth {
 
         latitudeToggleContainer.appendChild(latitudeToggleLabel);
         latitudeToggleContainer.appendChild(latitudeToggle);
-        this.consolePane.appendChild(latitudeToggleContainer);
+        this.consoleContent.appendChild(latitudeToggleContainer);
 
         // Add season labels toggle
         const labelsToggleContainer = document.createElement('div');
@@ -366,7 +430,7 @@ class Earth {
 
         labelsToggleContainer.appendChild(labelsToggleLabel);
         labelsToggleContainer.appendChild(labelsToggle);
-        this.consolePane.appendChild(labelsToggleContainer);
+        this.consoleContent.appendChild(labelsToggleContainer);
     }
 
     createRotationSection() {
@@ -376,7 +440,7 @@ class Earth {
         sectionHeader.style.margin = '15px 0 10px 0';
         sectionHeader.style.borderBottom = '1px solid #555';
         sectionHeader.style.paddingBottom = '5px';
-        this.consolePane.appendChild(sectionHeader);
+        this.consoleContent.appendChild(sectionHeader);
 
         // Add rotation toggle
         const rotationToggleContainer = document.createElement('div');
@@ -396,7 +460,7 @@ class Earth {
 
         rotationToggleContainer.appendChild(rotationToggleLabel);
         rotationToggleContainer.appendChild(rotationToggle);
-        this.consolePane.appendChild(rotationToggleContainer);
+        this.consoleContent.appendChild(rotationToggleContainer);
 
         // Add rotation speed slider
         const rotationSliderContainer = document.createElement('div');
@@ -426,7 +490,7 @@ class Earth {
 
         rotationSliderContainer.appendChild(rotationSliderLabel);
         rotationSliderContainer.appendChild(rotationSlider);
-        this.consolePane.appendChild(rotationSliderContainer);
+        this.consoleContent.appendChild(rotationSliderContainer);
     }
 
     createOrbitSection() {
@@ -436,7 +500,7 @@ class Earth {
         sectionHeader.style.margin = '15px 0 10px 0';
         sectionHeader.style.borderBottom = '1px solid #555';
         sectionHeader.style.paddingBottom = '5px';
-        this.consolePane.appendChild(sectionHeader);
+        this.consoleContent.appendChild(sectionHeader);
 
         // Add orbit toggle
         const orbitToggleContainer = document.createElement('div');
@@ -465,7 +529,7 @@ class Earth {
 
         orbitToggleContainer.appendChild(orbitToggleLabel);
         orbitToggleContainer.appendChild(orbitToggle);
-        this.consolePane.appendChild(orbitToggleContainer);
+        this.consoleContent.appendChild(orbitToggleContainer);
 
         // Add orbit speed slider
         const orbitSpeedContainer = document.createElement('div');
@@ -502,7 +566,7 @@ class Earth {
 
         orbitSpeedContainer.appendChild(orbitSpeedLabel);
         orbitSpeedContainer.appendChild(orbitSpeedSlider);
-        this.consolePane.appendChild(orbitSpeedContainer);
+        this.consoleContent.appendChild(orbitSpeedContainer);
 
         // Add orbit visibility slider
         const orbitVisibilityContainer = document.createElement('div');
@@ -541,7 +605,7 @@ class Earth {
 
         orbitVisibilityContainer.appendChild(orbitVisibilityLabel);
         orbitVisibilityContainer.appendChild(orbitVisibilitySlider);
-        this.consolePane.appendChild(orbitVisibilityContainer);
+        this.consoleContent.appendChild(orbitVisibilityContainer);
     }
 
     show() {
