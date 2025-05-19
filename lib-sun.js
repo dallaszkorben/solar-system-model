@@ -5,21 +5,21 @@ class Sun {
     constructor() {
         // Actual diameter in km
         this.actualDiameter = 1391400;
-        
+
         // Scaled diameter (divided by 1000 like Earth model) and multiplied by 10 for visibility
-        this.diameter = (this.actualDiameter / 1000) * 10;
+        this.diameter = (this.actualDiameter / 1000) * 50;
         this.radius = this.diameter / 2;
-        
+
         // Rotation properties
         this.rotationEnabled = false; // Disabled by default
         this.rotationSpeed = 0.0001; // Initial rotation speed (28 day period)
         this.maxRotationSpeed = 0.001; // Maximum rotation speed
         this.rotationPeriod = 28; // days
-        
+
         this.group = new THREE.Group();
         this.consolePane = null;
         this.consoleVisible = false;
-        
+
         this.createSphere();
         this.createConsolePane();
     }
@@ -41,7 +41,7 @@ class Sun {
 
         this.sphere = new THREE.Mesh(geometry, material);
         this.group.add(this.sphere);
-        
+
         // Add a point light at the center of the sun
         const sunLight = new THREE.PointLight(0xffffff, 1.5, 0, 1);
         this.group.add(sunLight);
@@ -71,24 +71,24 @@ class Sun {
         header.style.borderTopRightRadius = '5px';
         header.style.cursor = 'move'; // Change cursor to indicate draggable
         header.style.borderBottom = '1px solid #666';
-        
+
         // Add title to header
         const title = document.createElement('h3');
         title.textContent = 'Sun Controls';
         title.style.margin = '0';
         header.appendChild(title);
-        
+
         // Add the header to the console pane
         this.consolePane.appendChild(header);
-        
+
         // Create content container with padding
         const content = document.createElement('div');
         content.style.padding = '15px';
         this.consolePane.appendChild(content);
-        
+
         // Make the console pane draggable
         this.makeDraggable(this.consolePane, header);
-        
+
         // Store content container for adding controls
         this.consoleContent = content;
 
@@ -101,9 +101,9 @@ class Sun {
 
     makeDraggable(element, dragHandle) {
         let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-        
+
         dragHandle.onmousedown = dragMouseDown;
-        
+
         function dragMouseDown(e) {
             e = e || window.event;
             e.preventDefault();
@@ -114,7 +114,7 @@ class Sun {
             // Call a function whenever the cursor moves
             document.onmousemove = elementDrag;
         }
-        
+
         function elementDrag(e) {
             e = e || window.event;
             e.preventDefault();
@@ -130,14 +130,14 @@ class Sun {
             element.style.bottom = 'auto';
             element.style.right = 'auto';
         }
-        
+
         function closeDragElement() {
             // Stop moving when mouse button is released
             document.onmouseup = null;
             document.onmousemove = null;
         }
     }
-    
+
     createRotationSection() {
         // Create section header
         const sectionHeader = document.createElement('h4');
@@ -230,7 +230,7 @@ class Sun {
     setRotationSpeed(speed) {
         this.rotationSpeed = speed;
     }
-    
+
     // Method to get the sun object
     getObject() {
         return this.group;

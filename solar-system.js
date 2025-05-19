@@ -30,6 +30,14 @@ class SolarSystem {
         this.earth = new Earth(12000); // 12000m diameter
         this.planets.push(this.earth);
         this.group.add(this.earth.getObject());
+        
+        // Add Budapest marker to Earth
+        const budapestMarker = new LocationMarker(LOCATIONS.BUDAPEST);
+        budapestMarker.attachToPlanet(this.earth);
+        
+        // Add Kiruna marker to Earth
+        const kirunaMarker = new LocationMarker(LOCATIONS.KIRUNA);
+        kirunaMarker.attachToPlanet(this.earth);
     }
     
     createConsolePane() {

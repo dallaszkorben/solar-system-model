@@ -56,6 +56,8 @@ class Earth {
         // Load Earth texture
         const textureLoader = new THREE.TextureLoader();
         const texture = textureLoader.load('images/Earth-texture.jpg');
+        
+        // No texture modifications - use the original texture
 
         // Create material with the texture
         const material = new THREE.MeshPhongMaterial({
