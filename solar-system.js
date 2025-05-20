@@ -146,6 +146,8 @@ class SolarSystem {
         this.addViewButton('Sun View', () => this.setSunView());
         this.addViewButton('Earth View', () => this.setEarthView());
         
+
+        
         // Add toggle for showing individual controls
         this.addToggle('Show Sun Controls', false, (checked) => {
             if (checked) {

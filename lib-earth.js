@@ -25,6 +25,9 @@ class Earth {
         this.orbitVisibility = 1.0; // Full visibility by default
         this.orbitLine = null;
         this.orbitGroup = new THREE.Group(); // Parent group for orbital motion
+        
+        // Day/Night effect properties
+        this.dayNightEnabled = true; // Enabled by default
 
         // Season labels properties
         this.seasonLabels = new THREE.Group(); // Group for season labels
@@ -56,19 +59,26 @@ class Earth {
         // Load Earth texture
         const textureLoader = new THREE.TextureLoader();
         const texture = textureLoader.load('images/Earth-texture.jpg');
-        
+
         // No texture modifications - use the original texture
 
         // Create material with the texture
-        const material = new THREE.MeshPhongMaterial({
+        // Using MeshStandardMaterial for physically-based rendering
+        // This allows the Earth to be lit only on the side facing the Sun
+        const material = new THREE.MeshStandardMaterial({
             map: texture,
-            shininess: 5,
-            transparent: false,
-            depthWrite: true
+            roughness: 1.0,
+            metalness: 0.0
         });
 
         this.sphere = new THREE.Mesh(geometry, material);
         this.group.add(this.sphere);
+        
+        // Store both material types for toggling day/night effect
+        this.standardMaterial = material;
+        this.basicMaterial = new THREE.MeshBasicMaterial({
+            map: texture
+        });
     }
 
     createAxis() {
@@ -228,9 +238,9 @@ class Earth {
 
     makeDraggable(element, dragHandle) {
         let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-        
+
         dragHandle.onmousedown = dragMouseDown;
-        
+
         function dragMouseDown(e) {
             e = e || window.event;
             e.preventDefault();
@@ -241,7 +251,7 @@ class Earth {
             // Call a function whenever the cursor moves
             document.onmousemove = elementDrag;
         }
-        
+
         function elementDrag(e) {
             e = e || window.event;
             e.preventDefault();
@@ -257,7 +267,7 @@ class Earth {
             element.style.bottom = 'auto';
             element.style.right = 'auto';
         }
-        
+
         function closeDragElement() {
             // Stop moving when mouse button is released
             document.onmouseup = null;
@@ -289,24 +299,24 @@ class Earth {
         header.style.borderTopRightRadius = '5px';
         header.style.cursor = 'move'; // Change cursor to indicate draggable
         header.style.borderBottom = '1px solid #666';
-        
+
         // Add title to header
         const title = document.createElement('h3');
         title.textContent = 'Earth Controls';
         title.style.margin = '0';
         header.appendChild(title);
-        
+
         // Add the header to the console pane
         this.consolePane.appendChild(header);
-        
+
         // Create content container with padding
         const content = document.createElement('div');
         content.style.padding = '15px';
         this.consolePane.appendChild(content);
-        
+
         // Make the console pane draggable
         this.makeDraggable(this.consolePane, header);
-        
+
         // Store content container for adding controls
         this.consoleContent = content;
 
@@ -327,37 +337,27 @@ class Earth {
         sectionHeader.style.borderBottom = '1px solid #555';
         sectionHeader.style.paddingBottom = '5px';
         this.consoleContent.appendChild(sectionHeader);
+        
+        // Add day/night effect toggle
+        const dayNightToggleContainer = document.createElement('div');
+        dayNightToggleContainer.style.marginBottom = '10px';
 
-        // Front view toggle - commented out as requested
-        /*
-        const closeUpToggleContainer = document.createElement('div');
-        closeUpToggleContainer.style.marginBottom = '10px';
+        const dayNightToggleLabel = document.createElement('label');
+        dayNightToggleLabel.textContent = 'Day/Night Effect: ';
+        dayNightToggleLabel.style.marginRight = '10px';
 
-        const closeUpToggleLabel = document.createElement('label');
-        closeUpToggleLabel.textContent = 'Front View: ';
-        closeUpToggleLabel.style.marginRight = '10px';
-
-        const closeUpToggle = document.createElement('input');
-        closeUpToggle.type = 'checkbox';
-        closeUpToggle.checked = this.closeUpViewEnabled;
-        closeUpToggle.id = 'close-up-toggle';
-        closeUpToggle.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                // If side view is enabled, disable it
-                if (this.sideViewEnabled) {
-                    this.sideViewEnabled = false;
-                    document.getElementById('side-view-toggle').checked = false;
-                }
-                this.toggleCloseUpView(true, false);
-            } else {
-                this.toggleCloseUpView(false, false);
-            }
+        const dayNightToggle = document.createElement('input');
+        dayNightToggle.type = 'checkbox';
+        dayNightToggle.checked = this.dayNightEnabled;
+        dayNightToggle.id = 'day-night-toggle';
+        dayNightToggle.addEventListener('change', (e) => {
+            this.dayNightEnabled = e.target.checked;
+            this.toggleDayNightEffect(this.dayNightEnabled);
         });
 
-        closeUpToggleContainer.appendChild(closeUpToggleLabel);
-        closeUpToggleContainer.appendChild(closeUpToggle);
-        this.consoleContent.appendChild(closeUpToggleContainer);
-        */
+        dayNightToggleContainer.appendChild(dayNightToggleLabel);
+        dayNightToggleContainer.appendChild(dayNightToggle);
+        this.consoleContent.appendChild(dayNightToggleContainer);
 
         // Add side view toggle
         const sideViewToggleContainer = document.createElement('div');
@@ -373,13 +373,8 @@ class Earth {
         sideViewToggle.id = 'side-view-toggle';
         sideViewToggle.addEventListener('change', (e) => {
             if (e.target.checked) {
-                // Front view is commented out, so no need to check
-                /*if (this.closeUpViewEnabled) {
-                    this.closeUpViewEnabled = false;
-                    document.getElementById('close-up-toggle').checked = false;
-                }*/
                 this.toggleCloseUpView(true, true);
-                
+
                 // If orbit is enabled, disable it when close view is enabled
                 if (this.orbitEnabled) {
                     this.orbitEnabled = false;
@@ -698,11 +693,11 @@ class Earth {
             // Store current rotation/orbit states
             this.prevRotationEnabled = this.rotationEnabled;
             this.prevOrbitEnabled = this.orbitEnabled;
-            
+
             // Disable orbit and rotation when close view is enabled
             this.rotationEnabled = false;
             this.orbitEnabled = false;
-            
+
             // Update UI controls
             document.getElementById('rotation-toggle').checked = false;
             document.getElementById('orbit-toggle').checked = false;
@@ -736,6 +731,15 @@ class Earth {
                 this.orbitEnabled = true;
                 document.getElementById('orbit-toggle').checked = true;
             }
+        }
+    }
+
+    toggleDayNightEffect(enabled) {
+        // Switch between StandardMaterial (day/night effect) and BasicMaterial (always lit)
+        if (enabled) {
+            this.sphere.material = this.standardMaterial;
+        } else {
+            this.sphere.material = this.basicMaterial;
         }
     }
 

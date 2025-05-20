@@ -42,8 +42,9 @@ class Sun {
         this.sphere = new THREE.Mesh(geometry, material);
         this.group.add(this.sphere);
 
-        // Add a point light at the center of the sun
-        const sunLight = new THREE.PointLight(0xffffff, 1.5, 0, 1);
+        // Add a point light at the center of the sun with increased intensity and no distance falloff
+        const sunLight = new THREE.PointLight(0xffffff, 2.0, 0, 1);
+        sunLight.castShadow = true;
         this.group.add(sunLight);
     }
 
@@ -230,6 +231,8 @@ class Sun {
     setRotationSpeed(speed) {
         this.rotationSpeed = speed;
     }
+    
+undefined
 
     // Method to get the sun object
     getObject() {
