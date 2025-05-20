@@ -32,11 +32,12 @@ class Sun {
         const texture = textureLoader.load('images/Sun-texture.jpg');
 
         // Create material with the texture and emissive properties
-        const material = new THREE.MeshPhongMaterial({
+        //const material = new THREE.MeshPhongMaterial({
+        const material = new THREE.MeshBasicMaterial({
             map: texture,
-            emissive: 0xffff00,
-            emissiveIntensity: 0.5,
-            shininess: 0
+            emissive: 0xffaa00,
+            emissiveIntensity: 0.3,
+            shininess: 5
         });
 
         this.sphere = new THREE.Mesh(geometry, material);
@@ -231,8 +232,8 @@ class Sun {
     setRotationSpeed(speed) {
         this.rotationSpeed = speed;
     }
-    
-undefined
+
+
 
     // Method to get the sun object
     getObject() {
