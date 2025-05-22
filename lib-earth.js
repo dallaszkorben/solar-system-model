@@ -18,14 +18,14 @@ class Earth {
 
         // Orbit properties
         this.actualOrbitRadius = 145000000; // 145,000,000 km
-        this.orbitRadius = this.actualOrbitRadius / 1000; // Scaled down by 1000
+        this.orbitRadius = this.actualOrbitRadius / 2000; // Scaled down by 200
         this.orbitEnabled = false; // Disabled by default
         this.orbitSpeed = 0.0001; // Initial orbit speed
         this.maxOrbitSpeed = 0.001; // Maximum orbit speed
         this.orbitVisibility = 1.0; // Full visibility by default
         this.orbitLine = null;
         this.orbitGroup = new THREE.Group(); // Parent group for orbital motion
-        
+
         // Day/Night effect properties
         this.dayNightEnabled = true; // Enabled by default
 
@@ -73,7 +73,7 @@ class Earth {
 
         this.sphere = new THREE.Mesh(geometry, material);
         this.group.add(this.sphere);
-        
+
         // Store both material types for toggling day/night effect
         this.standardMaterial = material;
         this.basicMaterial = new THREE.MeshBasicMaterial({
@@ -337,7 +337,7 @@ class Earth {
         sectionHeader.style.borderBottom = '1px solid #555';
         sectionHeader.style.paddingBottom = '5px';
         this.consoleContent.appendChild(sectionHeader);
-        
+
         // Add day/night effect toggle
         const dayNightToggleContainer = document.createElement('div');
         dayNightToggleContainer.style.marginBottom = '10px';
@@ -388,6 +388,51 @@ class Earth {
         sideViewToggleContainer.appendChild(sideViewToggleLabel);
         sideViewToggleContainer.appendChild(sideViewToggle);
         this.consoleContent.appendChild(sideViewToggleContainer);
+
+        // Add axis toggle
+        const axisToggleContainer = document.createElement('div');
+        axisToggleContainer.style.marginBottom = '10px';
+
+        const axisToggleLabel = document.createElement('label');
+        axisToggleLabel.textContent = 'Show Axis: ';
+        axisToggleLabel.style.marginRight = '10px';
+
+        const axisToggle = document.createElement('input');
+        axisToggle.type = 'checkbox';
+        axisToggle.checked = true; // Axis is visible by default
+        axisToggle.addEventListener('change', (e) => {
+            if (this.axis) {
+                this.axis.visible = e.target.checked;
+            }
+        });
+
+        axisToggleContainer.appendChild(axisToggleLabel);
+        axisToggleContainer.appendChild(axisToggle);
+        this.consoleContent.appendChild(axisToggleContainer);
+
+        // Add location markers toggle
+        const markersToggleContainer = document.createElement('div');
+        markersToggleContainer.style.marginBottom = '10px';
+
+        const markersToggleLabel = document.createElement('label');
+        markersToggleLabel.textContent = 'Show Location Markers: ';
+        markersToggleLabel.style.marginRight = '10px';
+
+        const markersToggle = document.createElement('input');
+        markersToggle.type = 'checkbox';
+        markersToggle.checked = true; // Markers are visible by default
+        markersToggle.id = 'location-markers-toggle';
+        markersToggle.addEventListener('change', (e) => {
+            // This will be handled by the SolarSystem class
+            const event = new CustomEvent('toggleLocationMarkers', {
+                detail: { visible: e.target.checked }
+            });
+            document.dispatchEvent(event);
+        });
+
+        markersToggleContainer.appendChild(markersToggleLabel);
+        markersToggleContainer.appendChild(markersToggle);
+        this.consoleContent.appendChild(markersToggleContainer);
 
         // Add latitude circles toggle
         const latitudeToggleContainer = document.createElement('div');

@@ -7,7 +7,7 @@ class Sun {
         this.actualDiameter = 1391400;
 
         // Scaled diameter (divided by 1000 like Earth model) and multiplied by 10 for visibility
-        this.diameter = (this.actualDiameter / 1000) * 50;
+        this.diameter = (this.actualDiameter / 1000) * 20;
         this.radius = this.diameter / 2;
 
         // Rotation properties

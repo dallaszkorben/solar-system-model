@@ -5,41 +5,65 @@ class SolarSystem {
     constructor() {
         // Main group for the entire solar system
         this.group = new THREE.Group();
-        
+
         // Store celestial bodies
         this.sun = null;
         this.earth = null;
         this.planets = [];
-        
+
         // Control panel
         this.consolePane = null;
         this.consoleVisible = false;
-        
+
+        // Location camera for Earth locations
+        this.locationCamera = new LocationCamera();
+
         // Create the solar system
         this.createSun();
         this.createEarth();
         this.createConsolePane();
     }
-    
+
     createSun() {
         this.sun = new Sun();
         this.group.add(this.sun.getObject());
     }
-    
+
     createEarth() {
         this.earth = new Earth(12000); // 12000m diameter
         this.planets.push(this.earth);
         this.group.add(this.earth.getObject());
-        
+
+        // Set Earth reference in location camera
+        this.locationCamera.setEarth(this.earth);
+
+        // Store location markers for easy access
+        this.locationMarkers = [];
+
         // Add Budapest marker to Earth
         const budapestMarker = new LocationMarker(LOCATIONS.BUDAPEST);
         budapestMarker.attachToPlanet(this.earth);
-        
+        this.locationMarkers.push(budapestMarker);
+
         // Add Kiruna marker to Earth
         const kirunaMarker = new LocationMarker(LOCATIONS.KIRUNA);
         kirunaMarker.attachToPlanet(this.earth);
+        this.locationMarkers.push(kirunaMarker);
+
+        // Listen for toggle location markers event
+        document.addEventListener('toggleLocationMarkers', (e) => {
+            this.toggleLocationMarkers(e.detail.visible);
+        });
     }
-    
+
+    toggleLocationMarkers(visible) {
+        if (this.locationMarkers && this.locationMarkers.length > 0) {
+            this.locationMarkers.forEach(marker => {
+                marker.setVisible(visible);
+            });
+        }
+    }
+
     createConsolePane() {
         // Create console pane
         this.consolePane = document.createElement('div');
@@ -64,39 +88,39 @@ class SolarSystem {
         header.style.borderTopRightRadius = '5px';
         header.style.cursor = 'move';
         header.style.borderBottom = '1px solid #666';
-        
+
         // Add title to header
         const title = document.createElement('h3');
         title.textContent = 'Solar System Controls';
         title.style.margin = '0';
         header.appendChild(title);
-        
+
         // Add the header to the console pane
         this.consolePane.appendChild(header);
-        
+
         // Create content container with padding
         const content = document.createElement('div');
         content.style.padding = '15px';
         this.consolePane.appendChild(content);
-        
+
         // Make the console pane draggable
         this.makeDraggable(this.consolePane, header);
-        
+
         // Store content container for adding controls
         this.consoleContent = content;
-        
+
         // Create view controls section
         this.createViewSection();
-        
+
         // Add to document
         document.body.appendChild(this.consolePane);
     }
-    
+
     makeDraggable(element, dragHandle) {
         let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-        
+
         dragHandle.onmousedown = dragMouseDown;
-        
+
         function dragMouseDown(e) {
             e = e || window.event;
             e.preventDefault();
@@ -107,7 +131,7 @@ class SolarSystem {
             // Call a function whenever the cursor moves
             document.onmousemove = elementDrag;
         }
-        
+
         function elementDrag(e) {
             e = e || window.event;
             e.preventDefault();
@@ -123,14 +147,14 @@ class SolarSystem {
             element.style.bottom = 'auto';
             element.style.right = 'auto';
         }
-        
+
         function closeDragElement() {
             // Stop moving when mouse button is released
             document.onmouseup = null;
             document.onmousemove = null;
         }
     }
-    
+
     createViewSection() {
         // Create section header
         const sectionHeader = document.createElement('h4');
@@ -139,15 +163,18 @@ class SolarSystem {
         sectionHeader.style.borderBottom = '1px solid #555';
         sectionHeader.style.paddingBottom = '5px';
         this.consoleContent.appendChild(sectionHeader);
-        
+
         // Add buttons for different views
         this.addViewButton('Top View', () => this.setTopView());
         this.addViewButton('Side View', () => this.setSideView());
         this.addViewButton('Sun View', () => this.setSunView());
         this.addViewButton('Earth View', () => this.setEarthView());
-        
 
-        
+        // Create location views section
+        this.createLocationViewsSection();
+
+
+
         // Add toggle for showing individual controls
         this.addToggle('Show Sun Controls', false, (checked) => {
             if (checked) {
@@ -156,7 +183,7 @@ class SolarSystem {
                 this.sun.hide();
             }
         });
-        
+
         this.addToggle('Show Earth Controls', false, (checked) => {
             if (checked && this.earth) {
                 this.earth.show();
@@ -165,11 +192,11 @@ class SolarSystem {
             }
         });
     }
-    
+
     addViewButton(label, clickHandler) {
         const buttonContainer = document.createElement('div');
         buttonContainer.style.marginBottom = '10px';
-        
+
         const button = document.createElement('button');
         button.textContent = label;
         button.style.width = '100%';
@@ -180,48 +207,48 @@ class SolarSystem {
         button.style.borderRadius = '4px';
         button.style.cursor = 'pointer';
         button.addEventListener('click', clickHandler);
-        
+
         buttonContainer.appendChild(button);
         this.consoleContent.appendChild(buttonContainer);
     }
-    
+
     addToggle(label, initialState, changeHandler) {
         const toggleContainer = document.createElement('div');
         toggleContainer.style.marginBottom = '10px';
         toggleContainer.style.display = 'flex';
         toggleContainer.style.justifyContent = 'space-between';
         toggleContainer.style.alignItems = 'center';
-        
+
         const toggleLabel = document.createElement('label');
         toggleLabel.textContent = label;
-        
+
         const toggle = document.createElement('input');
         toggle.type = 'checkbox';
         toggle.checked = initialState;
         toggle.addEventListener('change', (e) => {
             changeHandler(e.target.checked);
         });
-        
+
         toggleContainer.appendChild(toggleLabel);
         toggleContainer.appendChild(toggle);
         this.consoleContent.appendChild(toggleContainer);
     }
-    
+
     setTopView() {
         if (!camera) return;
-        
+
         // Find the largest orbit radius among all planets
-        let maxOrbitRadius = 150000; // Default value
-        
+        let maxOrbitRadius = 1500000; // Default value
+
         if (this.planets.length > 0) {
             maxOrbitRadius = Math.max(...this.planets.map(planet => planet.orbitRadius || 0));
         }
-        
+
         // Calculate camera distance based on field of view to ensure the entire orbit is visible
         const orbitDiameter = maxOrbitRadius * 2;
         const aspectRatio = window.innerWidth / window.innerHeight;
         const vFov = camera.fov * Math.PI / 180;
-        
+
         // Calculate the required distance based on the smaller dimension (width or height)
         let distance;
         if (aspectRatio >= 1.0) {
@@ -231,102 +258,349 @@ class SolarSystem {
             // Height is greater than width, so width is the limiting factor
             distance = orbitDiameter / (2 * Math.tan((vFov * aspectRatio) / 2));
         }
-        
-        // Add 10% margin to ensure the orbit is fully visible
-        distance *= 1.1;
-        
+
+        // Add 20% margin to ensure the orbit is fully visible with larger orbit radius
+        distance *= 1.2;
+
+        // Set far clipping plane to ensure the camera can see distant objects
+        camera.far = distance * 10;
+        camera.updateProjectionMatrix();
+
         camera.position.set(0, distance, 0);
         camera.lookAt(0, 0, 0);
-        
+
         if (controls) {
             controls.target.set(0, 0, 0);
             controls.update();
         }
     }
-    
+
     setSideView() {
         if (!camera) return;
-        
+
         // Position camera to the side of the solar system
         const maxOrbitRadius = this.earth ? this.earth.orbitRadius : 150000;
         const distance = maxOrbitRadius * 1.5;
-        
+
+        // Set far clipping plane to ensure the camera can see distant objects
+        camera.far = distance * 10;
+        camera.updateProjectionMatrix();
+
         camera.position.set(0, 0, distance);
         camera.lookAt(0, 0, 0);
-        
+
         if (controls) {
             controls.target.set(0, 0, 0);
             controls.update();
         }
     }
-    
+
     setSunView() {
         if (!camera || !this.sun) return;
-        
+
         // Position camera to view the Sun up close
         const viewFactor = 0.8; // 80% of vertical screen
         const distance = this.sun.diameter / (2 * Math.tan((camera.fov * Math.PI / 180) / 2) * viewFactor);
-        
+
         camera.position.set(0, 0, distance);
         camera.lookAt(0, 0, 0);
-        
+
         if (controls) {
             controls.target.set(0, 0, 0);
             controls.update();
         }
     }
-    
+
     setEarthView() {
         if (!camera || !this.earth) return;
-        
+
         // Get Earth's current position
         const earthPos = new THREE.Vector3();
         this.earth.group.getWorldPosition(earthPos);
-        
+
         // Position camera to view Earth up close
         const viewFactor = 0.5; // 50% of vertical screen
         const distance = this.earth.diameter / (2 * Math.tan((camera.fov * Math.PI / 180) / 2) * viewFactor);
-        
+
         // Calculate camera position
         const cameraPos = new THREE.Vector3();
         cameraPos.copy(earthPos);
         cameraPos.z += distance;
-        
+
         camera.position.copy(cameraPos);
         camera.lookAt(earthPos);
-        
+
         if (controls) {
             controls.target.copy(earthPos);
             controls.update();
         }
     }
-    
+
     show() {
         if (this.consolePane) {
             this.consolePane.style.display = 'block';
             this.consoleVisible = true;
         }
     }
-    
+
     hide() {
         if (this.consolePane) {
             this.consolePane.style.display = 'none';
             this.consoleVisible = false;
         }
     }
-    
+
     update(time) {
         // Update sun
         if (this.sun) {
             this.sun.update(time);
         }
-        
+
         // Update earth and other planets
         if (this.earth) {
             this.earth.update(time);
         }
+
+        // Update location camera if active
+        if (this.locationCamera) {
+            this.locationCamera.update();
+        }
     }
-    
+
+    createLocationViewsSection() {
+        // Create section header
+        const locationHeader = document.createElement('h4');
+        locationHeader.textContent = 'Location Views';
+        locationHeader.style.margin = '15px 0 10px 0';
+        locationHeader.style.borderBottom = '1px solid #555';
+        locationHeader.style.paddingBottom = '5px';
+        this.consoleContent.appendChild(locationHeader);
+
+        // Add a button to reset location view
+        this.addViewButton('Reset Location View', () => {
+            if (this.locationCamera) {
+                this.locationCamera.deactivateView();
+            }
+        });
+
+        // Add buttons for each location marker
+        if (this.locationMarkers && this.locationMarkers.length > 0) {
+            this.locationMarkers.forEach(marker => {
+                this.addViewButton(`View from ${marker.options.name}`, () => {
+                    if (this.locationCamera) {
+                        this.locationCamera.activateView(marker);
+                    }
+                });
+            });
+        }
+
+        // Add camera control buttons
+        this.createCameraControlButtons();
+    }
+
+    createCameraControlButtons() {
+        // Create section header
+        const controlHeader = document.createElement('h4');
+        controlHeader.textContent = 'Camera Controls';
+        controlHeader.style.margin = '15px 0 10px 0';
+        controlHeader.style.borderBottom = '1px solid #555';
+        controlHeader.style.paddingBottom = '5px';
+        controlHeader.style.marginTop = '25px'; // Add extra margin to separate from previous section
+        this.consoleContent.appendChild(controlHeader);
+
+        // Add camera elevation control
+        const elevationContainer = document.createElement('div');
+        elevationContainer.style.marginBottom = '15px';
+        elevationContainer.style.display = 'flex';
+        elevationContainer.style.justifyContent = 'space-between';
+        elevationContainer.style.alignItems = 'center';
+
+        const elevationLabel = document.createElement('label');
+        elevationLabel.textContent = 'Camera Height:';
+        elevationLabel.style.marginRight = '10px';
+
+        const elevationInput = document.createElement('input');
+        elevationInput.type = 'range';
+        elevationInput.min = '0.001';
+        elevationInput.max = '0.05';
+        elevationInput.step = '0.001';
+        elevationInput.value = '0.01';
+        elevationInput.style.flexGrow = '1';
+        elevationInput.addEventListener('input', (e) => {
+            if (this.locationCamera && this.locationCamera.isActive) {
+                this.locationCamera.cameraElevation = parseFloat(e.target.value);
+                this.locationCamera.updateView();
+            }
+        });
+
+        elevationContainer.appendChild(elevationLabel);
+        elevationContainer.appendChild(elevationInput);
+        this.consoleContent.appendChild(elevationContainer);
+
+        // Add horizontal angle control
+        const horizontalContainer = document.createElement('div');
+        horizontalContainer.style.marginBottom = '15px';
+        horizontalContainer.style.display = 'flex';
+        horizontalContainer.style.justifyContent = 'space-between';
+        horizontalContainer.style.alignItems = 'center';
+
+        const horizontalLabel = document.createElement('label');
+        horizontalLabel.textContent = 'Horizontal Angle:';
+        horizontalLabel.style.marginRight = '10px';
+
+        const horizontalInput = document.createElement('input');
+        horizontalInput.type = 'range';
+        horizontalInput.min = '-3.14';
+        horizontalInput.max = '3.14';
+        horizontalInput.step = '0.01';
+        horizontalInput.value = '-1.57'; // -PI/2
+        horizontalInput.style.flexGrow = '1';
+        horizontalInput.addEventListener('input', (e) => {
+            if (this.locationCamera && this.locationCamera.isActive) {
+                this.locationCamera.cameraHorizontalAngle = parseFloat(e.target.value);
+                this.locationCamera.updateView();
+            }
+        });
+
+        horizontalContainer.appendChild(horizontalLabel);
+        horizontalContainer.appendChild(horizontalInput);
+        this.consoleContent.appendChild(horizontalContainer);
+
+        // Add vertical angle control
+        const verticalContainer = document.createElement('div');
+        verticalContainer.style.marginBottom = '15px';
+        verticalContainer.style.display = 'flex';
+        verticalContainer.style.justifyContent = 'space-between';
+        verticalContainer.style.alignItems = 'center';
+
+        const verticalLabel = document.createElement('label');
+        verticalLabel.textContent = 'Vertical Angle:';
+        verticalLabel.style.marginRight = '10px';
+
+        const verticalInput = document.createElement('input');
+        verticalInput.type = 'range';
+        verticalInput.min = '-1.47'; // -PI/2 + 0.1
+        verticalInput.max = '1.47';  // PI/2 - 0.1
+        verticalInput.step = '0.01';
+        verticalInput.value = '0';
+        verticalInput.style.flexGrow = '1';
+        verticalInput.addEventListener('input', (e) => {
+            if (this.locationCamera && this.locationCamera.isActive) {
+                this.locationCamera.cameraVerticalAngle = parseFloat(e.target.value);
+                this.locationCamera.updateView();
+            }
+        });
+
+        verticalContainer.appendChild(verticalLabel);
+        verticalContainer.appendChild(verticalInput);
+        this.consoleContent.appendChild(verticalContainer);
+
+        elevationContainer.appendChild(elevationLabel);
+        elevationContainer.appendChild(elevationInput);
+        this.consoleContent.appendChild(elevationContainer);
+
+        // Create container for arrow buttons
+        const arrowContainer = document.createElement('div');
+        arrowContainer.style.display = 'grid';
+        arrowContainer.style.gridTemplateColumns = '1fr 1fr 1fr';
+        arrowContainer.style.gridTemplateRows = '1fr 1fr 1fr';
+        arrowContainer.style.gap = '5px';
+        arrowContainer.style.width = '120px';
+        arrowContainer.style.margin = '0 auto 15px auto';
+
+        // Create up arrow button
+        const upButton = document.createElement('button');
+        upButton.innerHTML = '&#9650;'; // Up arrow symbol
+        upButton.style.gridColumn = '2';
+        upButton.style.gridRow = '1';
+        upButton.style.padding = '8px';
+        upButton.style.backgroundColor = '#444';
+        upButton.style.color = 'white';
+        upButton.style.border = '1px solid #666';
+        upButton.style.borderRadius = '4px';
+        upButton.style.cursor = 'pointer';
+        upButton.addEventListener('click', () => {
+            if (this.locationCamera && this.locationCamera.isActive) {
+                this.locationCamera.cameraVerticalAngle -= 0.1; // Rotate up (positive value)
+                this.locationCamera.updateView();
+                console.log("Camera vertical angle:", this.locationCamera.cameraVerticalAngle);
+            }
+        });
+
+        // Create down arrow button
+        const downButton = document.createElement('button');
+        downButton.innerHTML = '&#9660;'; // Down arrow symbol
+        downButton.style.gridColumn = '2';
+        downButton.style.gridRow = '3';
+        downButton.style.padding = '8px';
+        downButton.style.backgroundColor = '#444';
+        downButton.style.color = 'white';
+        downButton.style.border = '1px solid #666';
+        downButton.style.borderRadius = '4px';
+        downButton.style.cursor = 'pointer';
+        downButton.addEventListener('click', () => {
+            if (this.locationCamera && this.locationCamera.isActive) {
+                this.locationCamera.cameraVerticalAngle += 0.1; // Rotate down (negative value)
+                this.locationCamera.updateView();
+                console.log("Camera vertical angle:", this.locationCamera.cameraVerticalAngle);
+            }
+        });
+
+        // Create left arrow button
+        const leftButton = document.createElement('button');
+        leftButton.innerHTML = '&#9668;'; // Left arrow symbol
+        leftButton.style.gridColumn = '1';
+        leftButton.style.gridRow = '2';
+        leftButton.style.padding = '8px';
+        leftButton.style.backgroundColor = '#444';
+        leftButton.style.color = 'white';
+        leftButton.style.border = '1px solid #666';
+        leftButton.style.borderRadius = '4px';
+        leftButton.style.cursor = 'pointer';
+        leftButton.addEventListener('click', () => {
+            if (this.locationCamera && this.locationCamera.isActive) {
+                this.locationCamera.cameraHorizontalAngle += 0.1; // Rotate left
+                this.locationCamera.updateView();
+            }
+        });
+
+        // Create right arrow button
+        const rightButton = document.createElement('button');
+        rightButton.innerHTML = '&#9658;'; // Right arrow symbol
+        rightButton.style.gridColumn = '3';
+        rightButton.style.gridRow = '2';
+        rightButton.style.padding = '8px';
+        rightButton.style.backgroundColor = '#444';
+        rightButton.style.color = 'white';
+        rightButton.style.border = '1px solid #666';
+        rightButton.style.borderRadius = '4px';
+        rightButton.style.cursor = 'pointer';
+        rightButton.addEventListener('click', () => {
+            if (this.locationCamera && this.locationCamera.isActive) {
+                this.locationCamera.cameraHorizontalAngle -= 0.1; // Rotate right
+                this.locationCamera.updateView();
+            }
+        });
+
+        // Add buttons to container
+        arrowContainer.appendChild(upButton);
+        arrowContainer.appendChild(downButton);
+        arrowContainer.appendChild(leftButton);
+        arrowContainer.appendChild(rightButton);
+
+        // Add container to console content
+        this.consoleContent.appendChild(arrowContainer);
+
+        // Add instructions
+        const instructions = document.createElement('div');
+        instructions.style.fontSize = '12px';
+        instructions.style.textAlign = 'center';
+        instructions.style.marginBottom = '15px';
+        instructions.style.marginTop = '10px';
+        instructions.textContent = 'Use arrows to rotate camera view';
+        this.consoleContent.appendChild(instructions);
+    }
+
     getObject() {
         return this.group;
     }
