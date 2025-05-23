@@ -13,9 +13,18 @@ class LocationCamera {
         this.isActive = false;
 
         // Camera orientation and elevation control variables
-        this.cameraHorizontalAngle = -Math.PI/2;  // Default: -90 degrees (looking south)
-        this.cameraVerticalAngle = 0;             // Default: 0 degrees (parallel to horizon)
-        this.cameraElevation = 0.01;              // Default: 1% of Earth's radius
+        // These will be overridden by SolarSystem settings
+        this.defaultHorizontalAngle = 0;
+        this.defaultVerticalAngle = 0;
+        this.defaultElevation = 0.01;             // Default: 1% of Earth's radius
+
+        // Set initial values to defaults
+        this.cameraHorizontalAngle = this.defaultHorizontalAngle;
+        this.cameraVerticalAngle = this.defaultVerticalAngle;
+        this.cameraElevation = this.defaultElevation;
+
+        // Store camera settings for each location
+        this.locationSettings = {};
     }
 
     /**
@@ -49,17 +58,41 @@ class LocationCamera {
         this.activeLocation = location;
         this.isActive = true;
 
-        // Reset camera orientation to default values
-        this.cameraHorizontalAngle = -Math.PI/3; //0: North, -Math.PI/2: East, Math.PI: South, Math.PI/2: West
-        this.cameraVerticalAngle = //0;            // Parallel to horizon (horizontal view) - means up + means down
-        this.cameraElevation = 0.01;             // 1% of Earth's radius
+        // Get location ID for settings storage
+        const locationId = location.options.name.toLowerCase();
+
+        // Check if we have stored settings for this location
+        if (this.locationSettings[locationId]) {
+            // Use stored settings
+            this.cameraHorizontalAngle = this.locationSettings[locationId].horizontalAngle;
+            this.cameraVerticalAngle = this.locationSettings[locationId].verticalAngle;
+            this.cameraElevation = this.locationSettings[locationId].elevation;
+        } else {
+            // Get settings from SolarSystem if available
+            if (window.solarSystem && window.solarSystem.cameraSettings && window.solarSystem.cameraSettings[locationId]) {
+                this.cameraHorizontalAngle = window.solarSystem.cameraSettings[locationId].horizontalAngle;
+                this.cameraVerticalAngle = window.solarSystem.cameraSettings[locationId].verticalAngle;
+                this.cameraElevation = window.solarSystem.cameraSettings[locationId].elevation;
+            } else {
+                // Fall back to default values
+                this.cameraHorizontalAngle = this.defaultHorizontalAngle;
+                this.cameraVerticalAngle = this.defaultVerticalAngle;
+                this.cameraElevation = this.defaultElevation;
+            }
+
+            // Store initial settings
+            this.locationSettings[locationId] = {
+                horizontalAngle: this.cameraHorizontalAngle,
+                verticalAngle: this.cameraVerticalAngle,
+                elevation: this.cameraElevation
+            };
+        }
 
         console.log("Camera activated with horizontal angle:", this.cameraHorizontalAngle,
                     "vertical angle:", this.cameraVerticalAngle);
 
-        // Reset legacy view direction variables
-        this.viewDirection = 0;
-        this.viewElevation = 0;
+        // Reset legacy view direction variable
+        this.viewDirection = this.cameraHorizontalAngle;
 
         // Use location camera for rendering
         camera = this.locationCamera;
@@ -79,6 +112,16 @@ class LocationCamera {
      */
     updateView() {
         if (!this.isActive || !this.locationCamera || !this.activeLocation || !this.earth) return;
+
+        // Save current settings for this location
+        if (this.activeLocation && this.activeLocation.options) {
+            const locationId = this.activeLocation.options.name.toLowerCase();
+            this.locationSettings[locationId] = {
+                horizontalAngle: this.cameraHorizontalAngle,
+                verticalAngle: this.cameraVerticalAngle,
+                elevation: this.cameraElevation
+            };
+        }
 
         // Get location position in world space
         const locationPos = new THREE.Vector3();
@@ -133,8 +176,9 @@ class LocationCamera {
         // This gives us a vector that points in the desired compass direction
         const viewDirection = south.clone().applyMatrix4(horizontalRotation);
 
-        // Create a rotation matrix for vertical rotation (around east vector)
-        const rotatedEast = east.clone().applyMatrix4(horizontalRotation);
+        // Create a rotation axis for vertical rotation
+        // We need an east vector that's perpendicular to both up and the current view direction
+        const rotatedEast = new THREE.Vector3().crossVectors(up, viewDirection).normalize();
 
         // The vertical angle needs to be perpendicular to the view direction
         // For camera orientation: positive angles look up, negative angles look down
@@ -162,9 +206,8 @@ class LocationCamera {
         // Allow range from -80 to +80 degrees
         this.cameraVerticalAngle = Math.max(-Math.PI/2 + 0.1, Math.min(Math.PI/2 - 0.1, this.cameraVerticalAngle));
 
-        // Update legacy variables for compatibility
+        // Update legacy view direction variable for compatibility
         this.viewDirection = this.cameraHorizontalAngle;
-        this.viewElevation = this.cameraVerticalAngle;
 
         // Don't update orbit controls target when in location view
         // This prevents conflicts with the camera controls

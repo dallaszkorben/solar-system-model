@@ -18,6 +18,24 @@ class SolarSystem {
         // Location camera for Earth locations
         this.locationCamera = new LocationCamera();
 
+        // Store camera settings for different views
+        this.cameraSettings = {
+            'topView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
+            'sideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
+            'sunView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
+            'earthView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
+            'budapest': { horizontalAngle: Math.PI, verticalAngle: 0.0, elevation: 0.01 },
+            'kiruna': { horizontalAngle: 0, verticalAngle: 0.0, elevation: 0.01 }
+        };
+
+        // Current active view
+        this.activeView = null;
+
+        // References to camera control sliders
+        this.horizontalInput = null;
+        this.verticalInput = null;
+        this.elevationInput = null;
+
         // Create the solar system
         this.createSun();
         this.createEarth();
@@ -33,6 +51,9 @@ class SolarSystem {
         this.earth = new Earth(12000); // 12000m diameter
         this.planets.push(this.earth);
         this.group.add(this.earth.getObject());
+
+        // Make solar system instance globally available for LocationCamera
+        window.solarSystem = this;
 
         // Set Earth reference in location camera
         this.locationCamera.setEarth(this.earth);
@@ -109,7 +130,7 @@ class SolarSystem {
         // Store content container for adding controls
         this.consoleContent = content;
 
-        // Create view controls section
+        // Create global view section
         this.createViewSection();
 
         // Add to document
@@ -158,7 +179,7 @@ class SolarSystem {
     createViewSection() {
         // Create section header
         const sectionHeader = document.createElement('h4');
-        sectionHeader.textContent = 'View Controls';
+        sectionHeader.textContent = 'Global View';
         sectionHeader.style.margin = '0 0 10px 0';
         sectionHeader.style.borderBottom = '1px solid #555';
         sectionHeader.style.paddingBottom = '5px';
@@ -237,6 +258,11 @@ class SolarSystem {
     setTopView() {
         if (!camera) return;
 
+        // If we're in a location view, deactivate it first
+        if (this.locationCamera && this.locationCamera.isActive) {
+            this.locationCamera.deactivateView();
+        }
+
         // Find the largest orbit radius among all planets
         let maxOrbitRadius = 1500000; // Default value
 
@@ -273,10 +299,19 @@ class SolarSystem {
             controls.target.set(0, 0, 0);
             controls.update();
         }
+
+        // Set active view and update camera controls
+        this.activeView = 'topView';
+        this.updateCameraControls();
     }
 
     setSideView() {
         if (!camera) return;
+
+        // If we're in a location view, deactivate it first
+        if (this.locationCamera && this.locationCamera.isActive) {
+            this.locationCamera.deactivateView();
+        }
 
         // Position camera to the side of the solar system
         const maxOrbitRadius = this.earth ? this.earth.orbitRadius : 150000;
@@ -293,10 +328,19 @@ class SolarSystem {
             controls.target.set(0, 0, 0);
             controls.update();
         }
+
+        // Set active view and update camera controls
+        this.activeView = 'sideView';
+        this.updateCameraControls();
     }
 
     setSunView() {
         if (!camera || !this.sun) return;
+
+        // If we're in a location view, deactivate it first
+        if (this.locationCamera && this.locationCamera.isActive) {
+            this.locationCamera.deactivateView();
+        }
 
         // Position camera to view the Sun up close
         const viewFactor = 0.8; // 80% of vertical screen
@@ -309,10 +353,19 @@ class SolarSystem {
             controls.target.set(0, 0, 0);
             controls.update();
         }
+
+        // Set active view and update camera controls
+        this.activeView = 'sunView';
+        this.updateCameraControls();
     }
 
     setEarthView() {
         if (!camera || !this.earth) return;
+
+        // If we're in a location view, deactivate it first
+        if (this.locationCamera && this.locationCamera.isActive) {
+            this.locationCamera.deactivateView();
+        }
 
         // Get Earth's current position
         const earthPos = new THREE.Vector3();
@@ -334,6 +387,10 @@ class SolarSystem {
             controls.target.copy(earthPos);
             controls.update();
         }
+
+        // Set active view and update camera controls
+        this.activeView = 'earthView';
+        this.updateCameraControls();
     }
 
     show() {
@@ -376,19 +433,15 @@ class SolarSystem {
         locationHeader.style.paddingBottom = '5px';
         this.consoleContent.appendChild(locationHeader);
 
-        // Add a button to reset location view
-        this.addViewButton('Reset Location View', () => {
-            if (this.locationCamera) {
-                this.locationCamera.deactivateView();
-            }
-        });
-
         // Add buttons for each location marker
         if (this.locationMarkers && this.locationMarkers.length > 0) {
             this.locationMarkers.forEach(marker => {
                 this.addViewButton(`View from ${marker.options.name}`, () => {
                     if (this.locationCamera) {
                         this.locationCamera.activateView(marker);
+                        // Set active view based on location name
+                        this.activeView = marker.options.name.toLowerCase();
+                        this.updateCameraControls();
                     }
                 });
             });
@@ -427,11 +480,22 @@ class SolarSystem {
         elevationInput.value = '0.01';
         elevationInput.style.flexGrow = '1';
         elevationInput.addEventListener('input', (e) => {
+            const elevation = parseFloat(e.target.value);
+
+            // Save the current setting for the active view
+            if (this.activeView && this.cameraSettings[this.activeView]) {
+                this.cameraSettings[this.activeView].elevation = elevation;
+            }
+
+            // Apply to location camera if active
             if (this.locationCamera && this.locationCamera.isActive) {
-                this.locationCamera.cameraElevation = parseFloat(e.target.value);
+                this.locationCamera.cameraElevation = elevation;
                 this.locationCamera.updateView();
             }
         });
+
+        // Store reference to the elevation slider
+        this.elevationInput = elevationInput;
 
         elevationContainer.appendChild(elevationLabel);
         elevationContainer.appendChild(elevationInput);
@@ -450,17 +514,39 @@ class SolarSystem {
 
         const horizontalInput = document.createElement('input');
         horizontalInput.type = 'range';
-        horizontalInput.min = '-3.14';
-        horizontalInput.max = '3.14';
+
+        // Calculate min and max based on camera angle from LocationCamera
+        const cameraAngle = -this.locationCamera.cameraHorizontalAngle;
+        const minValue = cameraAngle - Math.PI;
+        const maxValue = cameraAngle + Math.PI;
+
+        console.log("cameraAngle: " + cameraAngle + ", minValue: " + minValue  + " maxValue: " + maxValue);
+
+        horizontalInput.min = minValue.toString();
+        horizontalInput.max = maxValue.toString();
         horizontalInput.step = '0.01';
-        horizontalInput.value = '-1.57'; // -PI/2
+        horizontalInput.value = cameraAngle.toString();
         horizontalInput.style.flexGrow = '1';
         horizontalInput.addEventListener('input', (e) => {
+            const sliderValue = parseFloat(e.target.value);
+
+            // Use slider value directly as camera angle (negated)
+            let cameraAngle = -sliderValue;
+
+            // Save the current setting for the active view
+            if (this.activeView && this.cameraSettings[this.activeView]) {
+                this.cameraSettings[this.activeView].horizontalAngle = cameraAngle;
+            }
+
+            // Apply to location camera if active
             if (this.locationCamera && this.locationCamera.isActive) {
-                this.locationCamera.cameraHorizontalAngle = parseFloat(e.target.value);
+                this.locationCamera.cameraHorizontalAngle = cameraAngle;
                 this.locationCamera.updateView();
             }
         });
+
+        // Store reference to the horizontal slider
+        this.horizontalInput = horizontalInput;
 
         horizontalContainer.appendChild(horizontalLabel);
         horizontalContainer.appendChild(horizontalInput);
@@ -482,14 +568,25 @@ class SolarSystem {
         verticalInput.min = '-1.47'; // -PI/2 + 0.1
         verticalInput.max = '1.47';  // PI/2 - 0.1
         verticalInput.step = '0.01';
-        verticalInput.value = '0';
+        verticalInput.value = this.locationCamera ? this.locationCamera.cameraVerticalAngle.toString() : '1.0';
         verticalInput.style.flexGrow = '1';
         verticalInput.addEventListener('input', (e) => {
+            const verticalAngle = parseFloat(e.target.value);
+
+            // Save the current setting for the active view
+            if (this.activeView && this.cameraSettings[this.activeView]) {
+                this.cameraSettings[this.activeView].verticalAngle = verticalAngle;
+            }
+
+            // Apply to location camera if active
             if (this.locationCamera && this.locationCamera.isActive) {
-                this.locationCamera.cameraVerticalAngle = parseFloat(e.target.value);
+                this.locationCamera.cameraVerticalAngle = verticalAngle;
                 this.locationCamera.updateView();
             }
         });
+
+        // Store reference to the vertical slider
+        this.verticalInput = verticalInput;
 
         verticalContainer.appendChild(verticalLabel);
         verticalContainer.appendChild(verticalInput);
@@ -520,10 +617,21 @@ class SolarSystem {
         upButton.style.borderRadius = '4px';
         upButton.style.cursor = 'pointer';
         upButton.addEventListener('click', () => {
-            if (this.locationCamera && this.locationCamera.isActive) {
-                this.locationCamera.cameraVerticalAngle -= 0.1; // Rotate up (positive value)
-                this.locationCamera.updateView();
-                console.log("Camera vertical angle:", this.locationCamera.cameraVerticalAngle);
+            if (this.activeView && this.cameraSettings[this.activeView]) {
+                // Update the camera settings
+                const newAngle = this.cameraSettings[this.activeView].verticalAngle - 0.1;
+                this.cameraSettings[this.activeView].verticalAngle = Math.max(-Math.PI/2 + 0.1, Math.min(Math.PI/2 - 0.1, newAngle));
+
+                // Apply to location camera if active
+                if (this.locationCamera && this.locationCamera.isActive) {
+                    this.locationCamera.cameraVerticalAngle = this.cameraSettings[this.activeView].verticalAngle;
+                    this.locationCamera.updateView();
+                }
+
+                // Update the vertical slider
+                if (this.verticalInput) {
+                    this.verticalInput.value = this.cameraSettings[this.activeView].verticalAngle;
+                }
             }
         });
 
@@ -539,10 +647,21 @@ class SolarSystem {
         downButton.style.borderRadius = '4px';
         downButton.style.cursor = 'pointer';
         downButton.addEventListener('click', () => {
-            if (this.locationCamera && this.locationCamera.isActive) {
-                this.locationCamera.cameraVerticalAngle += 0.1; // Rotate down (negative value)
-                this.locationCamera.updateView();
-                console.log("Camera vertical angle:", this.locationCamera.cameraVerticalAngle);
+            if (this.activeView && this.cameraSettings[this.activeView]) {
+                // Update the camera settings
+                const newAngle = this.cameraSettings[this.activeView].verticalAngle + 0.1;
+                this.cameraSettings[this.activeView].verticalAngle = Math.max(-Math.PI/2 + 0.1, Math.min(Math.PI/2 - 0.1, newAngle));
+
+                // Apply to location camera if active
+                if (this.locationCamera && this.locationCamera.isActive) {
+                    this.locationCamera.cameraVerticalAngle = this.cameraSettings[this.activeView].verticalAngle;
+                    this.locationCamera.updateView();
+                }
+
+                // Update the vertical slider
+                if (this.verticalInput) {
+                    this.verticalInput.value = this.cameraSettings[this.activeView].verticalAngle;
+                }
             }
         });
 
@@ -558,9 +677,34 @@ class SolarSystem {
         leftButton.style.borderRadius = '4px';
         leftButton.style.cursor = 'pointer';
         leftButton.addEventListener('click', () => {
-            if (this.locationCamera && this.locationCamera.isActive) {
-                this.locationCamera.cameraHorizontalAngle += 0.1; // Rotate left
-                this.locationCamera.updateView();
+            if (this.activeView && this.cameraSettings[this.activeView]) {
+                // Update the camera settings
+                this.cameraSettings[this.activeView].horizontalAngle += 0.1;
+                // Normalize angle to 0-2π range
+                this.cameraSettings[this.activeView].horizontalAngle %= (2 * Math.PI);
+                if (this.cameraSettings[this.activeView].horizontalAngle < 0) {
+                    this.cameraSettings[this.activeView].horizontalAngle += 2 * Math.PI;
+                }
+
+                // Apply to location camera if active
+                if (this.locationCamera && this.locationCamera.isActive) {
+                    this.locationCamera.cameraHorizontalAngle = this.cameraSettings[this.activeView].horizontalAngle;
+                    this.locationCamera.updateView();
+                }
+
+                // Update the horizontal slider
+                if (this.horizontalInput) {
+                    // Convert camera angle to slider value
+                    let sliderValue;
+                    if (this.cameraSettings[this.activeView].horizontalAngle <= Math.PI) {
+                        // 0->PI maps directly
+                        sliderValue = this.cameraSettings[this.activeView].horizontalAngle;
+                    } else {
+                        // PI->2*PI maps to PI->0
+                        sliderValue = 2 * Math.PI - this.cameraSettings[this.activeView].horizontalAngle;
+                    }
+                    this.horizontalInput.value = sliderValue;
+                }
             }
         });
 
@@ -576,9 +720,34 @@ class SolarSystem {
         rightButton.style.borderRadius = '4px';
         rightButton.style.cursor = 'pointer';
         rightButton.addEventListener('click', () => {
-            if (this.locationCamera && this.locationCamera.isActive) {
-                this.locationCamera.cameraHorizontalAngle -= 0.1; // Rotate right
-                this.locationCamera.updateView();
+            if (this.activeView && this.cameraSettings[this.activeView]) {
+                // Update the camera settings
+                this.cameraSettings[this.activeView].horizontalAngle -= 0.1;
+                // Normalize angle to 0-2π range
+                this.cameraSettings[this.activeView].horizontalAngle %= (2 * Math.PI);
+                if (this.cameraSettings[this.activeView].horizontalAngle < 0) {
+                    this.cameraSettings[this.activeView].horizontalAngle += 2 * Math.PI;
+                }
+
+                // Apply to location camera if active
+                if (this.locationCamera && this.locationCamera.isActive) {
+                    this.locationCamera.cameraHorizontalAngle = this.cameraSettings[this.activeView].horizontalAngle;
+                    this.locationCamera.updateView();
+                }
+
+                // Update the horizontal slider
+                if (this.horizontalInput) {
+                    // Convert camera angle to slider value
+                    let sliderValue;
+                    if (this.cameraSettings[this.activeView].horizontalAngle <= Math.PI) {
+                        // 0->PI maps directly
+                        sliderValue = this.cameraSettings[this.activeView].horizontalAngle;
+                    } else {
+                        // PI->2*PI maps to PI->0
+                        sliderValue = 2 * Math.PI - this.cameraSettings[this.activeView].horizontalAngle;
+                    }
+                    this.horizontalInput.value = sliderValue;
+                }
             }
         });
 
@@ -599,6 +768,42 @@ class SolarSystem {
         instructions.style.marginTop = '10px';
         instructions.textContent = 'Use arrows to rotate camera view';
         this.consoleContent.appendChild(instructions);
+    }
+
+    /**
+     * Update camera control sliders based on the active view settings
+     */
+    updateCameraControls() {
+        if (!this.activeView || !this.cameraSettings[this.activeView]) return;
+
+        const settings = this.cameraSettings[this.activeView];
+
+        // Update horizontal slider
+        if (this.horizontalInput) {
+            // Update min and max based on current camera angle
+            const cameraAngle = -settings.horizontalAngle;
+            this.horizontalInput.min = (cameraAngle - Math.PI).toString();
+            this.horizontalInput.max = (cameraAngle + Math.PI).toString();
+            this.horizontalInput.value = cameraAngle.toString();
+        }
+
+        // Update vertical slider
+        if (this.verticalInput) {
+            this.verticalInput.value = settings.verticalAngle;
+        }
+
+        // Update elevation slider
+        if (this.elevationInput) {
+            this.elevationInput.value = settings.elevation;
+        }
+
+        // Apply settings to location camera if active
+        if (this.locationCamera && this.locationCamera.isActive) {
+            this.locationCamera.cameraHorizontalAngle = settings.horizontalAngle;
+            this.locationCamera.cameraVerticalAngle = settings.verticalAngle;
+            this.locationCamera.cameraElevation = settings.elevation;
+            this.locationCamera.updateView();
+        }
     }
 
     getObject() {
