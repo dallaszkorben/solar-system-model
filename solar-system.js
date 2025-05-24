@@ -9,6 +9,7 @@ class SolarSystem {
         // Store celestial bodies
         this.sun = null;
         this.earth = null;
+        this.mars = null;
         this.planets = [];
 
         // Control panel
@@ -42,12 +43,19 @@ class SolarSystem {
         // Create the solar system
         this.createSun();
         this.createEarth();
+        this.createMars();
         this.createConsolePane();
     }
 
     createSun() {
         this.sun = new Sun();
         this.group.add(this.sun.getObject());
+    }
+    
+    createMars() {
+        this.mars = new Mars(6000); // 6000m diameter
+        this.planets.push(this.mars);
+        this.group.add(this.mars.getObject());
     }
 
     createEarth() {
@@ -196,8 +204,12 @@ class SolarSystem {
 
         // Create location views section
         this.createLocationViewsSection();
-
-
+        
+        // Create rotation controls section
+        this.createRotationControlsSection();
+        
+        // Create orbit controls section
+        this.createOrbitControlsSection();
 
         // Add toggle for showing individual controls
         this.addToggle('Show Sun Controls', false, (checked) => {
@@ -213,6 +225,14 @@ class SolarSystem {
                 this.earth.show();
             } else if (this.earth) {
                 this.earth.hide();
+            }
+        });
+        
+        this.addToggle('Show Mars Controls', false, (checked) => {
+            if (checked && this.mars) {
+                this.mars.show();
+            } else if (this.mars) {
+                this.mars.hide();
             }
         });
     }
@@ -463,6 +483,11 @@ class SolarSystem {
         // Update earth and other planets
         if (this.earth) {
             this.earth.update(time);
+        }
+        
+        // Update Mars
+        if (this.mars) {
+            this.mars.update(time);
         }
 
         // Update location camera if active
@@ -865,6 +890,336 @@ class SolarSystem {
         instructions.style.marginTop = '10px';
         instructions.textContent = 'Use arrows to rotate camera view';
         this.consoleContent.appendChild(instructions);
+    }
+
+    createRotationControlsSection() {
+        // Create section header
+        const rotationHeader = document.createElement('h4');
+        rotationHeader.textContent = 'Rotation Controls';
+        rotationHeader.style.margin = '15px 0 10px 0';
+        rotationHeader.style.borderBottom = '1px solid #555';
+        rotationHeader.style.paddingBottom = '5px';
+        this.consoleContent.appendChild(rotationHeader);
+        
+        // Add rotation toggle for all planets
+        const rotationToggleContainer = document.createElement('div');
+        rotationToggleContainer.style.marginBottom = '10px';
+        
+        const rotationToggleLabel = document.createElement('label');
+        rotationToggleLabel.textContent = 'Enable All Rotation: ';
+        rotationToggleLabel.style.marginRight = '10px';
+        
+        const rotationToggle = document.createElement('input');
+        rotationToggle.type = 'checkbox';
+        rotationToggle.checked = false;
+        rotationToggle.id = 'global-rotation-toggle';
+        rotationToggle.addEventListener('change', (e) => {
+            // Apply to all planets
+            if (this.planets && this.planets.length > 0) {
+                this.planets.forEach(planet => {
+                    planet.rotationEnabled = e.target.checked;
+                    // Update planet's own control if it exists
+                    const planetToggle = document.getElementById(`${planet.constructor.name.toLowerCase()}-rotation-toggle`);
+                    if (planetToggle) {
+                        planetToggle.checked = e.target.checked;
+                    }
+                });
+            }
+        });
+        
+        rotationToggleContainer.appendChild(rotationToggleLabel);
+        rotationToggleContainer.appendChild(rotationToggle);
+        this.consoleContent.appendChild(rotationToggleContainer);
+        
+        // Add rotation speed slider
+        const rotationSliderContainer = document.createElement('div');
+        rotationSliderContainer.style.marginBottom = '15px';
+        
+        // Add label for the slider
+        const rotationSliderLabel = document.createElement('label');
+        rotationSliderLabel.textContent = 'Global Rotation Speed: ';
+        rotationSliderLabel.style.display = 'block';
+        rotationSliderLabel.style.marginBottom = '5px';
+        rotationSliderContainer.appendChild(rotationSliderLabel);
+        
+        // Create slider and reset button container
+        const rotationSliderControlsContainer = document.createElement('div');
+        rotationSliderControlsContainer.style.display = 'flex';
+        rotationSliderControlsContainer.style.alignItems = 'center';
+        rotationSliderControlsContainer.style.gap = '10px'; // Space between slider and button
+        
+        const rotationSlider = document.createElement('input');
+        rotationSlider.type = 'range';
+        rotationSlider.min = '0';
+        rotationSlider.max = '100';
+        rotationSlider.value = '50'; // Default to middle position
+        rotationSlider.style.flexGrow = '1'; // Take up available space
+        rotationSlider.id = 'global-rotation-speed-slider';
+        
+        // Create reset button
+        const rotationResetButton = document.createElement('button');
+        rotationResetButton.textContent = 'Reset';
+        rotationResetButton.style.padding = '2px 8px';
+        rotationResetButton.style.fontSize = '12px';
+        rotationResetButton.style.backgroundColor = '#555';
+        rotationResetButton.style.color = 'white';
+        rotationResetButton.style.border = '1px solid #777';
+        rotationResetButton.style.borderRadius = '3px';
+        rotationResetButton.style.cursor = 'pointer';
+        rotationResetButton.style.flexShrink = '0'; // Don't shrink the button
+        
+        rotationSlider.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            // Apply to all planets
+            if (this.planets && this.planets.length > 0) {
+                this.planets.forEach(planet => {
+                    if (value === 0) {
+                        planet.rotationSpeed = 0;
+                    } else if (value <= 50) {
+                        const normalizedValue = value / 50;
+                        const baseSpeed = (2 * Math.PI) / (planet.rotationPeriod * 60);
+                        planet.rotationSpeed = baseSpeed * normalizedValue;
+                    } else {
+                        const normalizedValue = (value - 50) / 50;
+                        const periodDiff = planet.rotationPeriod - planet.maxRotationPeriod;
+                        const adjustedPeriod = planet.rotationPeriod - (periodDiff * normalizedValue);
+                        planet.rotationSpeed = (2 * Math.PI) / (adjustedPeriod * 60);
+                    }
+                    
+                    // Enable rotation if slider is not at 0
+                    if (value > 0) {
+                        planet.rotationEnabled = true;
+                        // Update planet's own control if it exists
+                        const planetToggle = document.getElementById(`${planet.constructor.name.toLowerCase()}-rotation-toggle`);
+                        if (planetToggle) {
+                            planetToggle.checked = true;
+                        }
+                    }
+                });
+                
+                // Update global toggle
+                if (value > 0) {
+                    rotationToggle.checked = true;
+                }
+            }
+        });
+        
+        // Reset button sets slider to default (50)
+        rotationResetButton.addEventListener('click', () => {
+            rotationSlider.value = '50';
+            // Apply default speed to all planets
+            if (this.planets && this.planets.length > 0) {
+                this.planets.forEach(planet => {
+                    const baseSpeed = (2 * Math.PI) / (planet.rotationPeriod * 60);
+                    planet.rotationSpeed = baseSpeed;
+                });
+            }
+        });
+        
+        // Add slider and button to the container
+        rotationSliderControlsContainer.appendChild(rotationSlider);
+        rotationSliderControlsContainer.appendChild(rotationResetButton);
+        rotationSliderContainer.appendChild(rotationSliderControlsContainer);
+        
+        this.consoleContent.appendChild(rotationSliderContainer);
+    }
+    
+    createOrbitControlsSection() {
+        // Create section header
+        const orbitHeader = document.createElement('h4');
+        orbitHeader.textContent = 'Orbit Controls';
+        orbitHeader.style.margin = '15px 0 10px 0';
+        orbitHeader.style.borderBottom = '1px solid #555';
+        orbitHeader.style.paddingBottom = '5px';
+        this.consoleContent.appendChild(orbitHeader);
+        
+        // Add orbit toggle for all planets
+        const orbitToggleContainer = document.createElement('div');
+        orbitToggleContainer.style.marginBottom = '10px';
+        
+        const orbitToggleLabel = document.createElement('label');
+        orbitToggleLabel.textContent = 'Enable All Orbits: ';
+        orbitToggleLabel.style.marginRight = '10px';
+        
+        const orbitToggle = document.createElement('input');
+        orbitToggle.type = 'checkbox';
+        orbitToggle.checked = false;
+        orbitToggle.id = 'global-orbit-toggle';
+        orbitToggle.addEventListener('change', (e) => {
+            // Apply to all planets
+            if (this.planets && this.planets.length > 0) {
+                this.planets.forEach(planet => {
+                    planet.orbitEnabled = e.target.checked;
+                    // Update planet's own control if it exists
+                    const planetToggle = document.getElementById(`${planet.constructor.name.toLowerCase()}-orbit-toggle`);
+                    if (planetToggle) {
+                        planetToggle.checked = e.target.checked;
+                    }
+                    
+                    // Disable close-up view if orbit is enabled
+                    if (e.target.checked && planet.sideViewEnabled) {
+                        planet.sideViewEnabled = false;
+                        const sideViewToggle = document.getElementById(`${planet.constructor.name.toLowerCase()}-side-view-toggle`);
+                        if (sideViewToggle) {
+                            sideViewToggle.checked = false;
+                        }
+                        planet.toggleCloseUpView(false, false);
+                    }
+                });
+            }
+        });
+        
+        orbitToggleContainer.appendChild(orbitToggleLabel);
+        orbitToggleContainer.appendChild(orbitToggle);
+        this.consoleContent.appendChild(orbitToggleContainer);
+        
+        // Add orbit speed slider
+        const orbitSliderContainer = document.createElement('div');
+        orbitSliderContainer.style.marginBottom = '15px';
+        
+        // Add label for the slider
+        const orbitSliderLabel = document.createElement('label');
+        orbitSliderLabel.textContent = 'Global Orbit Speed: ';
+        orbitSliderLabel.style.display = 'block';
+        orbitSliderLabel.style.marginBottom = '5px';
+        orbitSliderContainer.appendChild(orbitSliderLabel);
+        
+        // Create slider and reset button container
+        const orbitSliderControlsContainer = document.createElement('div');
+        orbitSliderControlsContainer.style.display = 'flex';
+        orbitSliderControlsContainer.style.alignItems = 'center';
+        orbitSliderControlsContainer.style.gap = '10px'; // Space between slider and button
+        
+        const orbitSlider = document.createElement('input');
+        orbitSlider.type = 'range';
+        orbitSlider.min = '0';
+        orbitSlider.max = '100';
+        orbitSlider.value = '50'; // Default to middle position
+        orbitSlider.style.flexGrow = '1'; // Take up available space
+        orbitSlider.id = 'global-orbit-speed-slider';
+        
+        // Create reset button
+        const orbitResetButton = document.createElement('button');
+        orbitResetButton.textContent = 'Reset';
+        orbitResetButton.style.padding = '2px 8px';
+        orbitResetButton.style.fontSize = '12px';
+        orbitResetButton.style.backgroundColor = '#555';
+        orbitResetButton.style.color = 'white';
+        orbitResetButton.style.border = '1px solid #777';
+        orbitResetButton.style.borderRadius = '3px';
+        orbitResetButton.style.cursor = 'pointer';
+        orbitResetButton.style.flexShrink = '0'; // Don't shrink the button
+        
+        orbitSlider.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            // Apply to all planets
+            if (this.planets && this.planets.length > 0) {
+                this.planets.forEach(planet => {
+                    if (value === 0) {
+                        planet.orbitSpeed = 0;
+                    } else if (value <= 50) {
+                        const normalizedValue = value / 50;
+                        const baseSpeed = (2 * Math.PI) / (planet.orbitalPeriod * 60);
+                        planet.orbitSpeed = baseSpeed * normalizedValue;
+                    } else {
+                        const normalizedValue = (value - 50) / 50;
+                        const periodDiff = planet.orbitalPeriod - planet.maxOrbitalPeriod;
+                        const adjustedPeriod = planet.orbitalPeriod - (periodDiff * normalizedValue);
+                        planet.orbitSpeed = (2 * Math.PI) / (adjustedPeriod * 60);
+                    }
+                    
+                    // Enable orbit if slider is not at 0
+                    if (value > 0) {
+                        planet.orbitEnabled = true;
+                        // Update planet's own control if it exists
+                        const planetToggle = document.getElementById(`${planet.constructor.name.toLowerCase()}-orbit-toggle`);
+                        if (planetToggle) {
+                            planetToggle.checked = true;
+                        }
+                        
+                        // Disable close-up view if orbit is enabled
+                        if (planet.sideViewEnabled) {
+                            planet.sideViewEnabled = false;
+                            const sideViewToggle = document.getElementById(`${planet.constructor.name.toLowerCase()}-side-view-toggle`);
+                            if (sideViewToggle) {
+                                sideViewToggle.checked = false;
+                            }
+                            planet.toggleCloseUpView(false, false);
+                        }
+                    }
+                });
+                
+                // Update global toggle
+                if (value > 0) {
+                    orbitToggle.checked = true;
+                }
+            }
+        });
+        
+        // Reset button sets slider to default (50)
+        orbitResetButton.addEventListener('click', () => {
+            orbitSlider.value = '50';
+            // Apply default speed to all planets
+            if (this.planets && this.planets.length > 0) {
+                this.planets.forEach(planet => {
+                    const baseSpeed = (2 * Math.PI) / (planet.orbitalPeriod * 60);
+                    planet.orbitSpeed = baseSpeed;
+                });
+            }
+        });
+        
+        // Add slider and button to the container
+        orbitSliderControlsContainer.appendChild(orbitSlider);
+        orbitSliderControlsContainer.appendChild(orbitResetButton);
+        orbitSliderContainer.appendChild(orbitSliderControlsContainer);
+        
+        this.consoleContent.appendChild(orbitSliderContainer);
+        
+        // Add orbit visibility slider
+        const orbitVisibilityContainer = document.createElement('div');
+        orbitVisibilityContainer.style.marginBottom = '15px';
+        
+        const orbitVisibilityLabel = document.createElement('label');
+        orbitVisibilityLabel.textContent = 'Orbit Visibility: ';
+        orbitVisibilityLabel.style.display = 'block';
+        orbitVisibilityLabel.style.marginBottom = '5px';
+        
+        const orbitVisibilitySlider = document.createElement('input');
+        orbitVisibilitySlider.type = 'range';
+        orbitVisibilitySlider.min = '0';
+        orbitVisibilitySlider.max = '100';
+        orbitVisibilitySlider.value = '100'; // Default to full visibility
+        orbitVisibilitySlider.style.width = '100%';
+        orbitVisibilitySlider.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            const visibility = value / 100;
+            
+            // Apply to all planets
+            if (this.planets && this.planets.length > 0) {
+                this.planets.forEach(planet => {
+                    planet.orbitVisibility = visibility;
+                    
+                    // Update orbit line opacity
+                    if (planet.orbitLine) {
+                        planet.orbitLine.material.opacity = visibility;
+                        
+                        // Update color based on visibility
+                        if (visibility > 0.5) {
+                            // Blend from white to gray as visibility goes from 1.0 to 0.5
+                            const intensity = 0.5 + visibility * 0.5;
+                            planet.orbitLine.material.color.setRGB(intensity, intensity, intensity);
+                        } else {
+                            // Keep gray but reduce opacity as visibility goes from 0.5 to 0
+                            planet.orbitLine.material.color.setRGB(0.5, 0.5, 0.5);
+                        }
+                    }
+                });
+            }
+        });
+        
+        orbitVisibilityContainer.appendChild(orbitVisibilityLabel);
+        orbitVisibilityContainer.appendChild(orbitVisibilitySlider);
+        this.consoleContent.appendChild(orbitVisibilityContainer);
     }
 
     /**
