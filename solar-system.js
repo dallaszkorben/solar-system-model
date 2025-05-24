@@ -997,6 +997,11 @@ class SolarSystem {
                     }
                 });
                 
+                // Dispatch event for individual planet controls to update
+                document.dispatchEvent(new CustomEvent('globalRotationSliderChange', {
+                    detail: { value: value }
+                }));
+                
                 // Update global toggle
                 if (value > 0) {
                     rotationToggle.checked = true;
@@ -1013,6 +1018,11 @@ class SolarSystem {
                     const baseSpeed = (2 * Math.PI) / (planet.rotationPeriod * 60);
                     planet.rotationSpeed = baseSpeed;
                 });
+                
+                // Dispatch event for individual planet controls to update
+                document.dispatchEvent(new CustomEvent('globalRotationSliderChange', {
+                    detail: { value: 50 }
+                }));
             }
         });
         
@@ -1149,6 +1159,11 @@ class SolarSystem {
                     }
                 });
                 
+                // Dispatch event for individual planet controls to update
+                document.dispatchEvent(new CustomEvent('globalOrbitSliderChange', {
+                    detail: { value: value }
+                }));
+                
                 // Update global toggle
                 if (value > 0) {
                     orbitToggle.checked = true;
@@ -1165,6 +1180,11 @@ class SolarSystem {
                     const baseSpeed = (2 * Math.PI) / (planet.orbitalPeriod * 60);
                     planet.orbitSpeed = baseSpeed;
                 });
+                
+                // Dispatch event for individual planet controls to update
+                document.dispatchEvent(new CustomEvent('globalOrbitSliderChange', {
+                    detail: { value: 50 }
+                }));
             }
         });
         
@@ -1214,6 +1234,11 @@ class SolarSystem {
                         }
                     }
                 });
+                
+                // Dispatch event for individual planet controls to update
+                document.dispatchEvent(new CustomEvent('globalOrbitVisibilityChange', {
+                    detail: { value: value }
+                }));
             }
         });
         

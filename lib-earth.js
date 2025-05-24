@@ -525,6 +525,17 @@ class Earth {
         sectionHeader.style.borderBottom = '1px solid #555';
         sectionHeader.style.paddingBottom = '5px';
         this.consoleContent.appendChild(sectionHeader);
+        
+        // Listen for global rotation slider changes
+        document.addEventListener('globalRotationSliderChange', (e) => {
+            const slider = document.getElementById('rotation-speed-slider');
+            if (slider) {
+                slider.value = e.detail.value;
+                // Trigger the input event to update the rotation speed
+                const event = new Event('input', { bubbles: true });
+                slider.dispatchEvent(event);
+            }
+        });
 
         // Add rotation toggle
         const rotationToggleContainer = document.createElement('div');
@@ -616,6 +627,12 @@ class Earth {
         rotationSlider.addEventListener('input', (e) => {
             const value = parseInt(e.target.value);
             updateRotationSpeed(value);
+
+            // Update global rotation speed slider if it exists
+            const globalRotationSlider = document.getElementById('global-rotation-speed-slider');
+            if (globalRotationSlider) {
+                globalRotationSlider.value = value;
+            }
         });
 
         // Reset button sets slider to default (50) without enabling rotation if it's off
@@ -625,6 +642,12 @@ class Earth {
             // Calculate the default speed without changing the enabled state
             const baseSpeed = (2 * Math.PI) / (this.rotationPeriod * 60);
             this.rotationSpeed = baseSpeed;
+
+            // Update global rotation speed slider if it exists
+            const globalRotationSlider = document.getElementById('global-rotation-speed-slider');
+            if (globalRotationSlider) {
+                globalRotationSlider.value = '50';
+            }
 
             // Don't enable rotation if it's currently disabled
             // (the updateRotationSpeed function would enable it)
@@ -641,6 +664,28 @@ class Earth {
         sectionHeader.style.borderBottom = '1px solid #555';
         sectionHeader.style.paddingBottom = '5px';
         this.consoleContent.appendChild(sectionHeader);
+        
+        // Listen for global orbit slider changes
+        document.addEventListener('globalOrbitSliderChange', (e) => {
+            const slider = document.getElementById('orbit-speed-slider');
+            if (slider) {
+                slider.value = e.detail.value;
+                // Trigger the input event to update the orbit speed
+                const event = new Event('input', { bubbles: true });
+                slider.dispatchEvent(event);
+            }
+        });
+        
+        // Listen for global orbit visibility slider changes
+        document.addEventListener('globalOrbitVisibilityChange', (e) => {
+            const slider = document.getElementById('orbit-visibility-slider');
+            if (slider) {
+                slider.value = e.detail.value;
+                // Trigger the input event to update the visibility
+                const event = new Event('input', { bubbles: true });
+                slider.dispatchEvent(event);
+            }
+        });
 
         // Add orbit toggle
         const orbitToggleContainer = document.createElement('div');
@@ -748,6 +793,12 @@ class Earth {
         orbitSpeedSlider.addEventListener('input', (e) => {
             const value = parseInt(e.target.value);
             updateOrbitSpeed(value);
+
+            // Update global orbit speed slider if it exists
+            const globalOrbitSlider = document.getElementById('global-orbit-speed-slider');
+            if (globalOrbitSlider) {
+                globalOrbitSlider.value = value;
+            }
         });
 
         // Reset button sets slider to default (50) without enabling orbit if it's off
@@ -757,6 +808,12 @@ class Earth {
             // Calculate the default speed without changing the enabled state
             const baseSpeed = (2 * Math.PI) / (this.orbitalPeriod * 60);
             this.orbitSpeed = baseSpeed;
+
+            // Update global orbit speed slider if it exists
+            const globalOrbitSlider = document.getElementById('global-orbit-speed-slider');
+            if (globalOrbitSlider) {
+                globalOrbitSlider.value = '50';
+            }
 
             // Don't enable orbit if it's currently disabled
             // (the updateOrbitSpeed function would enable it)
@@ -779,6 +836,7 @@ class Earth {
         orbitVisibilitySlider.max = '100';
         orbitVisibilitySlider.value = Math.round(this.orbitVisibility * 100);
         orbitVisibilitySlider.style.width = '100%';
+        orbitVisibilitySlider.id = 'orbit-visibility-slider';
         orbitVisibilitySlider.addEventListener('input', (e) => {
             const value = parseInt(e.target.value);
             this.orbitVisibility = value / 100;
@@ -796,6 +854,12 @@ class Earth {
                     // Keep gray but reduce opacity as visibility goes from 0.5 to 0
                     this.orbitLine.material.color.setRGB(0.5, 0.5, 0.5);
                 }
+            }
+
+            // Update global orbit visibility slider if it exists
+            const globalVisibilitySlider = document.getElementById('global-orbit-visibility-slider');
+            if (globalVisibilitySlider) {
+                globalVisibilitySlider.value = value;
             }
         });
 
