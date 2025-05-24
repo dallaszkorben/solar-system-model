@@ -1,214 +1,86 @@
 /**
  * Venus model creator
  */
-// Venus real facts data
-const venusFactData = {
-    diameter: 12104, // km
-    axialTilt: 177.3, // degrees (retrograde rotation)
-    orbitRadius: 108200000, // km (average distance from Sun)
-    rotationPeriod: 5832.5, // hours (243 days, retrograde)
-    orbitalPeriod: 224.7, // days
-};
-
-// Calculate relative periods based on Earth as reference
-function calculateRelativePeriods(rotationPeriod, orbitalPeriod) {
-    // Earth's rotation period in hours and orbital period in days
-    const earthRotationHours = 23.93;
-    const earthOrbitalDays = 365.25;
-    
-    // Calculate planet-to-Earth ratios
-    const rotationRatio = rotationPeriod / earthRotationHours;
-    const orbitalRatio = orbitalPeriod / earthOrbitalDays;
-    
-    return {
-        rotation: rotationRatio,
-        orbit: orbitalRatio
+class Venus extends Planet {
+    // Static data for Venus
+    static factData = {
+        diameter: 12104, // km
+        axialTilt: 177.3, // degrees (retrograde rotation)
+        orbitRadius: 108200000, // km (average distance from Sun)
+        rotationPeriod: 5832.5, // hours (243 days, retrograde)
+        orbitalPeriod: 224.7, // days
     };
-}
 
-// Get the relative periods for Venus
-const relativePeriods = calculateRelativePeriods(venusFactData.rotationPeriod, venusFactData.orbitalPeriod);
+    static scaleModelData = {
+        diameter: Venus.factData.diameter, // scaled diameter in the model
+        orbitRadius: this.factData.orbitRadius / Planet.scaleDownOrbitFactor, // scaled orbit radius
+        get rotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Venus.factData.rotationPeriod, Venus.factData.orbitalPeriod);
+            return 10 * relativePeriods.rotation;
+        },
+        get maxRotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Venus.factData.rotationPeriod, Venus.factData.orbitalPeriod);
+            return 1 * relativePeriods.rotation;
+        },
+        get orbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Venus.factData.rotationPeriod, Venus.factData.orbitalPeriod);
+            return 600 * relativePeriods.orbit;
+        },
+        get maxOrbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Venus.factData.rotationPeriod, Venus.factData.orbitalPeriod);
+            return 60 * relativePeriods.orbit;
+        },
+        rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
+        maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
+        orbitSpeed: function() { return (2 * Math.PI) / (this.orbitalPeriod * 60); },
+        maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
+    };
 
-// Venus scale model data (scaled values for realistic representation)
-const venusScaleModelData = {
-    diameter: 12000, // scaled diameter in the model
-    orbitRadius: 108200000 / 2000, // scaled orbit radius
-    rotationPeriod: 10 * relativePeriods.rotation, // scaled from Earth's 10 seconds
-    maxRotationPeriod: 1 * relativePeriods.rotation, // scaled from Earth's 1 second
-    orbitalPeriod: 600 * relativePeriods.orbit, // scaled from Earth's 600 seconds
-    maxOrbitalPeriod: 60 * relativePeriods.orbit, // scaled from Earth's 60 seconds
-    rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); }, // radians per frame
-    maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); }, // based on max period
-    orbitSpeed: function() { return (2 * Math.PI) / (this.orbitalPeriod * 60); }, // radians per frame
-    maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); }, // based on max period
-};
+    static nonScaleModelData = {
+        diameter: Venus.factData.diameter,  // visually appealing diameter
+        orbitRadius: 54100,                 // visually appealing orbit radius
+        get rotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Venus.factData.rotationPeriod, Venus.factData.orbitalPeriod);
+            return 1 * relativePeriods.rotation;
+        },
+        get maxRotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Venus.factData.rotationPeriod, Venus.factData.orbitalPeriod);
+            return 0.1 * relativePeriods.rotation;
+        },
+        get orbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Venus.factData.rotationPeriod, Venus.factData.orbitalPeriod);
+            return 50 * relativePeriods.orbit;
+        },
+        get maxOrbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Venus.factData.rotationPeriod, Venus.factData.orbitalPeriod);
+            return 5 * relativePeriods.orbit;
+        },
+        rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
+        maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
+        orbitSpeed: function() { return (2 * Math.PI) / (this.orbitalPeriod * 60); },
+        maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
+    };
 
-// Venus non-scale model data (values for visual appeal)
-const venusNonScaleModelData = {
-    diameter: 11800, // visually appealing diameter
-    orbitRadius: 54100, // visually appealing orbit radius
-    rotationPeriod: 1 * relativePeriods.rotation, // scaled from Earth's 1 second
-    maxRotationPeriod: 0.1 * relativePeriods.rotation, // scaled from Earth's 0.1 seconds
-    orbitalPeriod: 50 * relativePeriods.orbit, // scaled from Earth's 50 seconds
-    maxOrbitalPeriod: 5 * relativePeriods.orbit, // scaled from Earth's 5 seconds
-    rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
-    maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
-    orbitSpeed: function() { return (2 * Math.PI) / (this.orbitalPeriod * 60); },
-    maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
-};
-
-class Venus {
-    constructor(diameter = venusNonScaleModelData.diameter) {
-        // Use non-scale model data by default
-        this.diameter = diameter;
-        this.radius = diameter / 2;
-        this.axialTilt = venusFactData.axialTilt; // degrees
-        this.group = new THREE.Group();
-        this.latitudeCircles = new THREE.Group();
-        this.consolePane = null;
-        this.consoleVisible = false;
-
-        // Rotation properties
-        this.rotationEnabled = false;
-        this.rotationPeriod = venusNonScaleModelData.rotationPeriod;
-        this.maxRotationPeriod = venusNonScaleModelData.maxRotationPeriod;
-        this.rotationSpeed = venusNonScaleModelData.rotationSpeed();
-        this.maxRotationSpeed = venusNonScaleModelData.maxRotationSpeed();
-
-        // Orbit properties
-        this.actualOrbitRadius = venusFactData.orbitRadius;
-        this.orbitRadius = venusNonScaleModelData.orbitRadius;
-        this.orbitalPeriod = venusNonScaleModelData.orbitalPeriod;
-        this.maxOrbitalPeriod = venusNonScaleModelData.maxOrbitalPeriod;
-        this.orbitEnabled = false;
-        this.orbitSpeed = venusNonScaleModelData.orbitSpeed();
-        this.maxOrbitSpeed = venusNonScaleModelData.maxOrbitSpeed();
-        this.orbitVisibility = 1.0;
-        this.orbitLine = null;
-        this.orbitGroup = new THREE.Group();
-
-        // Day/Night effect properties
-        this.dayNightEnabled = true;
+    constructor() {
+        super(Venus.factData, Venus.nonScaleModelData, Venus.scaleModelData);
 
         // Season labels properties
         this.seasonLabels = new THREE.Group();
         this.seasonLabelsVisible = false;
 
-        // Close-up view properties
-        this.closeUpViewEnabled = false;
-        this.sideViewEnabled = false;
-        this.originalCameraPosition = null;
-
-        this.createSphere();
+        this.createSphere('images/Venus-texture.jpg');
         this.createAxis();
-        this.createLatitudeCircles();
-        this.applyTilt();
-        this.createOrbit();
-        this.createSeasonLabels();
-        this.createConsolePane();
-
-        // Hide latitude circles by default
-        this.latitudeCircles.visible = false;
-
-        // Hide season labels by default
-        this.seasonLabels.visible = false;
-    }
-
-    createSphere() {
-        const geometry = new THREE.SphereGeometry(this.radius, 64, 32);
-        const textureLoader = new THREE.TextureLoader();
-        const texture = textureLoader.load('images/Venus-texture.jpg');
-        
-        const material = new THREE.MeshStandardMaterial({
-            map: texture,
-            roughness: 1.0,
-            metalness: 0.0
-        });
-
-        this.sphere = new THREE.Mesh(geometry, material);
-        this.group.add(this.sphere);
-
-        this.standardMaterial = material;
-        this.basicMaterial = new THREE.MeshBasicMaterial({
-            map: texture
-        });
-    }
-
-    createAxis() {
-        const axisLength = this.diameter * 1.1;
-        const cylinderRadius = 100;
-        const cylinderGeometry = new THREE.CylinderGeometry(cylinderRadius, cylinderRadius, axisLength, 16);
-        const cylinderMaterial = new THREE.MeshBasicMaterial({
-            color: 0xff0000,
-            depthTest: true,
-            depthWrite: false
-        });
-        this.axis = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
-        this.axis.renderOrder = 1;
-        this.group.add(this.axis);
-    }
-
-    createLatitudeCircles() {
-        const segments = 64;
-        const latitudes = [
+        this.createLatitudeCircles([
             { name: 'Equator', angle: 0, color: 0xff0000 },
             { name: 'North Tropic', angle: 23.4, color: 0xff8800 },
             { name: 'South Tropic', angle: -23.4, color: 0xff8800 },
             { name: 'North Polar', angle: 66.6, color: 0x00aaff },
             { name: 'South Polar', angle: -66.6, color: 0x00aaff }
-        ];
-
-        latitudes.forEach(latitude => {
-            const phi = THREE.MathUtils.degToRad(latitude.angle);
-            const latRadius = this.radius * Math.cos(phi);
-            const y = this.radius * Math.sin(phi);
-            const vertices = [];
-
-            for (let i = 0; i <= segments; i++) {
-                const theta = (i / segments) * Math.PI * 2;
-                const x = latRadius * Math.cos(theta);
-                const z = latRadius * Math.sin(theta);
-                vertices.push(x, y, z);
-            }
-
-            const geometry = new THREE.BufferGeometry();
-            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-            const material = new THREE.LineBasicMaterial({ color: latitude.color, linewidth: 2 });
-            const circle = new THREE.Line(geometry, material);
-            this.latitudeCircles.add(circle);
-        });
-
-        this.group.add(this.latitudeCircles);
-    }
-
-    createOrbit() {
-        const segments = 128;
-        const orbitGeometry = new THREE.BufferGeometry();
-        const vertices = [];
-
-        for (let i = 0; i <= segments; i++) {
-            const theta = (i / segments) * Math.PI * 2;
-            const x = this.orbitRadius * Math.cos(theta);
-            const z = this.orbitRadius * Math.sin(theta);
-            vertices.push(x, 0, z);
-        }
-
-        orbitGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-
-        const orbitMaterial = new THREE.LineBasicMaterial({
-            color: 0xffffff,
-            transparent: true,
-            opacity: this.orbitVisibility,
-            depthTest: true,
-            depthWrite: false
-        });
-
-        this.orbitLine = new THREE.Line(orbitGeometry, orbitMaterial);
-        this.orbitLine.renderOrder = 1;
-
-        this.group.position.x = this.orbitRadius;
-        this.orbitGroup.add(this.group);
-        this.orbitGroup.add(this.orbitLine);
+        ]);
+        this.applyTilt();
+        this.createOrbit();
+        this.createSeasonLabels();
+        this.createConsolePane();
     }
 
     createSeasonLabels() {
@@ -250,10 +122,7 @@ class Venus {
         });
 
         scene.add(this.seasonLabels);
-    }
-
-    applyTilt() {
-        this.group.rotation.z = THREE.MathUtils.degToRad(this.axialTilt);
+        this.seasonLabels.visible = false; // Hide season labels by default
     }
 
     createConsolePane() {
@@ -304,37 +173,6 @@ class Venus {
         document.body.appendChild(this.consolePane);
     }
 
-    makeDraggable(element, dragHandle) {
-        let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-
-        dragHandle.onmousedown = function(e) {
-            e = e || window.event;
-            e.preventDefault();
-            pos3 = e.clientX;
-            pos4 = e.clientY;
-            document.onmouseup = closeHandler;
-            document.onmousemove = dragHandler;
-        };
-
-        function dragHandler(e) {
-            e = e || window.event;
-            e.preventDefault();
-            pos1 = pos3 - e.clientX;
-            pos2 = pos4 - e.clientY;
-            pos3 = e.clientX;
-            pos4 = e.clientY;
-            element.style.top = (element.offsetTop - pos2) + "px";
-            element.style.left = (element.offsetLeft - pos1) + "px";
-            element.style.bottom = 'auto';
-            element.style.right = 'auto';
-        }
-
-        function closeHandler() {
-            document.onmouseup = null;
-            document.onmousemove = null;
-        }
-    }
-
     createVisibilitySection() {
         // Basic visibility controls
         const sectionHeader = document.createElement('h4');
@@ -380,25 +218,6 @@ class Venus {
         });
     }
 
-    addToggle(label, id, initialState, onChange) {
-        const container = document.createElement('div');
-        container.style.marginBottom = '10px';
-
-        const labelElem = document.createElement('label');
-        labelElem.textContent = label;
-        labelElem.style.marginRight = '10px';
-
-        const toggle = document.createElement('input');
-        toggle.type = 'checkbox';
-        toggle.checked = initialState;
-        if (id) toggle.id = id;
-        toggle.addEventListener('change', onChange);
-
-        container.appendChild(labelElem);
-        container.appendChild(toggle);
-        this.consoleContent.appendChild(container);
-    }
-
     createRotationSection() {
         // Rotation controls header
         const sectionHeader = document.createElement('h4');
@@ -407,7 +226,7 @@ class Venus {
         sectionHeader.style.borderBottom = '1px solid #555';
         sectionHeader.style.paddingBottom = '5px';
         this.consoleContent.appendChild(sectionHeader);
-        
+
         // Global rotation slider listener
         document.addEventListener('globalRotationSliderChange', (e) => {
             const slider = document.getElementById('rotation-speed-slider');
@@ -457,7 +276,7 @@ class Venus {
         sectionHeader.style.borderBottom = '1px solid #555';
         sectionHeader.style.paddingBottom = '5px';
         this.consoleContent.appendChild(sectionHeader);
-        
+
         // Global orbit slider listeners
         document.addEventListener('globalOrbitSliderChange', (e) => {
             const slider = document.getElementById('orbit-speed-slider');
@@ -467,7 +286,7 @@ class Venus {
                 slider.dispatchEvent(event);
             }
         });
-        
+
         document.addEventListener('globalOrbitVisibilityChange', (e) => {
             const slider = document.getElementById('orbit-visibility-slider');
             if (slider) {
@@ -505,7 +324,7 @@ class Venus {
             if (value > 0 && !this.orbitEnabled) {
                 this.orbitEnabled = true;
                 document.getElementById('orbit-toggle').checked = true;
-                
+
                 if (this.sideViewEnabled) {
                     this.sideViewEnabled = false;
                     document.getElementById('side-view-toggle').checked = false;
@@ -534,14 +353,14 @@ class Venus {
         visSlider.value = Math.round(this.orbitVisibility * 100);
         visSlider.style.width = '100%';
         visSlider.id = 'orbit-visibility-slider';
-        
+
         visSlider.addEventListener('input', (e) => {
             const value = parseInt(e.target.value);
             this.orbitVisibility = value / 100;
 
             if (this.orbitLine) {
                 this.orbitLine.material.opacity = this.orbitVisibility;
-                
+
                 if (this.orbitVisibility > 0.5) {
                     const intensity = 0.5 + this.orbitVisibility * 0.5;
                     this.orbitLine.material.color.setRGB(intensity, intensity, intensity);
@@ -557,166 +376,6 @@ class Venus {
         visContainer.appendChild(visLabel);
         visContainer.appendChild(visSlider);
         this.consoleContent.appendChild(visContainer);
-    }
-
-    addSlider(label, id, defaultValue, onChange) {
-        const container = document.createElement('div');
-        container.style.marginBottom = '15px';
-
-        const labelElem = document.createElement('label');
-        labelElem.textContent = label;
-        labelElem.style.display = 'block';
-        labelElem.style.marginBottom = '5px';
-        container.appendChild(labelElem);
-
-        const controlsContainer = document.createElement('div');
-        controlsContainer.style.display = 'flex';
-        controlsContainer.style.alignItems = 'center';
-        controlsContainer.style.gap = '10px';
-
-        const slider = document.createElement('input');
-        slider.type = 'range';
-        slider.min = '0';
-        slider.max = '100';
-        slider.value = defaultValue.toString();
-        slider.style.flexGrow = '1';
-        if (id) slider.id = id;
-
-        const resetBtn = document.createElement('button');
-        resetBtn.textContent = 'Reset';
-        resetBtn.style.padding = '2px 8px';
-        resetBtn.style.fontSize = '12px';
-        resetBtn.style.backgroundColor = '#555';
-        resetBtn.style.color = 'white';
-        resetBtn.style.border = '1px solid #777';
-        resetBtn.style.borderRadius = '3px';
-        resetBtn.style.cursor = 'pointer';
-        resetBtn.style.flexShrink = '0';
-
-        slider.addEventListener('input', (e) => {
-            const value = parseInt(e.target.value);
-            onChange(value);
-        });
-
-        resetBtn.addEventListener('click', () => {
-            slider.value = '50';
-            onChange(50);
-        });
-
-        controlsContainer.appendChild(slider);
-        controlsContainer.appendChild(resetBtn);
-        container.appendChild(controlsContainer);
-        this.consoleContent.appendChild(container);
-    }
-
-    show() {
-        if (this.consolePane) {
-            this.consolePane.style.display = 'block';
-            this.consoleVisible = true;
-        }
-    }
-
-    hide() {
-        if (this.consolePane) {
-            this.consolePane.style.display = 'none';
-            this.consoleVisible = false;
-        }
-    }
-
-    getObject() {
-        return this.orbitGroup;
-    }
-
-    toggleCloseUpView(enabled, sideView = false) {
-        if (!camera) return;
-
-        if (sideView) {
-            this.sideViewEnabled = enabled;
-            this.closeUpViewEnabled = false;
-        } else {
-            this.closeUpViewEnabled = enabled;
-            this.sideViewEnabled = false;
-        }
-
-        if (enabled) {
-            this.originalCameraPosition = {
-                x: camera.position.x,
-                y: camera.position.y,
-                z: camera.position.z
-            };
-
-            const venusWorldPos = new THREE.Vector3();
-            this.sphere.getWorldPosition(venusWorldPos);
-            const closeUpDistance = this.radius * 3;
-
-            if (sideView) {
-                const cameraPos = {
-                    x: venusWorldPos.x,
-                    y: venusWorldPos.y,
-                    z: venusWorldPos.z + this.radius * 3
-                };
-                camera.position.set(cameraPos.x, cameraPos.y, cameraPos.z);
-                camera.lookAt(venusWorldPos);
-
-                if (controls) {
-                    controls.target.copy(venusWorldPos);
-                    controls.update();
-                }
-            } else {
-                const cameraPos = {
-                    x: venusWorldPos.x - closeUpDistance,
-                    y: venusWorldPos.y,
-                    z: venusWorldPos.z
-                };
-                camera.position.set(cameraPos.x, cameraPos.y, cameraPos.z);
-                camera.lookAt(venusWorldPos);
-
-                if (controls) {
-                    controls.target.copy(venusWorldPos);
-                    controls.update();
-                }
-            }
-
-            this.prevRotationEnabled = this.rotationEnabled;
-            this.prevOrbitEnabled = this.orbitEnabled;
-            this.rotationEnabled = false;
-            this.orbitEnabled = false;
-
-            document.getElementById('rotation-toggle').checked = false;
-            document.getElementById('orbit-toggle').checked = false;
-
-        } else if (this.originalCameraPosition) {
-            camera.position.set(
-                this.originalCameraPosition.x,
-                this.originalCameraPosition.y,
-                this.originalCameraPosition.z
-            );
-
-            camera.lookAt(0, 0, 0);
-
-            if (controls) {
-                controls.target.set(0, 0, 0);
-                controls.update();
-            }
-
-            if (this.prevRotationEnabled) {
-                this.rotationEnabled = true;
-                document.getElementById('rotation-toggle').checked = true;
-            }
-
-            if (this.prevOrbitEnabled) {
-                this.orbitEnabled = true;
-                document.getElementById('orbit-toggle').checked = true;
-            }
-        }
-    }
-
-    toggleDayNightEffect(enabled) {
-        if (enabled) {
-            this.sphere.material = this.standardMaterial;
-        } else {
-            this.sphere.material = this.basicMaterial;
-        }
     }
 
     update(time) {

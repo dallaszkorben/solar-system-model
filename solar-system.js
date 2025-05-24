@@ -17,6 +17,9 @@ class SolarSystem {
         this.consolePane = null;
         this.consoleVisible = false;
 
+        // Scale model flag
+        this.useScaleModel = false;
+
         // Location camera for Earth locations
         this.locationCamera = new LocationCamera();
 
@@ -32,7 +35,7 @@ class SolarSystem {
 
         // Current active view
         this.activeView = null;
-        
+
         // Flag to track if we're in a location view
         this.inLocationView = false;
 
@@ -53,21 +56,21 @@ class SolarSystem {
         this.sun = new Sun();
         this.group.add(this.sun.getObject());
     }
-    
+
     createMars() {
-        this.mars = new Mars(6000); // 6000m diameter
+        this.mars = new Mars(); // 6000m diameter
         this.planets.push(this.mars);
         this.group.add(this.mars.getObject());
     }
-    
+
     createVenus() {
-        this.venus = new Venus(11800); // 11800m diameter
+        this.venus = new Venus(); // 11800m diameter
         this.planets.push(this.venus);
         this.group.add(this.venus.getObject());
     }
 
     createEarth() {
-        this.earth = new Earth(12000); // 12000m diameter
+        this.earth = new Earth(); // 12000m diameter
         this.planets.push(this.earth);
         this.group.add(this.earth.getObject());
 
@@ -137,6 +140,43 @@ class SolarSystem {
 
         // Add the header to the console pane
         this.consolePane.appendChild(header);
+
+        // Create scale model toggle container
+        const scaleModelContainer = document.createElement('div');
+        scaleModelContainer.className = 'scale-model-container';
+
+        // Add scale model label
+        const scaleModelLabel = document.createElement('span');
+        scaleModelLabel.className = 'scale-model-label';
+        scaleModelLabel.textContent = 'Scale Model:';
+        scaleModelContainer.appendChild(scaleModelLabel);
+
+        // Create switch container
+        const switchLabel = document.createElement('label');
+        switchLabel.className = 'switch';
+
+        // Create toggle input
+        const toggleInput = document.createElement('input');
+        toggleInput.type = 'checkbox';
+        toggleInput.checked = this.useScaleModel;
+        toggleInput.addEventListener('change', (e) => {
+            this.useScaleModel = e.target.checked;
+            this.applyScaleModel(this.useScaleModel);
+            // Reset to top view to see the changes
+            this.setTopView();
+        });
+
+        // Create slider span
+        const sliderSpan = document.createElement('span');
+        sliderSpan.className = 'slider';
+
+        // Assemble the switch
+        switchLabel.appendChild(toggleInput);
+        switchLabel.appendChild(sliderSpan);
+        scaleModelContainer.appendChild(switchLabel);
+
+        // Add scale model container to console pane
+        this.consolePane.appendChild(scaleModelContainer);
 
         // Create content container with padding
         const content = document.createElement('div');
@@ -212,10 +252,10 @@ class SolarSystem {
 
         // Create location views section
         this.createLocationViewsSection();
-        
+
         // Create rotation controls section
         this.createRotationControlsSection();
-        
+
         // Create orbit controls section
         this.createOrbitControlsSection();
 
@@ -235,7 +275,7 @@ class SolarSystem {
                 this.earth.hide();
             }
         });
-        
+
         this.addToggle('Show Mars Controls', false, (checked) => {
             if (checked && this.mars) {
                 this.mars.show();
@@ -243,7 +283,7 @@ class SolarSystem {
                 this.mars.hide();
             }
         });
-        
+
         this.addToggle('Show Venus Controls', false, (checked) => {
             if (checked && this.venus) {
                 this.venus.show();
@@ -282,6 +322,11 @@ class SolarSystem {
         const toggleLabel = document.createElement('label');
         toggleLabel.textContent = label;
 
+        // Create switch container
+        const switchLabel = document.createElement('label');
+        switchLabel.className = 'switch';
+
+        // Create toggle input
         const toggle = document.createElement('input');
         toggle.type = 'checkbox';
         toggle.checked = initialState;
@@ -289,8 +334,16 @@ class SolarSystem {
             changeHandler(e.target.checked);
         });
 
+        // Create slider span
+        const sliderSpan = document.createElement('span');
+        sliderSpan.className = 'slider';
+
+        // Assemble the switch
+        switchLabel.appendChild(toggle);
+        switchLabel.appendChild(sliderSpan);
+
         toggleContainer.appendChild(toggleLabel);
-        toggleContainer.appendChild(toggle);
+        toggleContainer.appendChild(switchLabel);
         this.consoleContent.appendChild(toggleContainer);
     }
 
@@ -300,11 +353,11 @@ class SolarSystem {
         // If we're in a location view, deactivate it first
         if (this.locationCamera && this.locationCamera.isActive) {
             this.locationCamera.deactivateView();
-            
+
             // We're exiting a location view
             if (this.inLocationView) {
                 this.inLocationView = false;
-                
+
                 // Restore location markers based on Earth Controls panel setting
                 const markerToggle = document.getElementById('location-markers-toggle');
                 if (markerToggle) {
@@ -361,11 +414,11 @@ class SolarSystem {
         // If we're in a location view, deactivate it first
         if (this.locationCamera && this.locationCamera.isActive) {
             this.locationCamera.deactivateView();
-            
+
             // We're exiting a location view
             if (this.inLocationView) {
                 this.inLocationView = false;
-                
+
                 // Restore location markers based on Earth Controls panel setting
                 const markerToggle = document.getElementById('location-markers-toggle');
                 if (markerToggle) {
@@ -401,11 +454,11 @@ class SolarSystem {
         // If we're in a location view, deactivate it first
         if (this.locationCamera && this.locationCamera.isActive) {
             this.locationCamera.deactivateView();
-            
+
             // We're exiting a location view
             if (this.inLocationView) {
                 this.inLocationView = false;
-                
+
                 // Restore location markers based on Earth Controls panel setting
                 const markerToggle = document.getElementById('location-markers-toggle');
                 if (markerToggle) {
@@ -437,11 +490,11 @@ class SolarSystem {
         // If we're in a location view, deactivate it first
         if (this.locationCamera && this.locationCamera.isActive) {
             this.locationCamera.deactivateView();
-            
+
             // We're exiting a location view
             if (this.inLocationView) {
                 this.inLocationView = false;
-                
+
                 // Restore location markers based on Earth Controls panel setting
                 const markerToggle = document.getElementById('location-markers-toggle');
                 if (markerToggle) {
@@ -500,12 +553,12 @@ class SolarSystem {
         if (this.earth) {
             this.earth.update(time);
         }
-        
+
         // Update Mars
         if (this.mars) {
             this.mars.update(time);
         }
-        
+
         // Update Venus
         if (this.venus) {
             this.venus.update(time);
@@ -533,10 +586,10 @@ class SolarSystem {
                     if (this.locationCamera) {
                         // Set flag that we're entering a location view
                         this.inLocationView = true;
-                        
+
                         // Hide markers when entering location view
                         this.toggleLocationMarkers(false);
-                        
+
                         this.locationCamera.activateView(marker);
                         // Set active view based on location name
                         this.activeView = marker.options.name.toLowerCase();
@@ -654,15 +707,15 @@ class SolarSystem {
                 const target = new THREE.Vector3(0, 0, 0);
                 const distance = camera.position.distanceTo(target);
                 const angle = cameraAngle;
-                
+
                 // Keep current vertical angle (y position)
                 const y = camera.position.y;
-                
+
                 // Calculate new x and z positions
                 camera.position.x = distance * Math.sin(angle);
                 camera.position.z = distance * Math.cos(angle);
                 camera.position.y = y; // Maintain vertical position
-                
+
                 camera.lookAt(target);
                 if (controls) controls.update();
             }
@@ -710,19 +763,19 @@ class SolarSystem {
                 const target = new THREE.Vector3(0, 0, 0);
                 const horizontalDistance = Math.sqrt(camera.position.x * camera.position.x + camera.position.z * camera.position.z);
                 const distance = camera.position.distanceTo(target);
-                
+
                 // Calculate new y position based on vertical angle
                 // Constrain vertical angle to avoid flipping
                 const constrainedAngle = Math.max(-Math.PI/2 + 0.1, Math.min(Math.PI/2 - 0.1, verticalAngle));
                 camera.position.y = distance * Math.sin(constrainedAngle);
-                
+
                 // Adjust horizontal distance to maintain overall distance
                 const newHorizontalDistance = distance * Math.cos(constrainedAngle);
                 const ratio = newHorizontalDistance / horizontalDistance;
-                
+
                 camera.position.x *= ratio;
                 camera.position.z *= ratio;
-                
+
                 camera.lookAt(target);
                 if (controls) controls.update();
             }
@@ -921,15 +974,21 @@ class SolarSystem {
         rotationHeader.style.borderBottom = '1px solid #555';
         rotationHeader.style.paddingBottom = '5px';
         this.consoleContent.appendChild(rotationHeader);
-        
+
         // Add rotation toggle for all planets
         const rotationToggleContainer = document.createElement('div');
         rotationToggleContainer.style.marginBottom = '10px';
-        
+        rotationToggleContainer.style.display = 'flex';
+        rotationToggleContainer.style.justifyContent = 'space-between';
+        rotationToggleContainer.style.alignItems = 'center';
+
         const rotationToggleLabel = document.createElement('label');
         rotationToggleLabel.textContent = 'Enable All Rotation: ';
-        rotationToggleLabel.style.marginRight = '10px';
-        
+
+        // Create switch container
+        const rotationSwitchLabel = document.createElement('label');
+        rotationSwitchLabel.className = 'switch';
+
         const rotationToggle = document.createElement('input');
         rotationToggle.type = 'checkbox';
         rotationToggle.checked = false;
@@ -947,28 +1006,36 @@ class SolarSystem {
                 });
             }
         });
-        
+
+        // Create slider span
+        const rotationSliderSpan = document.createElement('span');
+        rotationSliderSpan.className = 'slider';
+
+        // Assemble the switch
+        rotationSwitchLabel.appendChild(rotationToggle);
+        rotationSwitchLabel.appendChild(rotationSliderSpan);
+
         rotationToggleContainer.appendChild(rotationToggleLabel);
-        rotationToggleContainer.appendChild(rotationToggle);
+        rotationToggleContainer.appendChild(rotationSwitchLabel);
         this.consoleContent.appendChild(rotationToggleContainer);
-        
+
         // Add rotation speed slider
         const rotationSliderContainer = document.createElement('div');
         rotationSliderContainer.style.marginBottom = '15px';
-        
+
         // Add label for the slider
         const rotationSliderLabel = document.createElement('label');
         rotationSliderLabel.textContent = 'Global Rotation Speed: ';
         rotationSliderLabel.style.display = 'block';
         rotationSliderLabel.style.marginBottom = '5px';
         rotationSliderContainer.appendChild(rotationSliderLabel);
-        
+
         // Create slider and reset button container
         const rotationSliderControlsContainer = document.createElement('div');
         rotationSliderControlsContainer.style.display = 'flex';
         rotationSliderControlsContainer.style.alignItems = 'center';
         rotationSliderControlsContainer.style.gap = '10px'; // Space between slider and button
-        
+
         const rotationSlider = document.createElement('input');
         rotationSlider.type = 'range';
         rotationSlider.min = '0';
@@ -976,7 +1043,7 @@ class SolarSystem {
         rotationSlider.value = '50'; // Default to middle position
         rotationSlider.style.flexGrow = '1'; // Take up available space
         rotationSlider.id = 'global-rotation-speed-slider';
-        
+
         // Create reset button
         const rotationResetButton = document.createElement('button');
         rotationResetButton.textContent = 'Reset';
@@ -988,7 +1055,7 @@ class SolarSystem {
         rotationResetButton.style.borderRadius = '3px';
         rotationResetButton.style.cursor = 'pointer';
         rotationResetButton.style.flexShrink = '0'; // Don't shrink the button
-        
+
         rotationSlider.addEventListener('input', (e) => {
             const value = parseInt(e.target.value);
             // Apply to all planets
@@ -1006,7 +1073,7 @@ class SolarSystem {
                         const adjustedPeriod = planet.rotationPeriod - (periodDiff * normalizedValue);
                         planet.rotationSpeed = (2 * Math.PI) / (adjustedPeriod * 60);
                     }
-                    
+
                     // Enable rotation if slider is not at 0
                     if (value > 0) {
                         planet.rotationEnabled = true;
@@ -1017,19 +1084,19 @@ class SolarSystem {
                         }
                     }
                 });
-                
+
                 // Dispatch event for individual planet controls to update
                 document.dispatchEvent(new CustomEvent('globalRotationSliderChange', {
                     detail: { value: value }
                 }));
-                
+
                 // Update global toggle
                 if (value > 0) {
                     rotationToggle.checked = true;
                 }
             }
         });
-        
+
         // Reset button sets slider to default (50)
         rotationResetButton.addEventListener('click', () => {
             rotationSlider.value = '50';
@@ -1039,22 +1106,22 @@ class SolarSystem {
                     const baseSpeed = (2 * Math.PI) / (planet.rotationPeriod * 60);
                     planet.rotationSpeed = baseSpeed;
                 });
-                
+
                 // Dispatch event for individual planet controls to update
                 document.dispatchEvent(new CustomEvent('globalRotationSliderChange', {
                     detail: { value: 50 }
                 }));
             }
         });
-        
+
         // Add slider and button to the container
         rotationSliderControlsContainer.appendChild(rotationSlider);
         rotationSliderControlsContainer.appendChild(rotationResetButton);
         rotationSliderContainer.appendChild(rotationSliderControlsContainer);
-        
+
         this.consoleContent.appendChild(rotationSliderContainer);
     }
-    
+
     createOrbitControlsSection() {
         // Create section header
         const orbitHeader = document.createElement('h4');
@@ -1063,15 +1130,21 @@ class SolarSystem {
         orbitHeader.style.borderBottom = '1px solid #555';
         orbitHeader.style.paddingBottom = '5px';
         this.consoleContent.appendChild(orbitHeader);
-        
+
         // Add orbit toggle for all planets
         const orbitToggleContainer = document.createElement('div');
         orbitToggleContainer.style.marginBottom = '10px';
-        
+        orbitToggleContainer.style.display = 'flex';
+        orbitToggleContainer.style.justifyContent = 'space-between';
+        orbitToggleContainer.style.alignItems = 'center';
+
         const orbitToggleLabel = document.createElement('label');
         orbitToggleLabel.textContent = 'Enable All Orbits: ';
-        orbitToggleLabel.style.marginRight = '10px';
-        
+
+        // Create switch container
+        const orbitSwitchLabel = document.createElement('label');
+        orbitSwitchLabel.className = 'switch';
+
         const orbitToggle = document.createElement('input');
         orbitToggle.type = 'checkbox';
         orbitToggle.checked = false;
@@ -1086,7 +1159,7 @@ class SolarSystem {
                     if (planetToggle) {
                         planetToggle.checked = e.target.checked;
                     }
-                    
+
                     // Disable close-up view if orbit is enabled
                     if (e.target.checked && planet.sideViewEnabled) {
                         planet.sideViewEnabled = false;
@@ -1099,28 +1172,36 @@ class SolarSystem {
                 });
             }
         });
-        
+
+        // Create slider span
+        const orbitSliderSpan = document.createElement('span');
+        orbitSliderSpan.className = 'slider';
+
+        // Assemble the switch
+        orbitSwitchLabel.appendChild(orbitToggle);
+        orbitSwitchLabel.appendChild(orbitSliderSpan);
+
         orbitToggleContainer.appendChild(orbitToggleLabel);
-        orbitToggleContainer.appendChild(orbitToggle);
+        orbitToggleContainer.appendChild(orbitSwitchLabel);
         this.consoleContent.appendChild(orbitToggleContainer);
-        
+
         // Add orbit speed slider
         const orbitSliderContainer = document.createElement('div');
         orbitSliderContainer.style.marginBottom = '15px';
-        
+
         // Add label for the slider
         const orbitSliderLabel = document.createElement('label');
         orbitSliderLabel.textContent = 'Global Orbit Speed: ';
         orbitSliderLabel.style.display = 'block';
         orbitSliderLabel.style.marginBottom = '5px';
         orbitSliderContainer.appendChild(orbitSliderLabel);
-        
+
         // Create slider and reset button container
         const orbitSliderControlsContainer = document.createElement('div');
         orbitSliderControlsContainer.style.display = 'flex';
         orbitSliderControlsContainer.style.alignItems = 'center';
         orbitSliderControlsContainer.style.gap = '10px'; // Space between slider and button
-        
+
         const orbitSlider = document.createElement('input');
         orbitSlider.type = 'range';
         orbitSlider.min = '0';
@@ -1128,7 +1209,7 @@ class SolarSystem {
         orbitSlider.value = '50'; // Default to middle position
         orbitSlider.style.flexGrow = '1'; // Take up available space
         orbitSlider.id = 'global-orbit-speed-slider';
-        
+
         // Create reset button
         const orbitResetButton = document.createElement('button');
         orbitResetButton.textContent = 'Reset';
@@ -1140,7 +1221,7 @@ class SolarSystem {
         orbitResetButton.style.borderRadius = '3px';
         orbitResetButton.style.cursor = 'pointer';
         orbitResetButton.style.flexShrink = '0'; // Don't shrink the button
-        
+
         orbitSlider.addEventListener('input', (e) => {
             const value = parseInt(e.target.value);
             // Apply to all planets
@@ -1158,7 +1239,7 @@ class SolarSystem {
                         const adjustedPeriod = planet.orbitalPeriod - (periodDiff * normalizedValue);
                         planet.orbitSpeed = (2 * Math.PI) / (adjustedPeriod * 60);
                     }
-                    
+
                     // Enable orbit if slider is not at 0
                     if (value > 0) {
                         planet.orbitEnabled = true;
@@ -1167,7 +1248,7 @@ class SolarSystem {
                         if (planetToggle) {
                             planetToggle.checked = true;
                         }
-                        
+
                         // Disable close-up view if orbit is enabled
                         if (planet.sideViewEnabled) {
                             planet.sideViewEnabled = false;
@@ -1179,19 +1260,19 @@ class SolarSystem {
                         }
                     }
                 });
-                
+
                 // Dispatch event for individual planet controls to update
                 document.dispatchEvent(new CustomEvent('globalOrbitSliderChange', {
                     detail: { value: value }
                 }));
-                
+
                 // Update global toggle
                 if (value > 0) {
                     orbitToggle.checked = true;
                 }
             }
         });
-        
+
         // Reset button sets slider to default (50)
         orbitResetButton.addEventListener('click', () => {
             orbitSlider.value = '50';
@@ -1201,30 +1282,30 @@ class SolarSystem {
                     const baseSpeed = (2 * Math.PI) / (planet.orbitalPeriod * 60);
                     planet.orbitSpeed = baseSpeed;
                 });
-                
+
                 // Dispatch event for individual planet controls to update
                 document.dispatchEvent(new CustomEvent('globalOrbitSliderChange', {
                     detail: { value: 50 }
                 }));
             }
         });
-        
+
         // Add slider and button to the container
         orbitSliderControlsContainer.appendChild(orbitSlider);
         orbitSliderControlsContainer.appendChild(orbitResetButton);
         orbitSliderContainer.appendChild(orbitSliderControlsContainer);
-        
+
         this.consoleContent.appendChild(orbitSliderContainer);
-        
+
         // Add orbit visibility slider
         const orbitVisibilityContainer = document.createElement('div');
         orbitVisibilityContainer.style.marginBottom = '15px';
-        
+
         const orbitVisibilityLabel = document.createElement('label');
         orbitVisibilityLabel.textContent = 'Orbit Visibility: ';
         orbitVisibilityLabel.style.display = 'block';
         orbitVisibilityLabel.style.marginBottom = '5px';
-        
+
         const orbitVisibilitySlider = document.createElement('input');
         orbitVisibilitySlider.type = 'range';
         orbitVisibilitySlider.min = '0';
@@ -1234,16 +1315,16 @@ class SolarSystem {
         orbitVisibilitySlider.addEventListener('input', (e) => {
             const value = parseInt(e.target.value);
             const visibility = value / 100;
-            
+
             // Apply to all planets
             if (this.planets && this.planets.length > 0) {
                 this.planets.forEach(planet => {
                     planet.orbitVisibility = visibility;
-                    
+
                     // Update orbit line opacity
                     if (planet.orbitLine) {
                         planet.orbitLine.material.opacity = visibility;
-                        
+
                         // Update color based on visibility
                         if (visibility > 0.5) {
                             // Blend from white to gray as visibility goes from 1.0 to 0.5
@@ -1255,14 +1336,14 @@ class SolarSystem {
                         }
                     }
                 });
-                
+
                 // Dispatch event for individual planet controls to update
                 document.dispatchEvent(new CustomEvent('globalOrbitVisibilityChange', {
                     detail: { value: value }
                 }));
             }
         });
-        
+
         orbitVisibilityContainer.appendChild(orbitVisibilityLabel);
         orbitVisibilityContainer.appendChild(orbitVisibilitySlider);
         this.consoleContent.appendChild(orbitVisibilityContainer);
@@ -1301,6 +1382,64 @@ class SolarSystem {
             this.locationCamera.cameraVerticalAngle = settings.verticalAngle;
             this.locationCamera.cameraElevation = settings.elevation;
             this.locationCamera.updateView();
+        }
+    }
+
+    applyScaleModel(useScale) {
+        // Apply scale model to all planets
+        if (this.planets && this.planets.length > 0) {
+            this.planets.forEach(planet => {
+                // Get the appropriate model data
+                const modelData = useScale ?
+                    planet.constructor.name.toLowerCase() + 'ScaleModelData' :
+                    planet.constructor.name.toLowerCase() + 'NonScaleModelData';
+
+                // Get the global variable with that name
+                const data = window[modelData];
+
+                if (data) {
+                    // Update planet properties
+                    planet.orbitRadius = data.orbitRadius;
+                    planet.rotationPeriod = data.rotationPeriod;
+                    planet.maxRotationPeriod = data.maxRotationPeriod;
+                    planet.orbitalPeriod = data.orbitalPeriod;
+                    planet.maxOrbitalPeriod = data.maxOrbitalPeriod;
+
+                    // Update speeds
+                    planet.rotationSpeed = data.rotationSpeed();
+                    planet.maxRotationSpeed = data.maxRotationSpeed();
+                    planet.orbitSpeed = data.orbitSpeed();
+                    planet.maxOrbitSpeed = data.maxOrbitSpeed();
+
+                    // Update orbit position
+                    if (planet.group && planet.orbitLine) {
+                        // Update orbit line geometry
+                        const segments = 128;
+                        const vertices = [];
+
+                        for (let i = 0; i <= segments; i++) {
+                            const theta = (i / segments) * Math.PI * 2;
+                            const x = planet.orbitRadius * Math.cos(theta);
+                            const z = planet.orbitRadius * Math.sin(theta);
+                            vertices.push(x, 0, z);
+                        }
+
+                        // Update orbit line geometry
+                        planet.orbitLine.geometry.setAttribute(
+                            'position',
+                            new THREE.Float32BufferAttribute(vertices, 3)
+                        );
+
+                        // Update planet position
+                        planet.group.position.x = planet.orbitRadius;
+                    }
+                }
+            });
+        }
+
+        // Update sun if needed
+        if (this.sun && useScale) {
+            // Apply scale model to sun if needed
         }
     }
 
