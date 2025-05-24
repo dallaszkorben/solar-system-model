@@ -1,20 +1,38 @@
 /**
  * Sun model creator
  */
+// Sun real facts data
+const sunFactData = {
+    diameter: 1391400, // km
+    rotationPeriod: 28, // days
+};
+
+// Sun scale model data (scaled values for realistic representation)
+const sunScaleModelData = {
+    diameter: (1391400 / 1000) * 20, // scaled diameter
+    rotationSpeed: 0.0001, // scaled rotation speed
+    maxRotationSpeed: 0.001,
+};
+
+// Sun non-scale model data (values for visual appeal)
+const sunNonScaleModelData = {
+    diameter: (1391400 / 1000) * 20, // visually appealing diameter
+    rotationSpeed: 0.0001, // visually appealing rotation speed
+    maxRotationSpeed: 0.001,
+};
+
 class Sun {
     constructor() {
-        // Actual diameter in km
-        this.actualDiameter = 1391400;
-
-        // Scaled diameter (divided by 1000 like Earth model) and multiplied by 10 for visibility
-        this.diameter = (this.actualDiameter / 1000) * 20;
+        // Use non-scale model data by default
+        this.actualDiameter = sunFactData.diameter;
+        this.diameter = sunNonScaleModelData.diameter;
         this.radius = this.diameter / 2;
 
         // Rotation properties
         this.rotationEnabled = false; // Disabled by default
-        this.rotationSpeed = 0.0001; // Initial rotation speed (28 day period)
-        this.maxRotationSpeed = 0.001; // Maximum rotation speed
-        this.rotationPeriod = 28; // days
+        this.rotationSpeed = sunNonScaleModelData.rotationSpeed; // Initial rotation speed
+        this.maxRotationSpeed = sunNonScaleModelData.maxRotationSpeed; // Maximum rotation speed
+        this.rotationPeriod = sunFactData.rotationPeriod; // days
 
         this.group = new THREE.Group();
         this.consolePane = null;

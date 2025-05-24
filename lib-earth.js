@@ -1,11 +1,49 @@
 /**
  * Earth model creator
  */
+// Earth real facts data
+const earthFactData = {
+    diameter: 12742, // km
+    axialTilt: 23.4, // degrees
+    orbitRadius: 149600000, // km (average distance from Sun)
+    rotationPeriod: 23.93, // hours
+    orbitalPeriod: 365.25, // days
+};
+
+// Earth scale model data (scaled values for realistic representation)
+const earthScaleModelData = {
+    diameter: 12000, // scaled diameter in the model
+    orbitRadius: 149600000 / 2000, // scaled orbit radius
+    rotationPeriod: 10, // 10 seconds to complete one rotation
+    maxRotationPeriod: 1, // 1 second at maximum speed
+    orbitalPeriod: 600, // 600 seconds to complete one orbit
+    maxOrbitalPeriod: 60, // 60 seconds at maximum speed
+    rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); }, // radians per frame
+    maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); }, // based on max period
+    orbitSpeed: function() { return (2 * Math.PI) / (this.orbitalPeriod * 60); }, // radians per frame
+    maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); }, // based on max period
+};
+
+// Earth non-scale model data (values for visual appeal)
+const earthNonScaleModelData = {
+    diameter: 12000, // visually appealing diameter
+    orbitRadius: 74800, // visually appealing orbit radius
+    rotationPeriod: 1, // 1 second to complete one rotation
+    maxRotationPeriod: 0.1, // 0.1 seconds at maximum speed (10x faster)
+    orbitalPeriod: 60, // 60 seconds to complete one orbit
+    maxOrbitalPeriod: 6, // 6 seconds at maximum speed
+    rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); }, // radians per frame
+    maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); }, // based on max period
+    orbitSpeed: function() { return (2 * Math.PI) / (this.orbitalPeriod * 60); }, // radians per frame
+    maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); }, // based on max period
+};
+
 class Earth {
-    constructor(diameter = 12000) {
+    constructor(diameter = earthNonScaleModelData.diameter) {
+        // Use non-scale model data by default
         this.diameter = diameter;
         this.radius = diameter / 2;
-        this.axialTilt = 23.4; // degrees
+        this.axialTilt = earthFactData.axialTilt; // degrees
         this.group = new THREE.Group();
         this.latitudeCircles = new THREE.Group(); // Group for latitude circles
         this.consolePane = null;
@@ -13,15 +51,19 @@ class Earth {
 
         // Rotation properties
         this.rotationEnabled = false; // Disabled by default
-        this.rotationSpeed = 0.0005; // Initial rotation speed
-        this.maxRotationSpeed = 0.01; // Maximum rotation speed
+        this.rotationPeriod = earthNonScaleModelData.rotationPeriod; // Time to complete one rotation in seconds
+        this.maxRotationPeriod = earthNonScaleModelData.maxRotationPeriod; // Time at maximum speed
+        this.rotationSpeed = earthNonScaleModelData.rotationSpeed(); // Initial rotation speed
+        this.maxRotationSpeed = earthNonScaleModelData.maxRotationSpeed(); // Maximum rotation speed
 
         // Orbit properties
-        this.actualOrbitRadius = 145000000; // 145,000,000 km
-        this.orbitRadius = this.actualOrbitRadius / 2000; // Scaled down by 200
+        this.actualOrbitRadius = earthFactData.orbitRadius; // Real distance in km
+        this.orbitRadius = earthNonScaleModelData.orbitRadius; // Non-scaled for visual appeal
+        this.orbitalPeriod = earthNonScaleModelData.orbitalPeriod; // Time to complete one orbit in seconds
+        this.maxOrbitalPeriod = earthNonScaleModelData.maxOrbitalPeriod; // Time at maximum speed
         this.orbitEnabled = false; // Disabled by default
-        this.orbitSpeed = 0.0001; // Initial orbit speed
-        this.maxOrbitSpeed = 0.001; // Maximum orbit speed
+        this.orbitSpeed = earthNonScaleModelData.orbitSpeed(); // Initial orbit speed
+        this.maxOrbitSpeed = earthNonScaleModelData.maxOrbitSpeed(); // Maximum orbit speed
         this.orbitVisibility = 1.0; // Full visibility by default
         this.orbitLine = null;
         this.orbitGroup = new THREE.Group(); // Parent group for orbital motion
@@ -508,30 +550,86 @@ class Earth {
         const rotationSliderContainer = document.createElement('div');
         rotationSliderContainer.style.marginBottom = '15px';
 
+        // Add label for the slider
         const rotationSliderLabel = document.createElement('label');
         rotationSliderLabel.textContent = 'Rotation Speed: ';
         rotationSliderLabel.style.display = 'block';
         rotationSliderLabel.style.marginBottom = '5px';
+        rotationSliderContainer.appendChild(rotationSliderLabel);
 
+        // Create slider and reset button container
+        const rotationSliderControlsContainer = document.createElement('div');
+        rotationSliderControlsContainer.style.display = 'flex';
+        rotationSliderControlsContainer.style.alignItems = 'center';
+        rotationSliderControlsContainer.style.gap = '10px'; // Space between slider and button
+        
         const rotationSlider = document.createElement('input');
         rotationSlider.type = 'range';
         rotationSlider.min = '0';
-        rotationSlider.max = '500';
-        rotationSlider.value = Math.round((this.rotationSpeed / this.maxRotationSpeed) * 100);
-        rotationSlider.style.width = '100%';
-        rotationSlider.addEventListener('input', (e) => {
-            const value = parseInt(e.target.value);
-            this.rotationSpeed = (value / 100) * this.maxRotationSpeed;
+        rotationSlider.max = '100';
+        rotationSlider.value = '50'; // Default to middle position
+        rotationSlider.style.flexGrow = '1'; // Take up available space
+        rotationSlider.id = 'rotation-speed-slider';
+
+        // Create reset button
+        const rotationResetButton = document.createElement('button');
+        rotationResetButton.textContent = 'Reset';
+        rotationResetButton.style.padding = '2px 8px';
+        rotationResetButton.style.fontSize = '12px';
+        rotationResetButton.style.backgroundColor = '#555';
+        rotationResetButton.style.color = 'white';
+        rotationResetButton.style.border = '1px solid #777';
+        rotationResetButton.style.borderRadius = '3px';
+        rotationResetButton.style.cursor = 'pointer';
+        rotationResetButton.style.flexShrink = '0'; // Don't shrink the button
+
+        // Add slider and button to the container
+        rotationSliderControlsContainer.appendChild(rotationSlider);
+        rotationSliderControlsContainer.appendChild(rotationResetButton);
+        rotationSliderContainer.appendChild(rotationSliderControlsContainer);
+        
+        // Function to update rotation speed based on slider value
+        const updateRotationSpeed = (value) => {
+            if (value === 0) {
+                // At 0, set speed to 0 (no movement)
+                this.rotationSpeed = 0;
+            } else if (value <= 50) {
+                // From 1-50, interpolate from very slow to default speed
+                const normalizedValue = value / 50; // 0.02 to 1
+                const baseSpeed = (2 * Math.PI) / (this.rotationPeriod * 60);
+                this.rotationSpeed = baseSpeed * normalizedValue;
+            } else {
+                // From 51-100, interpolate between default and max speed
+                const normalizedValue = (value - 50) / 50; // 0 to 1
+                const periodDiff = this.rotationPeriod - this.maxRotationPeriod;
+                const adjustedPeriod = this.rotationPeriod - (periodDiff * normalizedValue);
+                this.rotationSpeed = (2 * Math.PI) / (adjustedPeriod * 60);
+            }
 
             // If slider is moved to a non-zero value and rotation is off, turn it on
             if (value > 0 && !this.rotationEnabled) {
                 this.rotationEnabled = true;
                 document.getElementById('rotation-toggle').checked = true;
             }
+        };
+        
+        rotationSlider.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            updateRotationSpeed(value);
+        });
+        
+        // Reset button sets slider to default (50) without enabling rotation if it's off
+        rotationResetButton.addEventListener('click', () => {
+            rotationSlider.value = '50';
+            
+            // Calculate the default speed without changing the enabled state
+            const baseSpeed = (2 * Math.PI) / (this.rotationPeriod * 60);
+            this.rotationSpeed = baseSpeed;
+            
+            // Don't enable rotation if it's currently disabled
+            // (the updateRotationSpeed function would enable it)
         });
 
-        rotationSliderContainer.appendChild(rotationSliderLabel);
-        rotationSliderContainer.appendChild(rotationSlider);
         this.consoleContent.appendChild(rotationSliderContainer);
     }
 
@@ -577,20 +675,61 @@ class Earth {
         const orbitSpeedContainer = document.createElement('div');
         orbitSpeedContainer.style.marginBottom = '15px';
 
+        // Add label for the slider
         const orbitSpeedLabel = document.createElement('label');
         orbitSpeedLabel.textContent = 'Orbit Speed: ';
         orbitSpeedLabel.style.display = 'block';
         orbitSpeedLabel.style.marginBottom = '5px';
+        orbitSpeedContainer.appendChild(orbitSpeedLabel);
 
+        // Create slider and reset button container
+        const orbitSliderControlsContainer = document.createElement('div');
+        orbitSliderControlsContainer.style.display = 'flex';
+        orbitSliderControlsContainer.style.alignItems = 'center';
+        orbitSliderControlsContainer.style.gap = '10px'; // Space between slider and button
+        
         const orbitSpeedSlider = document.createElement('input');
         orbitSpeedSlider.type = 'range';
         orbitSpeedSlider.min = '0';
-        orbitSpeedSlider.max = '500';
-        orbitSpeedSlider.value = Math.round((this.orbitSpeed / this.maxOrbitSpeed) * 100);
-        orbitSpeedSlider.style.width = '100%';
-        orbitSpeedSlider.addEventListener('input', (e) => {
-            const value = parseInt(e.target.value);
-            this.orbitSpeed = (value / 100) * this.maxOrbitSpeed;
+        orbitSpeedSlider.max = '100';
+        orbitSpeedSlider.value = '50'; // Default to middle position
+        orbitSpeedSlider.style.flexGrow = '1'; // Take up available space
+        orbitSpeedSlider.id = 'orbit-speed-slider';
+
+        // Create reset button
+        const orbitResetButton = document.createElement('button');
+        orbitResetButton.textContent = 'Reset';
+        orbitResetButton.style.padding = '2px 8px';
+        orbitResetButton.style.fontSize = '12px';
+        orbitResetButton.style.backgroundColor = '#555';
+        orbitResetButton.style.color = 'white';
+        orbitResetButton.style.border = '1px solid #777';
+        orbitResetButton.style.borderRadius = '3px';
+        orbitResetButton.style.cursor = 'pointer';
+        orbitResetButton.style.flexShrink = '0'; // Don't shrink the button
+
+        // Add slider and button to the container
+        orbitSliderControlsContainer.appendChild(orbitSpeedSlider);
+        orbitSliderControlsContainer.appendChild(orbitResetButton);
+        orbitSpeedContainer.appendChild(orbitSliderControlsContainer);
+        
+        // Function to update orbit speed based on slider value
+        const updateOrbitSpeed = (value) => {
+            if (value === 0) {
+                // At 0, set speed to 0 (no movement)
+                this.orbitSpeed = 0;
+            } else if (value <= 50) {
+                // From 1-50, interpolate from very slow to default speed
+                const normalizedValue = value / 50; // 0.02 to 1
+                const baseSpeed = (2 * Math.PI) / (this.orbitalPeriod * 60);
+                this.orbitSpeed = baseSpeed * normalizedValue;
+            } else {
+                // From 51-100, interpolate between default and max speed
+                const normalizedValue = (value - 50) / 50; // 0 to 1
+                const periodDiff = this.orbitalPeriod - this.maxOrbitalPeriod;
+                const adjustedPeriod = this.orbitalPeriod - (periodDiff * normalizedValue);
+                this.orbitSpeed = (2 * Math.PI) / (adjustedPeriod * 60);
+            }
 
             // If slider is moved to a non-zero value and orbit is off, turn it on
             if (value > 0 && !this.orbitEnabled) {
@@ -604,10 +743,25 @@ class Earth {
                     this.toggleCloseUpView(false, false);
                 }
             }
+        };
+        
+        orbitSpeedSlider.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            updateOrbitSpeed(value);
+        });
+        
+        // Reset button sets slider to default (50) without enabling orbit if it's off
+        orbitResetButton.addEventListener('click', () => {
+            orbitSpeedSlider.value = '50';
+            
+            // Calculate the default speed without changing the enabled state
+            const baseSpeed = (2 * Math.PI) / (this.orbitalPeriod * 60);
+            this.orbitSpeed = baseSpeed;
+            
+            // Don't enable orbit if it's currently disabled
+            // (the updateOrbitSpeed function would enable it)
         });
 
-        orbitSpeedContainer.appendChild(orbitSpeedLabel);
-        orbitSpeedContainer.appendChild(orbitSpeedSlider);
         this.consoleContent.appendChild(orbitSpeedContainer);
 
         // Add orbit visibility slider
