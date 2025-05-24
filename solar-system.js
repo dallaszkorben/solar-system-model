@@ -30,6 +30,9 @@ class SolarSystem {
 
         // Current active view
         this.activeView = null;
+        
+        // Flag to track if we're in a location view
+        this.inLocationView = false;
 
         // References to camera control sliders
         this.horizontalInput = null;
@@ -261,6 +264,17 @@ class SolarSystem {
         // If we're in a location view, deactivate it first
         if (this.locationCamera && this.locationCamera.isActive) {
             this.locationCamera.deactivateView();
+            
+            // We're exiting a location view
+            if (this.inLocationView) {
+                this.inLocationView = false;
+                
+                // Restore location markers based on Earth Controls panel setting
+                const markerToggle = document.getElementById('location-markers-toggle');
+                if (markerToggle) {
+                    this.toggleLocationMarkers(markerToggle.checked);
+                }
+            }
         }
 
         // Find the largest orbit radius among all planets
@@ -311,6 +325,17 @@ class SolarSystem {
         // If we're in a location view, deactivate it first
         if (this.locationCamera && this.locationCamera.isActive) {
             this.locationCamera.deactivateView();
+            
+            // We're exiting a location view
+            if (this.inLocationView) {
+                this.inLocationView = false;
+                
+                // Restore location markers based on Earth Controls panel setting
+                const markerToggle = document.getElementById('location-markers-toggle');
+                if (markerToggle) {
+                    this.toggleLocationMarkers(markerToggle.checked);
+                }
+            }
         }
 
         // Position camera to the side of the solar system
@@ -340,6 +365,17 @@ class SolarSystem {
         // If we're in a location view, deactivate it first
         if (this.locationCamera && this.locationCamera.isActive) {
             this.locationCamera.deactivateView();
+            
+            // We're exiting a location view
+            if (this.inLocationView) {
+                this.inLocationView = false;
+                
+                // Restore location markers based on Earth Controls panel setting
+                const markerToggle = document.getElementById('location-markers-toggle');
+                if (markerToggle) {
+                    this.toggleLocationMarkers(markerToggle.checked);
+                }
+            }
         }
 
         // Position camera to view the Sun up close
@@ -365,6 +401,17 @@ class SolarSystem {
         // If we're in a location view, deactivate it first
         if (this.locationCamera && this.locationCamera.isActive) {
             this.locationCamera.deactivateView();
+            
+            // We're exiting a location view
+            if (this.inLocationView) {
+                this.inLocationView = false;
+                
+                // Restore location markers based on Earth Controls panel setting
+                const markerToggle = document.getElementById('location-markers-toggle');
+                if (markerToggle) {
+                    this.toggleLocationMarkers(markerToggle.checked);
+                }
+            }
         }
 
         // Get Earth's current position
@@ -438,6 +485,12 @@ class SolarSystem {
             this.locationMarkers.forEach(marker => {
                 this.addViewButton(`View from ${marker.options.name}`, () => {
                     if (this.locationCamera) {
+                        // Set flag that we're entering a location view
+                        this.inLocationView = true;
+                        
+                        // Hide markers when entering location view
+                        this.toggleLocationMarkers(false);
+                        
                         this.locationCamera.activateView(marker);
                         // Set active view based on location name
                         this.activeView = marker.options.name.toLowerCase();
@@ -491,6 +544,14 @@ class SolarSystem {
             if (this.locationCamera && this.locationCamera.isActive) {
                 this.locationCamera.cameraElevation = elevation;
                 this.locationCamera.updateView();
+            } else if (camera && this.activeView) {
+                // For global views, adjust camera distance
+                const target = new THREE.Vector3(0, 0, 0);
+                const direction = new THREE.Vector3().subVectors(camera.position, target).normalize();
+                const distance = this.earth ? this.earth.radius * (20 + elevation * 200) : 150000 * elevation * 10;
+                camera.position.copy(direction.multiplyScalar(distance));
+                camera.lookAt(target);
+                if (controls) controls.update();
             }
         });
 
@@ -542,6 +603,22 @@ class SolarSystem {
             if (this.locationCamera && this.locationCamera.isActive) {
                 this.locationCamera.cameraHorizontalAngle = cameraAngle;
                 this.locationCamera.updateView();
+            } else if (camera && this.activeView) {
+                // For global views, rotate camera around y-axis
+                const target = new THREE.Vector3(0, 0, 0);
+                const distance = camera.position.distanceTo(target);
+                const angle = cameraAngle;
+                
+                // Keep current vertical angle (y position)
+                const y = camera.position.y;
+                
+                // Calculate new x and z positions
+                camera.position.x = distance * Math.sin(angle);
+                camera.position.z = distance * Math.cos(angle);
+                camera.position.y = y; // Maintain vertical position
+                
+                camera.lookAt(target);
+                if (controls) controls.update();
             }
         });
 
@@ -582,6 +659,26 @@ class SolarSystem {
             if (this.locationCamera && this.locationCamera.isActive) {
                 this.locationCamera.cameraVerticalAngle = verticalAngle;
                 this.locationCamera.updateView();
+            } else if (camera && this.activeView) {
+                // For global views, adjust camera height
+                const target = new THREE.Vector3(0, 0, 0);
+                const horizontalDistance = Math.sqrt(camera.position.x * camera.position.x + camera.position.z * camera.position.z);
+                const distance = camera.position.distanceTo(target);
+                
+                // Calculate new y position based on vertical angle
+                // Constrain vertical angle to avoid flipping
+                const constrainedAngle = Math.max(-Math.PI/2 + 0.1, Math.min(Math.PI/2 - 0.1, verticalAngle));
+                camera.position.y = distance * Math.sin(constrainedAngle);
+                
+                // Adjust horizontal distance to maintain overall distance
+                const newHorizontalDistance = distance * Math.cos(constrainedAngle);
+                const ratio = newHorizontalDistance / horizontalDistance;
+                
+                camera.position.x *= ratio;
+                camera.position.z *= ratio;
+                
+                camera.lookAt(target);
+                if (controls) controls.update();
             }
         });
 

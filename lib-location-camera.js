@@ -43,6 +43,11 @@ class LocationCamera {
      */
     activateView(location) {
         if (!this.earth || !location || !location.mesh) return;
+        
+        // If already in a location view, properly deactivate it first
+        if (this.isActive) {
+            this.deactivateView();
+        }
 
         // Store original camera
         this.originalCamera = camera;
@@ -232,6 +237,14 @@ class LocationCamera {
                 controls.enabled = this.originalControlsEnabled !== undefined ? this.originalControlsEnabled : true;
                 controls.update();
             }
+        }
+        
+        // Force reset the controls to ensure they're properly re-enabled
+        if (controls) {
+            setTimeout(() => {
+                controls.enabled = true;
+                controls.update();
+            }, 0);
         }
     }
 
