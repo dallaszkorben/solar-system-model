@@ -10,6 +10,7 @@ class SolarSystem {
         this.sun = null;
         this.earth = null;
         this.mars = null;
+        this.venus = null;
         this.planets = [];
 
         // Control panel
@@ -44,6 +45,7 @@ class SolarSystem {
         this.createSun();
         this.createEarth();
         this.createMars();
+        this.createVenus();
         this.createConsolePane();
     }
 
@@ -56,6 +58,12 @@ class SolarSystem {
         this.mars = new Mars(6000); // 6000m diameter
         this.planets.push(this.mars);
         this.group.add(this.mars.getObject());
+    }
+    
+    createVenus() {
+        this.venus = new Venus(11800); // 11800m diameter
+        this.planets.push(this.venus);
+        this.group.add(this.venus.getObject());
     }
 
     createEarth() {
@@ -233,6 +241,14 @@ class SolarSystem {
                 this.mars.show();
             } else if (this.mars) {
                 this.mars.hide();
+            }
+        });
+        
+        this.addToggle('Show Venus Controls', false, (checked) => {
+            if (checked && this.venus) {
+                this.venus.show();
+            } else if (this.venus) {
+                this.venus.hide();
             }
         });
     }
@@ -488,6 +504,11 @@ class SolarSystem {
         // Update Mars
         if (this.mars) {
             this.mars.update(time);
+        }
+        
+        // Update Venus
+        if (this.venus) {
+            this.venus.update(time);
         }
 
         // Update location camera if active
