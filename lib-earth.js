@@ -562,7 +562,7 @@ class Earth {
         rotationSliderControlsContainer.style.display = 'flex';
         rotationSliderControlsContainer.style.alignItems = 'center';
         rotationSliderControlsContainer.style.gap = '10px'; // Space between slider and button
-        
+
         const rotationSlider = document.createElement('input');
         rotationSlider.type = 'range';
         rotationSlider.min = '0';
@@ -587,7 +587,7 @@ class Earth {
         rotationSliderControlsContainer.appendChild(rotationSlider);
         rotationSliderControlsContainer.appendChild(rotationResetButton);
         rotationSliderContainer.appendChild(rotationSliderControlsContainer);
-        
+
         // Function to update rotation speed based on slider value
         const updateRotationSpeed = (value) => {
             if (value === 0) {
@@ -612,20 +612,20 @@ class Earth {
                 document.getElementById('rotation-toggle').checked = true;
             }
         };
-        
+
         rotationSlider.addEventListener('input', (e) => {
             const value = parseInt(e.target.value);
             updateRotationSpeed(value);
         });
-        
+
         // Reset button sets slider to default (50) without enabling rotation if it's off
         rotationResetButton.addEventListener('click', () => {
             rotationSlider.value = '50';
-            
+
             // Calculate the default speed without changing the enabled state
             const baseSpeed = (2 * Math.PI) / (this.rotationPeriod * 60);
             this.rotationSpeed = baseSpeed;
-            
+
             // Don't enable rotation if it's currently disabled
             // (the updateRotationSpeed function would enable it)
         });
@@ -687,7 +687,7 @@ class Earth {
         orbitSliderControlsContainer.style.display = 'flex';
         orbitSliderControlsContainer.style.alignItems = 'center';
         orbitSliderControlsContainer.style.gap = '10px'; // Space between slider and button
-        
+
         const orbitSpeedSlider = document.createElement('input');
         orbitSpeedSlider.type = 'range';
         orbitSpeedSlider.min = '0';
@@ -712,7 +712,7 @@ class Earth {
         orbitSliderControlsContainer.appendChild(orbitSpeedSlider);
         orbitSliderControlsContainer.appendChild(orbitResetButton);
         orbitSpeedContainer.appendChild(orbitSliderControlsContainer);
-        
+
         // Function to update orbit speed based on slider value
         const updateOrbitSpeed = (value) => {
             if (value === 0) {
@@ -744,20 +744,20 @@ class Earth {
                 }
             }
         };
-        
+
         orbitSpeedSlider.addEventListener('input', (e) => {
             const value = parseInt(e.target.value);
             updateOrbitSpeed(value);
         });
-        
+
         // Reset button sets slider to default (50) without enabling orbit if it's off
         orbitResetButton.addEventListener('click', () => {
             orbitSpeedSlider.value = '50';
-            
+
             // Calculate the default speed without changing the enabled state
             const baseSpeed = (2 * Math.PI) / (this.orbitalPeriod * 60);
             this.orbitSpeed = baseSpeed;
-            
+
             // Don't enable orbit if it's currently disabled
             // (the updateOrbitSpeed function would enable it)
         });
