@@ -14,6 +14,8 @@ class SolarSystem {
         this.mercury = null;
         this.jupiter = null;
         this.saturn = null;
+        this.uranus = null;
+        this.neptune = null;
         this.planets = [];
 
         // Control panels
@@ -36,6 +38,8 @@ class SolarSystem {
             'earthView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
             'jupiterView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
             'saturnView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
+            'uranusView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
+            'neptuneView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
             'budapest': { horizontalAngle: Math.PI, verticalAngle: 0.0, elevation: 0.01 },
             'kiruna': { horizontalAngle: 0, verticalAngle: 0.0, elevation: 0.01 }
         };
@@ -59,6 +63,8 @@ class SolarSystem {
         this.createMars();
         this.createJupiter();
         this.createSaturn();
+        this.createUranus();
+        this.createNeptune();
         this.createConsolePane();
         this.createViewConsolePane();
     }
@@ -96,6 +102,18 @@ class SolarSystem {
         this.saturn = new Saturn(); // 116460km diameter
         this.planets.push(this.saturn);
         this.group.add(this.saturn.getObject());
+    }
+    
+    createUranus() {
+        this.uranus = new Uranus(); // 50724km diameter
+        this.planets.push(this.uranus);
+        this.group.add(this.uranus.getObject());
+    }
+    
+    createNeptune() {
+        this.neptune = new Neptune(); // 49528km diameter
+        this.planets.push(this.neptune);
+        this.group.add(this.neptune.getObject());
     }
 
     createEarth() {
@@ -408,6 +426,38 @@ class SolarSystem {
                 }
             }
         });
+        
+        this.addToggle('Uranus', false, (checked) => {
+            if (checked && this.uranus) {
+                this.uranus.show();
+            } else if (this.uranus) {
+                this.uranus.hide();
+            }
+        }, (checked) => {
+            // First switch controls visibility of Uranus and its orbit
+            if (this.uranus) {
+                this.uranus.group.visible = checked;
+                if (this.uranus.orbitLine) {
+                    this.uranus.orbitLine.visible = checked;
+                }
+            }
+        });
+        
+        this.addToggle('Neptune', false, (checked) => {
+            if (checked && this.neptune) {
+                this.neptune.show();
+            } else if (this.neptune) {
+                this.neptune.hide();
+            }
+        }, (checked) => {
+            // First switch controls visibility of Neptune and its orbit
+            if (this.neptune) {
+                this.neptune.group.visible = checked;
+                if (this.neptune.orbitLine) {
+                    this.neptune.orbitLine.visible = checked;
+                }
+            }
+        });
     }
 
     makeDraggable(element, dragHandle) {
@@ -465,6 +515,8 @@ class SolarSystem {
         this.addViewButton('Earth View', () => this.setEarthView(), this.viewConsoleContent);
         this.addViewButton('Jupiter View', () => this.setJupiterView(), this.viewConsoleContent);
         this.addViewButton('Saturn View', () => this.setSaturnView(), this.viewConsoleContent);
+        this.addViewButton('Uranus View', () => this.setUranusView(), this.viewConsoleContent);
+        this.addViewButton('Neptune View', () => this.setNeptuneView(), this.viewConsoleContent);
     }
 
     addViewButton(label, clickHandler, container) {
@@ -834,6 +886,96 @@ class SolarSystem {
         this.activeView = 'jupiterView';
         this.updateCameraControls();
     }
+    
+    setUranusView() {
+        if (!camera || !this.uranus) return;
+
+        // If we're in a location view, deactivate it first
+        if (this.locationCamera && this.locationCamera.isActive) {
+            this.locationCamera.deactivateView();
+
+            // We're exiting a location view
+            if (this.inLocationView) {
+                this.inLocationView = false;
+
+                // Restore location markers based on Earth Controls panel setting
+                const markerToggle = document.getElementById('location-markers-toggle');
+                if (markerToggle) {
+                    this.toggleLocationMarkers(markerToggle.checked);
+                }
+            }
+        }
+
+        // Get Uranus's current position
+        const uranusPos = new THREE.Vector3();
+        this.uranus.group.getWorldPosition(uranusPos);
+
+        // Position camera to view Uranus up close
+        const viewFactor = 0.5; // 50% of vertical screen
+        const distance = this.uranus.diameter / (2 * Math.tan((camera.fov * Math.PI / 180) / 2) * viewFactor);
+
+        // Calculate camera position
+        const cameraPos = new THREE.Vector3();
+        cameraPos.copy(uranusPos);
+        cameraPos.z += distance;
+
+        camera.position.copy(cameraPos);
+        camera.lookAt(uranusPos);
+
+        if (controls) {
+            controls.target.copy(uranusPos);
+            controls.update();
+        }
+
+        // Set active view and update camera controls
+        this.activeView = 'uranusView';
+        this.updateCameraControls();
+    }
+    
+    setNeptuneView() {
+        if (!camera || !this.neptune) return;
+
+        // If we're in a location view, deactivate it first
+        if (this.locationCamera && this.locationCamera.isActive) {
+            this.locationCamera.deactivateView();
+
+            // We're exiting a location view
+            if (this.inLocationView) {
+                this.inLocationView = false;
+
+                // Restore location markers based on Earth Controls panel setting
+                const markerToggle = document.getElementById('location-markers-toggle');
+                if (markerToggle) {
+                    this.toggleLocationMarkers(markerToggle.checked);
+                }
+            }
+        }
+
+        // Get Neptune's current position
+        const neptunePos = new THREE.Vector3();
+        this.neptune.group.getWorldPosition(neptunePos);
+
+        // Position camera to view Neptune up close
+        const viewFactor = 0.5; // 50% of vertical screen
+        const distance = this.neptune.diameter / (2 * Math.tan((camera.fov * Math.PI / 180) / 2) * viewFactor);
+
+        // Calculate camera position
+        const cameraPos = new THREE.Vector3();
+        cameraPos.copy(neptunePos);
+        cameraPos.z += distance;
+
+        camera.position.copy(cameraPos);
+        camera.lookAt(neptunePos);
+
+        if (controls) {
+            controls.target.copy(neptunePos);
+            controls.update();
+        }
+
+        // Set active view and update camera controls
+        this.activeView = 'neptuneView';
+        this.updateCameraControls();
+    }
 
     show() {
         if (this.consolePane) {
@@ -883,6 +1025,16 @@ class SolarSystem {
         // Update Saturn
         if (this.saturn) {
             this.saturn.update(time);
+        }
+        
+        // Update Uranus
+        if (this.uranus) {
+            this.uranus.update(time);
+        }
+        
+        // Update Neptune
+        if (this.neptune) {
+            this.neptune.update(time);
         }
 
         // Update location camera if active
