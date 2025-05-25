@@ -14,9 +14,11 @@ class SolarSystem {
         this.mercury = null;
         this.planets = [];
 
-        // Control panel
+        // Control panels
         this.consolePane = null;
         this.consoleVisible = false;
+        this.viewConsolePane = null;
+        this.viewConsoleVisible = false;
 
         // Scale model flag
         this.useScaleModel = false;
@@ -52,6 +54,7 @@ class SolarSystem {
         this.createEarth();
         this.createMars();
         this.createConsolePane();
+        this.createViewConsolePane();
     }
 
     createSun() {
@@ -120,7 +123,7 @@ class SolarSystem {
         this.consolePane = document.createElement('div');
         this.consolePane.className = 'console-pane';
         this.consolePane.style.position = 'absolute';
-        this.consolePane.style.bottom = '20px';
+        this.consolePane.style.top = '20px';
         this.consolePane.style.left = '20px';
         this.consolePane.style.backgroundColor = 'rgba(80, 80, 80, 0.8)';
         this.consolePane.style.color = 'white';
@@ -197,25 +200,87 @@ class SolarSystem {
         // Store content container for adding controls
         this.consoleContent = content;
 
-        // Create global view section
-        this.createViewSection();
-        
         // Create celestial bodies section
         this.createCelestialBodiesSection();
+
+        // Create rotation controls section
+        this.createRotationControlsSection();
+
+        // Create orbit controls section
+        this.createOrbitControlsSection();
 
         // Add to document
         document.body.appendChild(this.consolePane);
     }
-    
+
+    createViewConsolePane() {
+        // Create view console pane
+        this.viewConsolePane = document.createElement('div');
+        this.viewConsolePane.className = 'console-pane';
+        this.viewConsolePane.style.position = 'absolute';
+        this.viewConsolePane.style.top = '20px';
+        this.viewConsolePane.style.left = '340px'; // Position to the right of the main console
+        this.viewConsolePane.style.backgroundColor = 'rgba(80, 80, 80, 0.8)';
+        this.viewConsolePane.style.color = 'white';
+        this.viewConsolePane.style.padding = '0';
+        this.viewConsolePane.style.borderRadius = '5px';
+        this.viewConsolePane.style.fontFamily = 'Arial, sans-serif';
+        this.viewConsolePane.style.display = 'block'; // Shown by default
+        this.viewConsolePane.style.width = '300px';
+        this.viewConsolePane.style.boxShadow = '0 4px 8px rgba(0,0,0,0.5)';
+        this.viewConsoleVisible = true;
+
+        // Create header for dragging
+        const header = document.createElement('div');
+        header.style.backgroundColor = 'rgba(100, 100, 100, 0.9)';
+        header.style.padding = '10px 15px';
+        header.style.borderTopLeftRadius = '5px';
+        header.style.borderTopRightRadius = '5px';
+        header.style.cursor = 'move';
+        header.style.borderBottom = '1px solid #666';
+
+        // Add title to header
+        const title = document.createElement('h3');
+        title.textContent = 'View Controls';
+        title.style.margin = '0';
+        header.appendChild(title);
+
+        // Add the header to the view console pane
+        this.viewConsolePane.appendChild(header);
+
+        // Create content container with padding
+        const content = document.createElement('div');
+        content.style.padding = '15px';
+        this.viewConsolePane.appendChild(content);
+
+        // Make the view console pane draggable
+        this.makeDraggable(this.viewConsolePane, header);
+
+        // Store view content container for adding controls
+        this.viewConsoleContent = content;
+
+        // Create global view section
+        this.createViewSection();
+
+        // Create location views section
+        this.createLocationViewsSection();
+
+        // Create camera control buttons
+        this.createCameraControlButtons();
+
+        // Add to document
+        document.body.appendChild(this.viewConsolePane);
+    }
+
     createCelestialBodiesSection() {
         // Create section header
         const sectionHeader = document.createElement('h4');
-        sectionHeader.textContent = 'Celestial Bodies';
+        sectionHeader.textContent = 'Visibility Control';
         sectionHeader.style.margin = '15px 0 10px 0';
         sectionHeader.style.borderBottom = '1px solid #555';
         sectionHeader.style.paddingBottom = '5px';
         this.consoleContent.appendChild(sectionHeader);
-        
+
         // Add toggle for showing individual planets and their controls
         this.addToggle('Sun', false, (checked) => {
             if (checked) {
@@ -341,25 +406,16 @@ class SolarSystem {
         sectionHeader.style.margin = '0 0 10px 0';
         sectionHeader.style.borderBottom = '1px solid #555';
         sectionHeader.style.paddingBottom = '5px';
-        this.consoleContent.appendChild(sectionHeader);
+        this.viewConsoleContent.appendChild(sectionHeader);
 
         // Add buttons for different views
-        this.addViewButton('Top View', () => this.setTopView());
-        this.addViewButton('Side View', () => this.setSideView());
-        this.addViewButton('Sun View', () => this.setSunView());
-        this.addViewButton('Earth View', () => this.setEarthView());
-
-        // Create location views section
-        this.createLocationViewsSection();
-
-        // Create rotation controls section
-        this.createRotationControlsSection();
-
-        // Create orbit controls section
-        this.createOrbitControlsSection();
+        this.addViewButton('Top View', () => this.setTopView(), this.viewConsoleContent);
+        this.addViewButton('Side View', () => this.setSideView(), this.viewConsoleContent);
+        this.addViewButton('Sun View', () => this.setSunView(), this.viewConsoleContent);
+        this.addViewButton('Earth View', () => this.setEarthView(), this.viewConsoleContent);
     }
 
-    addViewButton(label, clickHandler) {
+    addViewButton(label, clickHandler, container) {
         const buttonContainer = document.createElement('div');
         buttonContainer.style.marginBottom = '10px';
 
@@ -375,7 +431,7 @@ class SolarSystem {
         button.addEventListener('click', clickHandler);
 
         buttonContainer.appendChild(button);
-        this.consoleContent.appendChild(buttonContainer);
+        container.appendChild(buttonContainer);
     }
 
     addToggle(label, initialState, controlsChangeHandler, visibilityChangeHandler) {
@@ -398,7 +454,7 @@ class SolarSystem {
         toggleLabel.style.flexGrow = '1';
         toggleLabel.style.display = 'flex';
         toggleLabel.style.alignItems = 'center';
-        
+
         // Add icon to label
         toggleLabel.prepend(iconImg);
 
@@ -690,7 +746,7 @@ class SolarSystem {
         locationHeader.style.margin = '15px 0 10px 0';
         locationHeader.style.borderBottom = '1px solid #555';
         locationHeader.style.paddingBottom = '5px';
-        this.consoleContent.appendChild(locationHeader);
+        this.viewConsoleContent.appendChild(locationHeader);
 
         // Add buttons for each location marker
         if (this.locationMarkers && this.locationMarkers.length > 0) {
@@ -708,12 +764,9 @@ class SolarSystem {
                         this.activeView = marker.options.name.toLowerCase();
                         this.updateCameraControls();
                     }
-                });
+                }, this.viewConsoleContent);
             });
         }
-
-        // Add camera control buttons
-        this.createCameraControlButtons();
     }
 
     createCameraControlButtons() {
@@ -724,66 +777,24 @@ class SolarSystem {
         controlHeader.style.borderBottom = '1px solid #555';
         controlHeader.style.paddingBottom = '5px';
         controlHeader.style.marginTop = '25px'; // Add extra margin to separate from previous section
-        this.consoleContent.appendChild(controlHeader);
+        this.viewConsoleContent.appendChild(controlHeader);
 
-        // Add camera elevation control
-        const elevationContainer = document.createElement('div');
-        elevationContainer.style.marginBottom = '15px';
-        elevationContainer.style.display = 'flex';
-        elevationContainer.style.justifyContent = 'space-between';
-        elevationContainer.style.alignItems = 'center';
+        // Create container for camera controls in two columns
+        const cameraControlsContainer = document.createElement('div');
+        cameraControlsContainer.style.display = 'grid';
+        cameraControlsContainer.style.gridTemplateColumns = '1fr 2fr';
+        cameraControlsContainer.style.gap = '10px';
+        cameraControlsContainer.style.marginBottom = '15px';
+        this.viewConsoleContent.appendChild(cameraControlsContainer);
 
-        const elevationLabel = document.createElement('label');
-        elevationLabel.textContent = 'Camera Height:';
-        elevationLabel.style.marginRight = '10px';
 
-        const elevationInput = document.createElement('input');
-        elevationInput.type = 'range';
-        elevationInput.min = '0.001';
-        elevationInput.max = '0.05';
-        elevationInput.step = '0.001';
-        elevationInput.value = '0.01';
-        elevationInput.style.flexGrow = '1';
-        elevationInput.addEventListener('input', (e) => {
-            const elevation = parseFloat(e.target.value);
 
-            // Save the current setting for the active view
-            if (this.activeView && this.cameraSettings[this.activeView]) {
-                this.cameraSettings[this.activeView].elevation = elevation;
-            }
-
-            // Apply to location camera if active
-            if (this.locationCamera && this.locationCamera.isActive) {
-                this.locationCamera.cameraElevation = elevation;
-                this.locationCamera.updateView();
-            } else if (camera && this.activeView) {
-                // For global views, adjust camera distance
-                const target = new THREE.Vector3(0, 0, 0);
-                const direction = new THREE.Vector3().subVectors(camera.position, target).normalize();
-                const distance = this.earth ? this.earth.radius * (20 + elevation * 200) : 150000 * elevation * 10;
-                camera.position.copy(direction.multiplyScalar(distance));
-                camera.lookAt(target);
-                if (controls) controls.update();
-            }
-        });
-
-        // Store reference to the elevation slider
-        this.elevationInput = elevationInput;
-
-        elevationContainer.appendChild(elevationLabel);
-        elevationContainer.appendChild(elevationInput);
-        this.consoleContent.appendChild(elevationContainer);
 
         // Add horizontal angle control
-        const horizontalContainer = document.createElement('div');
-        horizontalContainer.style.marginBottom = '15px';
-        horizontalContainer.style.display = 'flex';
-        horizontalContainer.style.justifyContent = 'space-between';
-        horizontalContainer.style.alignItems = 'center';
-
         const horizontalLabel = document.createElement('label');
         horizontalLabel.textContent = 'Horizontal Angle:';
-        horizontalLabel.style.marginRight = '10px';
+        horizontalLabel.style.alignSelf = 'center';
+        cameraControlsContainer.appendChild(horizontalLabel);
 
         const horizontalInput = document.createElement('input');
         horizontalInput.type = 'range';
@@ -799,7 +810,8 @@ class SolarSystem {
         horizontalInput.max = maxValue.toString();
         horizontalInput.step = '0.01';
         horizontalInput.value = cameraAngle.toString();
-        horizontalInput.style.flexGrow = '1';
+        horizontalInput.style.width = '100%';
+        cameraControlsContainer.appendChild(horizontalInput);
         horizontalInput.addEventListener('input', (e) => {
             const sliderValue = parseFloat(e.target.value);
 
@@ -837,20 +849,11 @@ class SolarSystem {
         // Store reference to the horizontal slider
         this.horizontalInput = horizontalInput;
 
-        horizontalContainer.appendChild(horizontalLabel);
-        horizontalContainer.appendChild(horizontalInput);
-        this.consoleContent.appendChild(horizontalContainer);
-
         // Add vertical angle control
-        const verticalContainer = document.createElement('div');
-        verticalContainer.style.marginBottom = '15px';
-        verticalContainer.style.display = 'flex';
-        verticalContainer.style.justifyContent = 'space-between';
-        verticalContainer.style.alignItems = 'center';
-
         const verticalLabel = document.createElement('label');
         verticalLabel.textContent = 'Vertical Angle:';
-        verticalLabel.style.marginRight = '10px';
+        verticalLabel.style.alignSelf = 'center';
+        cameraControlsContainer.appendChild(verticalLabel);
 
         const verticalInput = document.createElement('input');
         verticalInput.type = 'range';
@@ -858,7 +861,8 @@ class SolarSystem {
         verticalInput.max = '1.47';  // PI/2 - 0.1
         verticalInput.step = '0.01';
         verticalInput.value = this.locationCamera ? this.locationCamera.cameraVerticalAngle.toString() : '1.0';
-        verticalInput.style.flexGrow = '1';
+        verticalInput.style.width = '100%';
+        cameraControlsContainer.appendChild(verticalInput);
         verticalInput.addEventListener('input', (e) => {
             const verticalAngle = parseFloat(e.target.value);
 
@@ -897,13 +901,46 @@ class SolarSystem {
         // Store reference to the vertical slider
         this.verticalInput = verticalInput;
 
-        verticalContainer.appendChild(verticalLabel);
-        verticalContainer.appendChild(verticalInput);
-        this.consoleContent.appendChild(verticalContainer);
+        // Add camera elevation control
+        const elevationLabel = document.createElement('label');
+        elevationLabel.textContent = 'Camera Height:';
+        elevationLabel.style.alignSelf = 'center';
+        cameraControlsContainer.appendChild(elevationLabel);
 
-        elevationContainer.appendChild(elevationLabel);
-        elevationContainer.appendChild(elevationInput);
-        this.consoleContent.appendChild(elevationContainer);
+        const elevationInput = document.createElement('input');
+        elevationInput.type = 'range';
+        elevationInput.min = '0.001';
+        elevationInput.max = '0.05';
+        elevationInput.step = '0.001';
+        elevationInput.value = '0.01';
+        elevationInput.style.width = '100%';
+        cameraControlsContainer.appendChild(elevationInput);
+
+        elevationInput.addEventListener('input', (e) => {
+            const elevation = parseFloat(e.target.value);
+
+            // Save the current setting for the active view
+            if (this.activeView && this.cameraSettings[this.activeView]) {
+                this.cameraSettings[this.activeView].elevation = elevation;
+            }
+
+            // Apply to location camera if active
+            if (this.locationCamera && this.locationCamera.isActive) {
+                this.locationCamera.cameraElevation = elevation;
+                this.locationCamera.updateView();
+            } else if (camera && this.activeView) {
+                // For global views, adjust camera distance
+                const target = new THREE.Vector3(0, 0, 0);
+                const direction = new THREE.Vector3().subVectors(camera.position, target).normalize();
+                const distance = this.earth ? this.earth.radius * (20 + elevation * 200) : 150000 * elevation * 10;
+                camera.position.copy(direction.multiplyScalar(distance));
+                camera.lookAt(target);
+                if (controls) controls.update();
+            }
+        });
+
+        // Store reference to the elevation slider
+        this.elevationInput = elevationInput;
 
         // Create container for arrow buttons
         const arrowContainer = document.createElement('div');
@@ -1066,8 +1103,8 @@ class SolarSystem {
         arrowContainer.appendChild(leftButton);
         arrowContainer.appendChild(rightButton);
 
-        // Add container to console content
-        this.consoleContent.appendChild(arrowContainer);
+        // Add container to view console content
+        this.viewConsoleContent.appendChild(arrowContainer);
 
         // Add instructions
         const instructions = document.createElement('div');
@@ -1076,7 +1113,7 @@ class SolarSystem {
         instructions.style.marginBottom = '15px';
         instructions.style.marginTop = '10px';
         instructions.textContent = 'Use arrows to rotate camera view';
-        this.consoleContent.appendChild(instructions);
+        this.viewConsoleContent.appendChild(instructions);
     }
 
     createRotationControlsSection() {
@@ -1410,6 +1447,14 @@ class SolarSystem {
 
         this.consoleContent.appendChild(orbitSliderContainer);
 
+        // Create a separate section for General Control
+        const orbitVisibilityHeader = document.createElement('h4');
+        orbitVisibilityHeader.textContent = 'General Control';
+        orbitVisibilityHeader.style.margin = '15px 0 10px 0';
+        orbitVisibilityHeader.style.borderBottom = '1px solid #555';
+        orbitVisibilityHeader.style.paddingBottom = '5px';
+        this.consoleContent.appendChild(orbitVisibilityHeader);
+
         // Add orbit visibility slider
         const orbitVisibilityContainer = document.createElement('div');
         orbitVisibilityContainer.style.marginBottom = '15px';
@@ -1423,32 +1468,16 @@ class SolarSystem {
         orbitVisibilitySlider.type = 'range';
         orbitVisibilitySlider.min = '0';
         orbitVisibilitySlider.max = '100';
-        orbitVisibilitySlider.value = '100'; // Default to full visibility
+        orbitVisibilitySlider.value = '50'; // Default to 50% visibility
         orbitVisibilitySlider.style.width = '100%';
+        // We'll dispatch a global event to update all planet sliders after the slider is created
+
         orbitVisibilitySlider.addEventListener('input', (e) => {
             const value = parseInt(e.target.value);
             const visibility = value / 100;
 
             // Apply to all planets
             if (this.planets && this.planets.length > 0) {
-                this.planets.forEach(planet => {
-                    planet.orbitVisibility = visibility;
-
-                    // Update orbit line opacity
-                    if (planet.orbitLine) {
-                        planet.orbitLine.material.opacity = visibility;
-
-                        // Update color based on visibility
-                        if (visibility > 0.5) {
-                            // Blend from white to gray as visibility goes from 1.0 to 0.5
-                            const intensity = 0.5 + visibility * 0.5;
-                            planet.orbitLine.material.color.setRGB(intensity, intensity, intensity);
-                        } else {
-                            // Keep gray but reduce opacity as visibility goes from 0.5 to 0
-                            planet.orbitLine.material.color.setRGB(0.5, 0.5, 0.5);
-                        }
-                    }
-                });
 
                 // Dispatch event for individual planet controls to update
                 document.dispatchEvent(new CustomEvent('globalOrbitVisibilityChange', {
@@ -1460,6 +1489,68 @@ class SolarSystem {
         orbitVisibilityContainer.appendChild(orbitVisibilityLabel);
         orbitVisibilityContainer.appendChild(orbitVisibilitySlider);
         this.consoleContent.appendChild(orbitVisibilityContainer);
+
+        // Dispatch event to set initial 50% visibility on all planets
+        document.dispatchEvent(new CustomEvent('globalOrbitVisibilityChange', {
+            detail: { value: 50 }
+        }));
+
+        // Add Day/Night Effect toggle
+        const dayNightContainer = document.createElement('div');
+        dayNightContainer.style.marginBottom = '15px';
+        dayNightContainer.style.display = 'flex';
+        dayNightContainer.style.justifyContent = 'space-between';
+        dayNightContainer.style.alignItems = 'center';
+
+        const dayNightLabel = document.createElement('label');
+        dayNightLabel.textContent = 'Enable All Day/Night: ';
+
+        // Create switch container
+        const dayNightSwitchLabel = document.createElement('label');
+        dayNightSwitchLabel.className = 'switch';
+
+        // Create toggle input
+        const dayNightToggle = document.createElement('input');
+        dayNightToggle.type = 'checkbox';
+        dayNightToggle.checked = true; // Default ON
+        dayNightToggle.id = 'global-day-night-toggle';
+        dayNightToggle.addEventListener('change', (e) => {
+            // Apply to all planets
+            if (this.planets && this.planets.length > 0) {
+                this.planets.forEach(planet => {
+                    planet.dayNightEnabled = e.target.checked;
+                    planet.toggleDayNightEffect(e.target.checked);
+
+                    // Update planet's own control if it exists
+                    const planetToggle = document.getElementById(`${planet.constructor.name.toLowerCase()}-day-night-toggle`);
+                    if (planetToggle) {
+                        planetToggle.checked = e.target.checked;
+                    }
+                });
+            }
+
+            // Dispatch event for individual planet controls to update
+            document.dispatchEvent(new CustomEvent('globalDayNightChange', {
+                detail: { enabled: e.target.checked }
+            }));
+        });
+
+        // Create slider span
+        const dayNightSliderSpan = document.createElement('span');
+        dayNightSliderSpan.className = 'slider';
+
+        // Assemble the switch
+        dayNightSwitchLabel.appendChild(dayNightToggle);
+        dayNightSwitchLabel.appendChild(dayNightSliderSpan);
+
+        dayNightContainer.appendChild(dayNightLabel);
+        dayNightContainer.appendChild(dayNightSwitchLabel);
+        this.consoleContent.appendChild(dayNightContainer);
+
+        // Dispatch initial event to ensure all planets are in sync with the global toggle
+        document.dispatchEvent(new CustomEvent('globalDayNightChange', {
+            detail: { enabled: true }
+        }));
     }
 
     /**

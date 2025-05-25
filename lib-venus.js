@@ -184,9 +184,19 @@ class Venus extends Planet {
         this.consoleContent.appendChild(sectionHeader);
 
         // Day/Night toggle
-        this.addToggle('Day/Night Effect: ', 'day-night-toggle', this.dayNightEnabled, (e) => {
+        this.addToggle('Day/Night Effect: ', 'venus-day-night-toggle', this.dayNightEnabled, (e) => {
             this.dayNightEnabled = e.target.checked;
             this.toggleDayNightEffect(this.dayNightEnabled);
+        });
+
+        // Listen for global day/night changes
+        document.addEventListener('globalDayNightChange', (e) => {
+            const toggle = document.getElementById('venus-day-night-toggle');
+            if (toggle) {
+                toggle.checked = e.detail.enabled;
+                this.dayNightEnabled = e.detail.enabled;
+                this.toggleDayNightEffect(e.detail.enabled);
+            }
         });
 
         // Close view toggle
@@ -354,12 +364,9 @@ class Venus extends Planet {
             if (this.orbitLine) {
                 this.orbitLine.material.opacity = this.orbitVisibility;
 
-                if (this.orbitVisibility > 0.5) {
-                    const intensity = 0.5 + this.orbitVisibility * 0.5;
-                    this.orbitLine.material.color.setRGB(intensity, intensity, intensity);
-                } else {
-                    this.orbitLine.material.color.setRGB(0.5, 0.5, 0.5);
-                }
+                // Use a consistent color calculation for all visibility values
+                const intensity = 0.5 + this.orbitVisibility * 0.5;
+                this.orbitLine.material.color.setRGB(intensity, intensity, intensity);
             }
         });
 

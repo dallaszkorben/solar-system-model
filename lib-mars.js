@@ -319,15 +319,8 @@ class Mars extends Planet {
             if (this.orbitLine) {
                 this.orbitLine.material.opacity = this.orbitVisibility;
 
-                // Update color based on visibility (white to gray to invisible)
-                if (this.orbitVisibility > 0.5) {
-                    // Blend from white to gray as visibility goes from 1.0 to 0.5
-                    const intensity = 0.5 + this.orbitVisibility * 0.5;
-                    this.orbitLine.material.color.setRGB(intensity, intensity, intensity);
-                } else {
-                    // Keep gray but reduce opacity as visibility goes from 0.5 to 0
-                    this.orbitLine.material.color.setRGB(0.5, 0.5, 0.5);
-                }
+                const intensity = 0.5 + this.orbitVisibility * 0.5;
+                this.orbitLine.material.color.setRGB(intensity, intensity, intensity);
             }
         });
 

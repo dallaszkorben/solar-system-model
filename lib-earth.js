@@ -380,12 +380,8 @@ class Earth extends Planet {
             if (this.orbitLine) {
                 this.orbitLine.material.opacity = this.orbitVisibility;
 
-                if (this.orbitVisibility > 0.5) {
-                    const intensity = 0.5 + this.orbitVisibility * 0.5;
-                    this.orbitLine.material.color.setRGB(intensity, intensity, intensity);
-                } else {
-                    this.orbitLine.material.color.setRGB(0.5, 0.5, 0.5);
-                }
+                const intensity = 0.5 + this.orbitVisibility * 0.5;
+                this.orbitLine.material.color.setRGB(intensity, intensity, intensity);
             }
         });
 
