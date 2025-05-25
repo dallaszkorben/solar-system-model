@@ -128,7 +128,7 @@ class SolarSystem {
         this.consolePane.style.borderRadius = '5px';
         this.consolePane.style.fontFamily = 'Arial, sans-serif';
         this.consolePane.style.display = 'none';
-        this.consolePane.style.width = '250px';
+        this.consolePane.style.width = '300px';
         this.consolePane.style.boxShadow = '0 4px 8px rgba(0,0,0,0.5)';
 
         // Create header for dragging
@@ -199,9 +199,100 @@ class SolarSystem {
 
         // Create global view section
         this.createViewSection();
+        
+        // Create celestial bodies section
+        this.createCelestialBodiesSection();
 
         // Add to document
         document.body.appendChild(this.consolePane);
+    }
+    
+    createCelestialBodiesSection() {
+        // Create section header
+        const sectionHeader = document.createElement('h4');
+        sectionHeader.textContent = 'Celestial Bodies';
+        sectionHeader.style.margin = '15px 0 10px 0';
+        sectionHeader.style.borderBottom = '1px solid #555';
+        sectionHeader.style.paddingBottom = '5px';
+        this.consoleContent.appendChild(sectionHeader);
+        
+        // Add toggle for showing individual planets and their controls
+        this.addToggle('Sun', false, (checked) => {
+            if (checked) {
+                this.sun.show();
+            } else {
+                this.sun.hide();
+            }
+        }, (checked) => {
+            // First switch controls visibility of the sun
+            if (this.sun) {
+                this.sun.group.visible = checked;
+            }
+        });
+
+        this.addToggle('Mercury', false, (checked) => {
+            if (checked && this.mercury) {
+                this.mercury.show();
+            } else if (this.mercury) {
+                this.mercury.hide();
+            }
+        }, (checked) => {
+            // First switch controls visibility of Mercury and its orbit
+            if (this.mercury) {
+                this.mercury.group.visible = checked;
+                if (this.mercury.orbitLine) {
+                    this.mercury.orbitLine.visible = checked;
+                }
+            }
+        });
+
+        this.addToggle('Venus', false, (checked) => {
+            if (checked && this.venus) {
+                this.venus.show();
+            } else if (this.venus) {
+                this.venus.hide();
+            }
+        }, (checked) => {
+            // First switch controls visibility of Venus and its orbit
+            if (this.venus) {
+                this.venus.group.visible = checked;
+                if (this.venus.orbitLine) {
+                    this.venus.orbitLine.visible = checked;
+                }
+            }
+        });
+
+        this.addToggle('Earth', false, (checked) => {
+            if (checked && this.earth) {
+                this.earth.show();
+            } else if (this.earth) {
+                this.earth.hide();
+            }
+        }, (checked) => {
+            // First switch controls visibility of Earth and its orbit
+            if (this.earth) {
+                this.earth.group.visible = checked;
+                if (this.earth.orbitLine) {
+                    this.earth.orbitLine.visible = checked;
+                }
+            }
+        });
+
+        this.addToggle('Mars', false, (checked) => {
+            if (checked && this.mars) {
+                this.mars.show();
+            } else if (this.mars) {
+                this.mars.hide();
+            }
+        }, (checked) => {
+            // First switch controls visibility of Mars and its orbit
+            if (this.mars) {
+                this.mars.group.visible = checked;
+                if (this.mars.orbitLine) {
+                    this.mars.orbitLine.visible = checked;
+                }
+            }
+        });
     }
 
     makeDraggable(element, dragHandle) {
@@ -266,48 +357,6 @@ class SolarSystem {
 
         // Create orbit controls section
         this.createOrbitControlsSection();
-
-        // Add toggle for showing individual controls
-        this.addToggle('Show Sun Controls', false, (checked) => {
-            if (checked) {
-                this.sun.show();
-            } else {
-                this.sun.hide();
-            }
-        });
-
-        this.addToggle('Show Mercury Controls', false, (checked) => {
-            if (checked && this.mercury) {
-                this.mercury.show();
-            } else if (this.mercury) {
-                this.mercury.hide();
-            }
-        });
-
-        this.addToggle('Show Venus Controls', false, (checked) => {
-            if (checked && this.venus) {
-                this.venus.show();
-            } else if (this.venus) {
-                this.venus.hide();
-            }
-        });
-
-        this.addToggle('Show Earth Controls', false, (checked) => {
-            if (checked && this.earth) {
-                this.earth.show();
-            } else if (this.earth) {
-                this.earth.hide();
-            }
-        });
-
-        this.addToggle('Show Mars Controls', false, (checked) => {
-            if (checked && this.mars) {
-                this.mars.show();
-            } else if (this.mars) {
-                this.mars.hide();
-            }
-        });
-
     }
 
     addViewButton(label, clickHandler) {
@@ -329,38 +378,80 @@ class SolarSystem {
         this.consoleContent.appendChild(buttonContainer);
     }
 
-    addToggle(label, initialState, changeHandler) {
+    addToggle(label, initialState, controlsChangeHandler, visibilityChangeHandler) {
         const toggleContainer = document.createElement('div');
         toggleContainer.style.marginBottom = '10px';
         toggleContainer.style.display = 'flex';
         toggleContainer.style.justifyContent = 'space-between';
         toggleContainer.style.alignItems = 'center';
 
+        // Add planet icon
+        const iconImg = document.createElement('img');
+        iconImg.src = `icons/${label.toLowerCase()}.png`;
+        iconImg.style.width = '24px';
+        iconImg.style.height = '24px';
+        iconImg.style.marginRight = '8px';
+        iconImg.style.verticalAlign = 'middle';
+
         const toggleLabel = document.createElement('label');
         toggleLabel.textContent = label;
+        toggleLabel.style.flexGrow = '1';
+        toggleLabel.style.display = 'flex';
+        toggleLabel.style.alignItems = 'center';
+        
+        // Add icon to label
+        toggleLabel.prepend(iconImg);
 
-        // Create switch container
-        const switchLabel = document.createElement('label');
-        switchLabel.className = 'switch';
+        // Create first switch container (visibility switch)
+        const switchLabel1 = document.createElement('label');
+        switchLabel1.className = 'switch';
+        switchLabel1.style.marginRight = '10px';
+        switchLabel1.title = "Show/Hide " + label;
 
-        // Create toggle input
-        const toggle = document.createElement('input');
-        toggle.type = 'checkbox';
-        toggle.checked = initialState;
-        toggle.addEventListener('change', (e) => {
-            changeHandler(e.target.checked);
+        // Create first toggle input (visibility switch)
+        const toggle1 = document.createElement('input');
+        toggle1.type = 'checkbox';
+        toggle1.checked = true; // Default ON
+        toggle1.addEventListener('change', (e) => {
+            if (visibilityChangeHandler) {
+                visibilityChangeHandler(e.target.checked);
+            }
         });
 
-        // Create slider span
-        const sliderSpan = document.createElement('span');
-        sliderSpan.className = 'slider';
+        // Create slider span for first switch
+        const sliderSpan1 = document.createElement('span');
+        sliderSpan1.className = 'slider';
 
-        // Assemble the switch
-        switchLabel.appendChild(toggle);
-        switchLabel.appendChild(sliderSpan);
+        // Assemble the first switch
+        switchLabel1.appendChild(toggle1);
+        switchLabel1.appendChild(sliderSpan1);
+
+        // Create second switch container (controls switch)
+        const switchLabel2 = document.createElement('label');
+        switchLabel2.className = 'switch';
+        switchLabel2.title = "Show/Hide " + label + " Controls";
+
+        // Create second toggle input (controls switch)
+        const toggle2 = document.createElement('input');
+        toggle2.type = 'checkbox';
+        toggle2.checked = initialState;
+        toggle2.addEventListener('change', (e) => {
+            if (controlsChangeHandler) {
+                controlsChangeHandler(e.target.checked);
+            }
+        });
+
+        // Create slider span for second switch
+        const sliderSpan2 = document.createElement('span');
+        sliderSpan2.className = 'slider';
+
+        // Assemble the second switch
+        switchLabel2.appendChild(toggle2);
+        switchLabel2.appendChild(sliderSpan2);
 
         toggleContainer.appendChild(toggleLabel);
-        toggleContainer.appendChild(switchLabel);
+        toggleContainer.appendChild(switchLabel1);
+        toggleContainer.appendChild(switchLabel2);
         this.consoleContent.appendChild(toggleContainer);
     }
 
