@@ -12,6 +12,8 @@ class SolarSystem {
         this.mars = null;
         this.venus = null;
         this.mercury = null;
+        this.jupiter = null;
+        this.saturn = null;
         this.planets = [];
 
         // Control panels
@@ -32,6 +34,8 @@ class SolarSystem {
             'sideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
             'sunView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
             'earthView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
+            'jupiterView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
+            'saturnView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
             'budapest': { horizontalAngle: Math.PI, verticalAngle: 0.0, elevation: 0.01 },
             'kiruna': { horizontalAngle: 0, verticalAngle: 0.0, elevation: 0.01 }
         };
@@ -53,6 +57,8 @@ class SolarSystem {
         this.createVenus();
         this.createEarth();
         this.createMars();
+        this.createJupiter();
+        this.createSaturn();
         this.createConsolePane();
         this.createViewConsolePane();
     }
@@ -78,6 +84,18 @@ class SolarSystem {
         this.mars = new Mars(); // 6779km diameter
         this.planets.push(this.mars);
         this.group.add(this.mars.getObject());
+    }
+    
+    createJupiter() {
+        this.jupiter = new Jupiter(); // 139820km diameter
+        this.planets.push(this.jupiter);
+        this.group.add(this.jupiter.getObject());
+    }
+    
+    createSaturn() {
+        this.saturn = new Saturn(); // 116460km diameter
+        this.planets.push(this.saturn);
+        this.group.add(this.saturn.getObject());
     }
 
     createEarth() {
@@ -358,6 +376,38 @@ class SolarSystem {
                 }
             }
         });
+        
+        this.addToggle('Jupiter', false, (checked) => {
+            if (checked && this.jupiter) {
+                this.jupiter.show();
+            } else if (this.jupiter) {
+                this.jupiter.hide();
+            }
+        }, (checked) => {
+            // First switch controls visibility of Jupiter and its orbit
+            if (this.jupiter) {
+                this.jupiter.group.visible = checked;
+                if (this.jupiter.orbitLine) {
+                    this.jupiter.orbitLine.visible = checked;
+                }
+            }
+        });
+        
+        this.addToggle('Saturn', false, (checked) => {
+            if (checked && this.saturn) {
+                this.saturn.show();
+            } else if (this.saturn) {
+                this.saturn.hide();
+            }
+        }, (checked) => {
+            // First switch controls visibility of Saturn and its orbit
+            if (this.saturn) {
+                this.saturn.group.visible = checked;
+                if (this.saturn.orbitLine) {
+                    this.saturn.orbitLine.visible = checked;
+                }
+            }
+        });
     }
 
     makeDraggable(element, dragHandle) {
@@ -413,6 +463,8 @@ class SolarSystem {
         this.addViewButton('Side View', () => this.setSideView(), this.viewConsoleContent);
         this.addViewButton('Sun View', () => this.setSunView(), this.viewConsoleContent);
         this.addViewButton('Earth View', () => this.setEarthView(), this.viewConsoleContent);
+        this.addViewButton('Jupiter View', () => this.setJupiterView(), this.viewConsoleContent);
+        this.addViewButton('Saturn View', () => this.setSaturnView(), this.viewConsoleContent);
     }
 
     addViewButton(label, clickHandler, container) {
@@ -692,6 +744,96 @@ class SolarSystem {
         this.activeView = 'earthView';
         this.updateCameraControls();
     }
+    
+    setSaturnView() {
+        if (!camera || !this.saturn) return;
+
+        // If we're in a location view, deactivate it first
+        if (this.locationCamera && this.locationCamera.isActive) {
+            this.locationCamera.deactivateView();
+
+            // We're exiting a location view
+            if (this.inLocationView) {
+                this.inLocationView = false;
+
+                // Restore location markers based on Earth Controls panel setting
+                const markerToggle = document.getElementById('location-markers-toggle');
+                if (markerToggle) {
+                    this.toggleLocationMarkers(markerToggle.checked);
+                }
+            }
+        }
+
+        // Get Saturn's current position
+        const saturnPos = new THREE.Vector3();
+        this.saturn.group.getWorldPosition(saturnPos);
+
+        // Position camera to view Saturn up close
+        const viewFactor = 0.5; // 50% of vertical screen
+        const distance = this.saturn.diameter / (2 * Math.tan((camera.fov * Math.PI / 180) / 2) * viewFactor);
+
+        // Calculate camera position
+        const cameraPos = new THREE.Vector3();
+        cameraPos.copy(saturnPos);
+        cameraPos.z += distance;
+
+        camera.position.copy(cameraPos);
+        camera.lookAt(saturnPos);
+
+        if (controls) {
+            controls.target.copy(saturnPos);
+            controls.update();
+        }
+
+        // Set active view and update camera controls
+        this.activeView = 'saturnView';
+        this.updateCameraControls();
+    }
+    
+    setJupiterView() {
+        if (!camera || !this.jupiter) return;
+
+        // If we're in a location view, deactivate it first
+        if (this.locationCamera && this.locationCamera.isActive) {
+            this.locationCamera.deactivateView();
+
+            // We're exiting a location view
+            if (this.inLocationView) {
+                this.inLocationView = false;
+
+                // Restore location markers based on Earth Controls panel setting
+                const markerToggle = document.getElementById('location-markers-toggle');
+                if (markerToggle) {
+                    this.toggleLocationMarkers(markerToggle.checked);
+                }
+            }
+        }
+
+        // Get Jupiter's current position
+        const jupiterPos = new THREE.Vector3();
+        this.jupiter.group.getWorldPosition(jupiterPos);
+
+        // Position camera to view Jupiter up close
+        const viewFactor = 0.5; // 50% of vertical screen
+        const distance = this.jupiter.diameter / (2 * Math.tan((camera.fov * Math.PI / 180) / 2) * viewFactor);
+
+        // Calculate camera position
+        const cameraPos = new THREE.Vector3();
+        cameraPos.copy(jupiterPos);
+        cameraPos.z += distance;
+
+        camera.position.copy(cameraPos);
+        camera.lookAt(jupiterPos);
+
+        if (controls) {
+            controls.target.copy(jupiterPos);
+            controls.update();
+        }
+
+        // Set active view and update camera controls
+        this.activeView = 'jupiterView';
+        this.updateCameraControls();
+    }
 
     show() {
         if (this.consolePane) {
@@ -731,6 +873,16 @@ class SolarSystem {
         // Update Mercury
         if (this.mercury) {
             this.mercury.update(time);
+        }
+        
+        // Update Jupiter
+        if (this.jupiter) {
+            this.jupiter.update(time);
+        }
+        
+        // Update Saturn
+        if (this.saturn) {
+            this.saturn.update(time);
         }
 
         // Update location camera if active
@@ -790,9 +942,18 @@ class SolarSystem {
 
 
 
-        // Add horizontal angle control
-        const horizontalLabel = document.createElement('label');
-        horizontalLabel.textContent = 'Horizontal Angle:';
+        // Add horizontal angle control with icon
+        const horizontalLabel = document.createElement('div');
+        horizontalLabel.style.display = 'flex';
+        horizontalLabel.style.alignItems = 'center';
+        
+        const horizontalIcon = document.createElement('img');
+        horizontalIcon.src = 'icons/rotate-vertical.png';
+        horizontalIcon.style.width = '24px';
+        horizontalIcon.style.height = '24px';
+        horizontalIcon.style.marginRight = '5px';
+        
+        horizontalLabel.appendChild(horizontalIcon);
         horizontalLabel.style.alignSelf = 'center';
         cameraControlsContainer.appendChild(horizontalLabel);
 
@@ -849,9 +1010,18 @@ class SolarSystem {
         // Store reference to the horizontal slider
         this.horizontalInput = horizontalInput;
 
-        // Add vertical angle control
-        const verticalLabel = document.createElement('label');
-        verticalLabel.textContent = 'Vertical Angle:';
+        // Add vertical angle control with icon
+        const verticalLabel = document.createElement('div');
+        verticalLabel.style.display = 'flex';
+        verticalLabel.style.alignItems = 'center';
+        
+        const verticalIcon = document.createElement('img');
+        verticalIcon.src = 'icons/rotate-horizontal.png';
+        verticalIcon.style.width = '24px';
+        verticalIcon.style.height = '24px';
+        verticalIcon.style.marginRight = '5px';
+        
+        verticalLabel.appendChild(verticalIcon);
         verticalLabel.style.alignSelf = 'center';
         cameraControlsContainer.appendChild(verticalLabel);
 
@@ -901,9 +1071,18 @@ class SolarSystem {
         // Store reference to the vertical slider
         this.verticalInput = verticalInput;
 
-        // Add camera elevation control
-        const elevationLabel = document.createElement('label');
-        elevationLabel.textContent = 'Camera Height:';
+        // Add camera elevation control with icon
+        const elevationLabel = document.createElement('div');
+        elevationLabel.style.display = 'flex';
+        elevationLabel.style.alignItems = 'center';
+        
+        const elevationIcon = document.createElement('img');
+        elevationIcon.src = 'icons/translate-vertical.png';
+        elevationIcon.style.width = '24px';
+        elevationIcon.style.height = '24px';
+        elevationIcon.style.marginRight = '5px';
+        
+        elevationLabel.appendChild(elevationIcon);
         elevationLabel.style.alignSelf = 'center';
         cameraControlsContainer.appendChild(elevationLabel);
 
@@ -942,178 +1121,7 @@ class SolarSystem {
         // Store reference to the elevation slider
         this.elevationInput = elevationInput;
 
-        // Create container for arrow buttons
-        const arrowContainer = document.createElement('div');
-        arrowContainer.style.display = 'grid';
-        arrowContainer.style.gridTemplateColumns = '1fr 1fr 1fr';
-        arrowContainer.style.gridTemplateRows = '1fr 1fr 1fr';
-        arrowContainer.style.gap = '5px';
-        arrowContainer.style.width = '120px';
-        arrowContainer.style.margin = '0 auto 15px auto';
-
-        // Create up arrow button
-        const upButton = document.createElement('button');
-        upButton.innerHTML = '&#9650;'; // Up arrow symbol
-        upButton.style.gridColumn = '2';
-        upButton.style.gridRow = '1';
-        upButton.style.padding = '8px';
-        upButton.style.backgroundColor = '#444';
-        upButton.style.color = 'white';
-        upButton.style.border = '1px solid #666';
-        upButton.style.borderRadius = '4px';
-        upButton.style.cursor = 'pointer';
-        upButton.addEventListener('click', () => {
-            if (this.activeView && this.cameraSettings[this.activeView]) {
-                // Update the camera settings
-                const newAngle = this.cameraSettings[this.activeView].verticalAngle - 0.1;
-                this.cameraSettings[this.activeView].verticalAngle = Math.max(-Math.PI/2 + 0.1, Math.min(Math.PI/2 - 0.1, newAngle));
-
-                // Apply to location camera if active
-                if (this.locationCamera && this.locationCamera.isActive) {
-                    this.locationCamera.cameraVerticalAngle = this.cameraSettings[this.activeView].verticalAngle;
-                    this.locationCamera.updateView();
-                }
-
-                // Update the vertical slider
-                if (this.verticalInput) {
-                    this.verticalInput.value = this.cameraSettings[this.activeView].verticalAngle;
-                }
-            }
-        });
-
-        // Create down arrow button
-        const downButton = document.createElement('button');
-        downButton.innerHTML = '&#9660;'; // Down arrow symbol
-        downButton.style.gridColumn = '2';
-        downButton.style.gridRow = '3';
-        downButton.style.padding = '8px';
-        downButton.style.backgroundColor = '#444';
-        downButton.style.color = 'white';
-        downButton.style.border = '1px solid #666';
-        downButton.style.borderRadius = '4px';
-        downButton.style.cursor = 'pointer';
-        downButton.addEventListener('click', () => {
-            if (this.activeView && this.cameraSettings[this.activeView]) {
-                // Update the camera settings
-                const newAngle = this.cameraSettings[this.activeView].verticalAngle + 0.1;
-                this.cameraSettings[this.activeView].verticalAngle = Math.max(-Math.PI/2 + 0.1, Math.min(Math.PI/2 - 0.1, newAngle));
-
-                // Apply to location camera if active
-                if (this.locationCamera && this.locationCamera.isActive) {
-                    this.locationCamera.cameraVerticalAngle = this.cameraSettings[this.activeView].verticalAngle;
-                    this.locationCamera.updateView();
-                }
-
-                // Update the vertical slider
-                if (this.verticalInput) {
-                    this.verticalInput.value = this.cameraSettings[this.activeView].verticalAngle;
-                }
-            }
-        });
-
-        // Create left arrow button
-        const leftButton = document.createElement('button');
-        leftButton.innerHTML = '&#9668;'; // Left arrow symbol
-        leftButton.style.gridColumn = '1';
-        leftButton.style.gridRow = '2';
-        leftButton.style.padding = '8px';
-        leftButton.style.backgroundColor = '#444';
-        leftButton.style.color = 'white';
-        leftButton.style.border = '1px solid #666';
-        leftButton.style.borderRadius = '4px';
-        leftButton.style.cursor = 'pointer';
-        leftButton.addEventListener('click', () => {
-            if (this.activeView && this.cameraSettings[this.activeView]) {
-                // Update the camera settings
-                this.cameraSettings[this.activeView].horizontalAngle += 0.1;
-                // Normalize angle to 0-2π range
-                this.cameraSettings[this.activeView].horizontalAngle %= (2 * Math.PI);
-                if (this.cameraSettings[this.activeView].horizontalAngle < 0) {
-                    this.cameraSettings[this.activeView].horizontalAngle += 2 * Math.PI;
-                }
-
-                // Apply to location camera if active
-                if (this.locationCamera && this.locationCamera.isActive) {
-                    this.locationCamera.cameraHorizontalAngle = this.cameraSettings[this.activeView].horizontalAngle;
-                    this.locationCamera.updateView();
-                }
-
-                // Update the horizontal slider
-                if (this.horizontalInput) {
-                    // Convert camera angle to slider value
-                    let sliderValue;
-                    if (this.cameraSettings[this.activeView].horizontalAngle <= Math.PI) {
-                        // 0->PI maps directly
-                        sliderValue = this.cameraSettings[this.activeView].horizontalAngle;
-                    } else {
-                        // PI->2*PI maps to PI->0
-                        sliderValue = 2 * Math.PI - this.cameraSettings[this.activeView].horizontalAngle;
-                    }
-                    this.horizontalInput.value = sliderValue;
-                }
-            }
-        });
-
-        // Create right arrow button
-        const rightButton = document.createElement('button');
-        rightButton.innerHTML = '&#9658;'; // Right arrow symbol
-        rightButton.style.gridColumn = '3';
-        rightButton.style.gridRow = '2';
-        rightButton.style.padding = '8px';
-        rightButton.style.backgroundColor = '#444';
-        rightButton.style.color = 'white';
-        rightButton.style.border = '1px solid #666';
-        rightButton.style.borderRadius = '4px';
-        rightButton.style.cursor = 'pointer';
-        rightButton.addEventListener('click', () => {
-            if (this.activeView && this.cameraSettings[this.activeView]) {
-                // Update the camera settings
-                this.cameraSettings[this.activeView].horizontalAngle -= 0.1;
-                // Normalize angle to 0-2π range
-                this.cameraSettings[this.activeView].horizontalAngle %= (2 * Math.PI);
-                if (this.cameraSettings[this.activeView].horizontalAngle < 0) {
-                    this.cameraSettings[this.activeView].horizontalAngle += 2 * Math.PI;
-                }
-
-                // Apply to location camera if active
-                if (this.locationCamera && this.locationCamera.isActive) {
-                    this.locationCamera.cameraHorizontalAngle = this.cameraSettings[this.activeView].horizontalAngle;
-                    this.locationCamera.updateView();
-                }
-
-                // Update the horizontal slider
-                if (this.horizontalInput) {
-                    // Convert camera angle to slider value
-                    let sliderValue;
-                    if (this.cameraSettings[this.activeView].horizontalAngle <= Math.PI) {
-                        // 0->PI maps directly
-                        sliderValue = this.cameraSettings[this.activeView].horizontalAngle;
-                    } else {
-                        // PI->2*PI maps to PI->0
-                        sliderValue = 2 * Math.PI - this.cameraSettings[this.activeView].horizontalAngle;
-                    }
-                    this.horizontalInput.value = sliderValue;
-                }
-            }
-        });
-
-        // Add buttons to container
-        arrowContainer.appendChild(upButton);
-        arrowContainer.appendChild(downButton);
-        arrowContainer.appendChild(leftButton);
-        arrowContainer.appendChild(rightButton);
-
-        // Add container to view console content
-        this.viewConsoleContent.appendChild(arrowContainer);
-
-        // Add instructions
-        const instructions = document.createElement('div');
-        instructions.style.fontSize = '12px';
-        instructions.style.textAlign = 'center';
-        instructions.style.marginBottom = '15px';
-        instructions.style.marginTop = '10px';
-        instructions.textContent = 'Use arrows to rotate camera view';
-        this.viewConsoleContent.appendChild(instructions);
+        // Arrow buttons and instructions have been removed
     }
 
     createRotationControlsSection() {

@@ -64,10 +64,6 @@ class Earth extends Planet {
     constructor() {
         super(Earth.factData, Earth.nonScaleModelData, Earth.scaleModelData);
 
-        // Season labels properties
-        this.seasonLabels = new THREE.Group(); // Group for season labels
-        this.seasonLabelsVisible = false; // Hide season labels by default
-
         this.createSphere('images/Earth-texture.jpg');
         this.createAxis();
         this.createLatitudeCircles([
@@ -79,314 +75,80 @@ class Earth extends Planet {
         ]);
         this.applyTilt();
         this.createOrbit();
-        this.createSeasonLabels();
-        this.createConsolePane();
-    }
-
-    createSeasonLabels() {
-        // Create labels for all four seasons
+        
+        // Create season labels
         const seasons = [
             { name: '', season: 'summer', angle: 0 },       // Aphelion - summer in northern hemisphere
             { name: '', season: 'winter', angle: Math.PI }, // Perihelion - winter in northern hemisphere
             { name: '', season: 'spring', angle: Math.PI/2 },
             { name: '', season: 'autumn', angle: Math.PI*3/2 }
         ];
-
-        seasons.forEach(season => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = 256;
-            canvas.height = 256;
-
-            // Draw main letter (A or P) if present
-            if (season.name) {
-                ctx.font = 'Bold 120px Arial';
-                ctx.fillStyle = 'white';
-                ctx.textAlign = 'center';
-                ctx.fillText(season.name, 128, 120);
-            }
-
-            // Draw season name
-            ctx.font = '40px Arial';
-            ctx.fillStyle = 'white';
-            ctx.textAlign = 'center';
-            ctx.fillText(`(${season.season})`, 128, season.name ? 180 : 128);
-
-            const texture = new THREE.CanvasTexture(canvas);
-            const material = new THREE.SpriteMaterial({ map: texture });
-            const sprite = new THREE.Sprite(material);
-
-            // Position the label at the correct point on the orbit
-            const x = this.orbitRadius * Math.cos(season.angle);
-            const z = this.orbitRadius * Math.sin(season.angle);
-            sprite.position.set(x, this.radius * 3, z);
-            sprite.scale.set(this.radius * 5, this.radius * 5, 1);
-
-            this.seasonLabels.add(sprite);
-        });
-
-        // Add season labels to the scene, not to the orbit group
-        scene.add(this.seasonLabels);
-        this.seasonLabels.visible = false; // Hide season labels by default
-    }
-
-    createConsolePane() {
+        this.createSeasonLabels(seasons);
+        
         // Create console pane
-        this.consolePane = document.createElement('div');
-        this.consolePane.className = 'console-pane';
-        this.consolePane.style.position = 'absolute';
-        this.consolePane.style.bottom = '20px';
-        this.consolePane.style.right = '20px';
-        this.consolePane.style.backgroundColor = 'rgba(80, 80, 80, 0.8)'; // Lighter gray
-        this.consolePane.style.color = 'white';
-        this.consolePane.style.padding = '0'; // No padding for the container
-        this.consolePane.style.borderRadius = '5px';
-        this.consolePane.style.fontFamily = 'Arial, sans-serif';
-        this.consolePane.style.display = 'none'; // Hidden by default
-        this.consolePane.style.width = '250px';
-        this.consolePane.style.boxShadow = '0 4px 8px rgba(0,0,0,0.5)'; // Add shadow for better visibility
-
-        // Create header for dragging
-        const header = document.createElement('div');
-        header.style.backgroundColor = 'rgba(100, 100, 100, 0.9)'; // Darker than the body
-        header.style.padding = '10px 15px';
-        header.style.borderTopLeftRadius = '5px';
-        header.style.borderTopRightRadius = '5px';
-        header.style.cursor = 'move'; // Change cursor to indicate draggable
-        header.style.borderBottom = '1px solid #666';
-
-        // Add title to header
-        const title = document.createElement('h3');
-        title.textContent = 'Earth Controls';
-        title.style.margin = '0';
-        header.appendChild(title);
-
-        // Add the header to the console pane
-        this.consolePane.appendChild(header);
-
-        // Create content container with padding
-        const content = document.createElement('div');
-        content.style.padding = '15px';
-        this.consolePane.appendChild(content);
-
-        // Make the console pane draggable
-        this.makeDraggable(this.consolePane, header);
-
-        // Store content container for adding controls
-        this.consoleContent = content;
-
-        // Create sections for better organization
-        this.createVisibilitySection();
-        this.createRotationSection();
-        this.createOrbitSection();
-
-        // Add to document
-        document.body.appendChild(this.consolePane);
+        this.createConsolePane('Earth');
+        
+        // Add Earth-specific location markers toggle
+        this.addLocationMarkersToggle();
     }
-
-    createVisibilitySection() {
-        // Create section header
-        const sectionHeader = document.createElement('h4');
-        sectionHeader.textContent = 'Visibility Controls';
-        sectionHeader.style.margin = '0 0 10px 0';
-        sectionHeader.style.borderBottom = '1px solid #555';
-        sectionHeader.style.paddingBottom = '5px';
-        this.consoleContent.appendChild(sectionHeader);
-
-        // Add day/night effect toggle
-        this.addToggle('Day/Night Effect: ', 'earth-day-night-toggle', this.dayNightEnabled, (e) => {
-            this.dayNightEnabled = e.target.checked;
-            this.toggleDayNightEffect(this.dayNightEnabled);
-        });
-
-        // Add side view toggle
-        this.addToggle('Close View: ', 'earth-side-view-toggle', this.sideViewEnabled, (e) => {
-            if (e.target.checked) {
-                this.toggleCloseUpView(true, true);
-                if (this.orbitEnabled) {
-                    this.orbitEnabled = false;
-                    document.getElementById('earth-orbit-toggle').checked = false;
-                }
-            } else {
-                this.toggleCloseUpView(false, false);
+    
+    // Add Earth-specific location markers toggle
+    addLocationMarkersToggle() {
+        // Find the visibility section
+        const sections = this.consoleContent.querySelectorAll('h4');
+        let visibilitySection;
+        
+        for (const section of sections) {
+            if (section.textContent === 'Visibility Controls') {
+                visibilitySection = section;
+                break;
             }
-        });
-
-        // Add axis toggle
-        this.addToggle('Show Axis: ', null, true, (e) => {
-            if (this.axis) this.axis.visible = e.target.checked;
-        });
-
-        // Add location markers toggle
-        this.addToggle('Show Location Markers: ', 'location-markers-toggle', true, (e) => {
-            // This will be handled by the SolarSystem class
-            const event = new CustomEvent('toggleLocationMarkers', {
-                detail: { visible: e.target.checked }
-            });
-            document.dispatchEvent(event);
-        });
-
-        // Add latitude circles toggle
-        this.addToggle('Show Latitude Circles: ', null, false, (e) => {
-            this.latitudeCircles.visible = e.target.checked;
-        });
-
-        // Add season labels toggle
-        this.addToggle('Show Season Labels: ', null, this.seasonLabelsVisible, (e) => {
-            this.seasonLabelsVisible = e.target.checked;
-            this.seasonLabels.visible = e.target.checked;
-        });
-    }
-
-    createRotationSection() {
-        // Create section header
-        const sectionHeader = document.createElement('h4');
-        sectionHeader.textContent = 'Rotation Controls';
-        sectionHeader.style.margin = '15px 0 10px 0';
-        sectionHeader.style.borderBottom = '1px solid #555';
-        sectionHeader.style.paddingBottom = '5px';
-        this.consoleContent.appendChild(sectionHeader);
-
-        // Listen for global rotation slider changes
-        document.addEventListener('globalRotationSliderChange', (e) => {
-            const slider = document.getElementById('earth-rotation-speed-slider');
-            if (slider) {
-                slider.value = e.detail.value;
-                // Trigger the input event to update the rotation speed
-                const event = new Event('input', { bubbles: true });
-                slider.dispatchEvent(event);
+        }
+        
+        if (visibilitySection) {
+            // Find the last toggle in the visibility section
+            const lastToggle = visibilitySection.parentNode.querySelector('.switch:last-of-type');
+            
+            if (lastToggle) {
+                const container = document.createElement('div');
+                container.style.marginBottom = '10px';
+                container.style.display = 'flex';
+                container.style.justifyContent = 'space-between';
+                container.style.alignItems = 'center';
+                
+                const labelElem = document.createElement('label');
+                labelElem.textContent = 'Show Location Markers: ';
+                
+                // Create switch container
+                const switchLabel = document.createElement('label');
+                switchLabel.className = 'switch';
+                
+                const toggle = document.createElement('input');
+                toggle.type = 'checkbox';
+                toggle.checked = true;
+                toggle.id = 'location-markers-toggle';
+                toggle.addEventListener('change', (e) => {
+                    // This will be handled by the SolarSystem class
+                    const event = new CustomEvent('toggleLocationMarkers', {
+                        detail: { visible: e.target.checked }
+                    });
+                    document.dispatchEvent(event);
+                });
+                
+                // Create slider span
+                const sliderSpan = document.createElement('span');
+                sliderSpan.className = 'slider';
+                
+                // Assemble the switch
+                switchLabel.appendChild(toggle);
+                switchLabel.appendChild(sliderSpan);
+                
+                container.appendChild(labelElem);
+                container.appendChild(switchLabel);
+                
+                // Insert after the last toggle in the visibility section
+                lastToggle.parentNode.after(container);
             }
-        });
-
-        // Add rotation toggle
-        this.addToggle('Enable Rotation: ', 'earth-rotation-toggle', this.rotationEnabled, (e) => {
-            this.rotationEnabled = e.target.checked;
-        });
-
-        // Add rotation speed slider
-        this.addSlider('Rotation Speed: ', 'earth-rotation-speed-slider', 50, (value) => {
-            if (value === 0) {
-                this.rotationSpeed = 0;
-            } else if (value <= 50) {
-                const normalizedValue = value / 50;
-                const baseSpeed = (2 * Math.PI) / (this.rotationPeriod * 60);
-                this.rotationSpeed = baseSpeed * normalizedValue;
-            } else {
-                const normalizedValue = (value - 50) / 50;
-                const periodDiff = this.rotationPeriod - this.maxRotationPeriod;
-                const adjustedPeriod = this.rotationPeriod - (periodDiff * normalizedValue);
-                this.rotationSpeed = (2 * Math.PI) / (adjustedPeriod * 60);
-            }
-
-            if (value > 0 && !this.rotationEnabled) {
-                this.rotationEnabled = true;
-                document.getElementById('earth-rotation-toggle').checked = true;
-            }
-        });
-    }
-
-    createOrbitSection() {
-        // Create section header
-        const sectionHeader = document.createElement('h4');
-        sectionHeader.textContent = 'Orbit Controls';
-        sectionHeader.style.margin = '15px 0 10px 0';
-        sectionHeader.style.borderBottom = '1px solid #555';
-        sectionHeader.style.paddingBottom = '5px';
-        this.consoleContent.appendChild(sectionHeader);
-
-        // Listen for global orbit slider changes
-        document.addEventListener('globalOrbitSliderChange', (e) => {
-            const slider = document.getElementById('earth-orbit-speed-slider');
-            if (slider) {
-                slider.value = e.detail.value;
-                // Trigger the input event to update the orbit speed
-                const event = new Event('input', { bubbles: true });
-                slider.dispatchEvent(event);
-            }
-        });
-
-        // Listen for global orbit visibility slider changes
-        document.addEventListener('globalOrbitVisibilityChange', (e) => {
-            const slider = document.getElementById('earth-orbit-visibility-slider');
-            if (slider) {
-                slider.value = e.detail.value;
-                // Trigger the input event to update the visibility
-                const event = new Event('input', { bubbles: true });
-                slider.dispatchEvent(event);
-            }
-        });
-
-        // Add orbit toggle
-        this.addToggle('Enable Orbit: ', 'earth-orbit-toggle', this.orbitEnabled, (e) => {
-            this.orbitEnabled = e.target.checked;
-
-            // If orbit is enabled, disable any close-up views
-            if (e.target.checked) {
-                if (this.sideViewEnabled) {
-                    this.sideViewEnabled = false;
-                    document.getElementById('earth-side-view-toggle').checked = false;
-                    this.toggleCloseUpView(false, false);
-                }
-            }
-        });
-
-        // Add orbit speed slider
-        this.addSlider('Orbit Speed: ', 'earth-orbit-speed-slider', 50, (value) => {
-            if (value === 0) {
-                this.orbitSpeed = 0;
-            } else if (value <= 50) {
-                const normalizedValue = value / 50;
-                const baseSpeed = (2 * Math.PI) / (this.orbitalPeriod * 60);
-                this.orbitSpeed = baseSpeed * normalizedValue;
-            } else {
-                const normalizedValue = (value - 50) / 50;
-                const periodDiff = this.orbitalPeriod - this.maxOrbitalPeriod;
-                const adjustedPeriod = this.orbitalPeriod - (periodDiff * normalizedValue);
-                this.orbitSpeed = (2 * Math.PI) / (adjustedPeriod * 60);
-            }
-
-            if (value > 0 && !this.orbitEnabled) {
-                this.orbitEnabled = true;
-                document.getElementById('earth-orbit-toggle').checked = true;
-
-                if (this.sideViewEnabled) {
-                    this.sideViewEnabled = false;
-                    document.getElementById('earth-side-view-toggle').checked = false;
-                    this.toggleCloseUpView(false, false);
-                }
-            }
-        });
-
-        // Add orbit visibility slider
-        const visContainer = document.createElement('div');
-        visContainer.style.marginBottom = '15px';
-
-        const visLabel = document.createElement('label');
-        visLabel.textContent = 'Orbit Visibility: ';
-        visLabel.style.display = 'block';
-        visLabel.style.marginBottom = '5px';
-
-        const visSlider = document.createElement('input');
-        visSlider.type = 'range';
-        visSlider.min = '0';
-        visSlider.max = '100';
-        visSlider.value = Math.round(this.orbitVisibility * 100);
-        visSlider.style.width = '100%';
-        visSlider.id = 'earth-orbit-visibility-slider';
-        visSlider.addEventListener('input', (e) => {
-            const value = parseInt(e.target.value);
-            this.orbitVisibility = value / 100;
-
-            if (this.orbitLine) {
-                this.orbitLine.material.opacity = this.orbitVisibility;
-
-                const intensity = 0.5 + this.orbitVisibility * 0.5;
-                this.orbitLine.material.color.setRGB(intensity, intensity, intensity);
-            }
-        });
-
-        visContainer.appendChild(visLabel);
-        visContainer.appendChild(visSlider);
-        this.consoleContent.appendChild(visContainer);
+        }
     }
 }

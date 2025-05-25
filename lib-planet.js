@@ -76,6 +76,10 @@ class Planet {
         this.closeUpViewEnabled = false;
         this.sideViewEnabled = false;
         this.originalCameraPosition = null;
+        
+        // Season labels properties (used by some planets)
+        this.seasonLabels = null;
+        this.seasonLabelsVisible = false;
     }
 
     createSphere(texturePath) {
@@ -414,5 +418,322 @@ class Planet {
 
     getObject() {
         return this.orbitGroup;
+    }
+
+    /**
+     * Creates the console pane for controlling the planet
+     * @param {string} planetName - The name of the planet for the console title
+     */
+    createConsolePane(planetName = this.constructor.name) {
+        // Create console pane
+        this.consolePane = document.createElement('div');
+        this.consolePane.className = 'console-pane';
+        this.consolePane.style.position = 'absolute';
+        this.consolePane.style.bottom = '20px';
+        this.consolePane.style.right = '20px';
+        this.consolePane.style.backgroundColor = 'rgba(80, 80, 80, 0.8)';
+        this.consolePane.style.color = 'white';
+        this.consolePane.style.padding = '0';
+        this.consolePane.style.borderRadius = '5px';
+        this.consolePane.style.fontFamily = 'Arial, sans-serif';
+        this.consolePane.style.display = 'none';
+        this.consolePane.style.width = '250px';
+        this.consolePane.style.boxShadow = '0 4px 8px rgba(0,0,0,0.5)';
+
+        // Create header for dragging
+        const header = document.createElement('div');
+        header.style.backgroundColor = 'rgba(100, 100, 100, 0.9)';
+        header.style.padding = '10px 15px';
+        header.style.borderTopLeftRadius = '5px';
+        header.style.borderTopRightRadius = '5px';
+        header.style.cursor = 'move';
+        header.style.borderBottom = '1px solid #666';
+
+        // Add title to header
+        const title = document.createElement('h3');
+        title.textContent = `${planetName} Controls`;
+        title.style.margin = '0';
+        header.appendChild(title);
+
+        // Add the header to the console pane
+        this.consolePane.appendChild(header);
+
+        // Create content container with padding
+        const content = document.createElement('div');
+        content.style.padding = '15px';
+        this.consolePane.appendChild(content);
+
+        // Make the console pane draggable
+        this.makeDraggable(this.consolePane, header);
+
+        // Store content container for adding controls
+        this.consoleContent = content;
+
+        // Create sections for better organization
+        this.createVisibilitySection();
+        this.createRotationSection();
+        this.createOrbitSection();
+
+        // Add to document
+        document.body.appendChild(this.consolePane);
+    }
+
+    /**
+     * Creates the visibility controls section
+     */
+    createVisibilitySection() {
+        const planetName = this.constructor.name.toLowerCase();
+        
+        // Create section header
+        const sectionHeader = document.createElement('h4');
+        sectionHeader.textContent = 'Visibility Controls';
+        sectionHeader.style.margin = '0 0 10px 0';
+        sectionHeader.style.borderBottom = '1px solid #555';
+        sectionHeader.style.paddingBottom = '5px';
+        this.consoleContent.appendChild(sectionHeader);
+
+        // Add day/night effect toggle
+        this.addToggle('Day/Night Effect: ', `${planetName}-day-night-toggle`, this.dayNightEnabled, (e) => {
+            this.dayNightEnabled = e.target.checked;
+            this.toggleDayNightEffect(this.dayNightEnabled);
+        });
+
+        // Add side view toggle
+        this.addToggle('Close View: ', `${planetName}-side-view-toggle`, this.sideViewEnabled, (e) => {
+            if (e.target.checked) {
+                this.toggleCloseUpView(true, true);
+                if (this.orbitEnabled) {
+                    this.orbitEnabled = false;
+                    document.getElementById(`${planetName}-orbit-toggle`).checked = false;
+                }
+            } else {
+                this.toggleCloseUpView(false, false);
+            }
+        });
+
+        // Add axis toggle
+        this.addToggle('Show Axis: ', null, true, (e) => {
+            if (this.axis) this.axis.visible = e.target.checked;
+        });
+
+        // Add latitude circles toggle
+        this.addToggle('Show Latitude Circles: ', null, false, (e) => {
+            this.latitudeCircles.visible = e.target.checked;
+        });
+
+        // Add season labels toggle if they exist
+        if (this.seasonLabels) {
+            this.addToggle('Show Season Labels: ', null, this.seasonLabelsVisible, (e) => {
+                this.seasonLabelsVisible = e.target.checked;
+                this.seasonLabels.visible = e.target.checked;
+            });
+        }
+        
+        // Add orbit visibility slider
+        this.createOrbitVisibilitySlider(planetName);
+    }
+
+    /**
+     * Creates the rotation controls section
+     */
+    createRotationSection() {
+        const planetName = this.constructor.name.toLowerCase();
+        
+        // Create section header
+        const sectionHeader = document.createElement('h4');
+        sectionHeader.textContent = 'Rotation Controls';
+        sectionHeader.style.margin = '15px 0 10px 0';
+        sectionHeader.style.borderBottom = '1px solid #555';
+        sectionHeader.style.paddingBottom = '5px';
+        this.consoleContent.appendChild(sectionHeader);
+
+        // Listen for global rotation slider changes
+        document.addEventListener('globalRotationSliderChange', (e) => {
+            const slider = document.getElementById(`${planetName}-rotation-speed-slider`);
+            if (slider) {
+                slider.value = e.detail.value;
+                const event = new Event('input', { bubbles: true });
+                slider.dispatchEvent(event);
+            }
+        });
+
+        // Add rotation toggle
+        this.addToggle('Enable Rotation: ', `${planetName}-rotation-toggle`, this.rotationEnabled, (e) => {
+            this.rotationEnabled = e.target.checked;
+        });
+
+        // Add rotation speed slider
+        this.addSlider('Rotation Speed: ', `${planetName}-rotation-speed-slider`, 50, (value) => {
+            if (value === 0) {
+                this.rotationSpeed = 0;
+            } else if (value <= 50) {
+                const normalizedValue = value / 50;
+                const baseSpeed = (2 * Math.PI) / (this.rotationPeriod * 60);
+                this.rotationSpeed = baseSpeed * normalizedValue;
+            } else {
+                const normalizedValue = (value - 50) / 50;
+                const periodDiff = this.rotationPeriod - this.maxRotationPeriod;
+                const adjustedPeriod = this.rotationPeriod - (periodDiff * normalizedValue);
+                this.rotationSpeed = (2 * Math.PI) / (adjustedPeriod * 60);
+            }
+
+            if (value > 0 && !this.rotationEnabled) {
+                this.rotationEnabled = true;
+                document.getElementById(`${planetName}-rotation-toggle`).checked = true;
+            }
+        });
+    }
+
+    /**
+     * Creates the orbit controls section
+     */
+    createOrbitSection() {
+        const planetName = this.constructor.name.toLowerCase();
+        
+        // Create section header
+        const sectionHeader = document.createElement('h4');
+        sectionHeader.textContent = 'Orbit Controls';
+        sectionHeader.style.margin = '15px 0 10px 0';
+        sectionHeader.style.borderBottom = '1px solid #555';
+        sectionHeader.style.paddingBottom = '5px';
+        this.consoleContent.appendChild(sectionHeader);
+
+        // Listen for global orbit slider changes
+        document.addEventListener('globalOrbitSliderChange', (e) => {
+            const slider = document.getElementById(`${planetName}-orbit-speed-slider`);
+            if (slider) {
+                slider.value = e.detail.value;
+                const event = new Event('input', { bubbles: true });
+                slider.dispatchEvent(event);
+            }
+        });
+
+        // Listen for global orbit visibility slider changes
+        document.addEventListener('globalOrbitVisibilityChange', (e) => {
+            const slider = document.getElementById(`${planetName}-orbit-visibility-slider`);
+            if (slider) {
+                slider.value = e.detail.value;
+                const event = new Event('input', { bubbles: true });
+                slider.dispatchEvent(event);
+            }
+        });
+
+        // Add orbit toggle
+        this.addToggle('Enable Orbit: ', `${planetName}-orbit-toggle`, this.orbitEnabled, (e) => {
+            this.orbitEnabled = e.target.checked;
+
+            if (e.target.checked && this.sideViewEnabled) {
+                this.sideViewEnabled = false;
+                document.getElementById(`${planetName}-side-view-toggle`).checked = false;
+                this.toggleCloseUpView(false, false);
+            }
+        });
+
+        // Add orbit speed slider
+        this.addSlider('Orbit Speed: ', `${planetName}-orbit-speed-slider`, 50, (value) => {
+            if (value === 0) {
+                this.orbitSpeed = 0;
+            } else if (value <= 50) {
+                const normalizedValue = value / 50;
+                const baseSpeed = (2 * Math.PI) / (this.orbitalPeriod * 60);
+                this.orbitSpeed = baseSpeed * normalizedValue;
+            } else {
+                const normalizedValue = (value - 50) / 50;
+                const periodDiff = this.orbitalPeriod - this.maxOrbitalPeriod;
+                const adjustedPeriod = this.orbitalPeriod - (periodDiff * normalizedValue);
+                this.orbitSpeed = (2 * Math.PI) / (adjustedPeriod * 60);
+            }
+
+            if (value > 0 && !this.orbitEnabled) {
+                this.orbitEnabled = true;
+                document.getElementById(`${planetName}-orbit-toggle`).checked = true;
+
+                if (this.sideViewEnabled) {
+                    this.sideViewEnabled = false;
+                    document.getElementById(`${planetName}-side-view-toggle`).checked = false;
+                    this.toggleCloseUpView(false, false);
+                }
+            }
+        });
+    }
+
+    /**
+     * Creates the orbit visibility slider
+     * @param {string} planetName - The name of the planet for element IDs
+     */
+    createOrbitVisibilitySlider(planetName) {
+        const visContainer = document.createElement('div');
+        visContainer.style.marginBottom = '15px';
+
+        const visLabel = document.createElement('label');
+        visLabel.textContent = 'Orbit Visibility: ';
+        visLabel.style.display = 'block';
+        visLabel.style.marginBottom = '5px';
+
+        const visSlider = document.createElement('input');
+        visSlider.type = 'range';
+        visSlider.min = '0';
+        visSlider.max = '100';
+        visSlider.value = Math.round(this.orbitVisibility * 100);
+        visSlider.style.width = '100%';
+        visSlider.id = `${planetName}-orbit-visibility-slider`;
+        visSlider.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            this.orbitVisibility = value / 100;
+
+            if (this.orbitLine) {
+                this.orbitLine.material.opacity = this.orbitVisibility;
+
+                const intensity = 0.5 + this.orbitVisibility * 0.5;
+                this.orbitLine.material.color.setRGB(intensity, intensity, intensity);
+            }
+        });
+
+        visContainer.appendChild(visLabel);
+        visContainer.appendChild(visSlider);
+        this.consoleContent.appendChild(visContainer);
+    }
+
+    /**
+     * Creates season labels for planets that have seasons
+     * @param {Array} seasons - Array of season objects with name, season, and angle properties
+     */
+    createSeasonLabels(seasons) {
+        if (!seasons || !seasons.length) return;
+        
+        this.seasonLabels = new THREE.Group();
+        
+        seasons.forEach(season => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 256;
+            canvas.height = 256;
+
+            if (season.name) {
+                ctx.font = 'Bold 120px Arial';
+                ctx.fillStyle = 'white';
+                ctx.textAlign = 'center';
+                ctx.fillText(season.name, 128, 120);
+            }
+
+            ctx.font = '40px Arial';
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'center';
+            ctx.fillText(`(${season.season})`, 128, season.name ? 180 : 128);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            const material = new THREE.SpriteMaterial({ map: texture });
+            const sprite = new THREE.Sprite(material);
+
+            const x = this.orbitRadius * Math.cos(season.angle);
+            const z = this.orbitRadius * Math.sin(season.angle);
+            sprite.position.set(x, this.radius * 3, z);
+            sprite.scale.set(this.radius * 5, this.radius * 5, 1);
+
+            this.seasonLabels.add(sprite);
+        });
+
+        scene.add(this.seasonLabels);
+        this.seasonLabels.visible = false; // Hide season labels by default
     }
 }
