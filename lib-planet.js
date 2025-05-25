@@ -3,8 +3,16 @@
  */
 class Planet {
 
-    static scaleDownDiameterFactor = 100;
-    static scaleDownOrbitFactor = 2000;
+//  Correct size scale - Orbit scaled down
+//    static scaleDownDiameterFactor = 1;
+//    static scaleDownOrbitFactor = 1000;
+//    static shiftOrbit = 700000;
+
+    // Correct orbit scale -
+    static scaleDownDiameterFactor = 1;
+    static scaleDownOrbitFactor = 1000;
+    static shiftOrbit = 0;
+
 
     // Earth reference data for relative calculations
     static earthData = {
@@ -263,6 +271,7 @@ class Planet {
         resetBtn.style.cursor = 'pointer';
         resetBtn.style.flexShrink = '0';
 
+        // Listen for input events (user interaction)
         slider.addEventListener('input', (e) => {
             const value = parseInt(e.target.value);
             onChange(value);
@@ -270,7 +279,7 @@ class Planet {
 
         resetBtn.addEventListener('click', () => {
             slider.value = '50';
-            onChange(50);
+            handleSliderChange();
         });
 
         controlsContainer.appendChild(slider);

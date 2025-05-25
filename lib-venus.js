@@ -4,16 +4,17 @@
 class Venus extends Planet {
     // Static data for Venus
     static factData = {
-        diameter: 12104, // km
+        diameter: 12104.0, // km
         axialTilt: 177.3, // degrees (retrograde rotation)
-        orbitRadius: 108200000, // km (average distance from Sun)
+        orbitRadius: 108200000.0, // km (average distance from Sun)
         rotationPeriod: 5832.5, // hours (243 days, retrograde)
         orbitalPeriod: 224.7, // days
+        variable: 54100 * 1.2,
     };
 
     static scaleModelData = {
-        diameter: Venus.factData.diameter, // scaled diameter in the model
-        orbitRadius: this.factData.orbitRadius / Planet.scaleDownOrbitFactor, // scaled orbit radius
+        diameter: Venus.factData.diameter/Planet.scaleDownDiameterFactor,                                      // scaled diameter in the model
+        orbitRadius: Venus.factData.orbitRadius/Planet.scaleDownOrbitFactor + Planet.shiftOrbit,    // Venus.orbitRadius / 2000, // scaled orbit radius
         get rotationPeriod() {
             const relativePeriods = Planet.calculateRelativePeriods(Venus.factData.rotationPeriod, Venus.factData.orbitalPeriod);
             return 10 * relativePeriods.rotation;
@@ -261,10 +262,6 @@ class Venus extends Planet {
                 this.rotationEnabled = true;
                 document.getElementById('rotation-toggle').checked = true;
             }
-
-            // Update global slider
-            const globalSlider = document.getElementById('global-rotation-speed-slider');
-            if (globalSlider) globalSlider.value = value;
         });
     }
 
@@ -331,10 +328,6 @@ class Venus extends Planet {
                     this.toggleCloseUpView(false, false);
                 }
             }
-
-            // Update global slider
-            const globalSlider = document.getElementById('global-orbit-speed-slider');
-            if (globalSlider) globalSlider.value = value;
         });
 
         // Orbit visibility slider
@@ -368,9 +361,6 @@ class Venus extends Planet {
                     this.orbitLine.material.color.setRGB(0.5, 0.5, 0.5);
                 }
             }
-
-            const globalSlider = document.getElementById('global-orbit-visibility-slider');
-            if (globalSlider) globalSlider.value = value;
         });
 
         visContainer.appendChild(visLabel);

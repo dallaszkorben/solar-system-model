@@ -5,15 +5,15 @@ class Sun extends Planet {
 
     // Static data for Sun
     static factData = {
-        diameter: 1391400, // km
-        rotationPeriod: 28 * 24, // converted to hours (28 days)
-        axialTilt: 7.25, // degrees
-        orbitRadius: 0, // Sun doesn't orbit anything
-        orbitalPeriod: 0, // Sun doesn't orbit anything
+        diameter: 1391400.0,        // km
+        rotationPeriod: 28 * 24,    // converted to hours (28 days)
+        axialTilt: 7.25,            // degrees
+        orbitRadius: 0,             // Sun doesn't orbit anything
+        orbitalPeriod: 0,           // Sun doesn't orbit anything
     };
 
     static scaleModelData = {
-        diameter: Sun.factData.diameter,    // scaled diameter
+        diameter: Sun.factData.diameter/Planet.scaleDownDiameterFactor/100,    // scaled diameter
         orbitRadius: 0,                     // Sun doesn't orbit anything
         get rotationPeriod() {
             const relativePeriods = Planet.calculateRelativePeriods(Sun.factData.rotationPeriod, 1); // Use 1 as orbital period since Sun doesn't orbit
@@ -32,7 +32,7 @@ class Sun extends Planet {
     };
 
     static nonScaleModelData = {
-        diameter: Sun.factData.diameter/50, // visually appealing diameter
+        diameter: Sun.factData.diameter/50.0, // visually appealing diameter
         orbitRadius: 0,                     // Sun doesn't orbit anything
         get rotationPeriod() {
             const relativePeriods = Planet.calculateRelativePeriods(Sun.factData.rotationPeriod, 1);
@@ -151,6 +151,17 @@ class Sun extends Planet {
         sectionHeader.style.borderBottom = '1px solid #555';
         sectionHeader.style.paddingBottom = '5px';
         this.consoleContent.appendChild(sectionHeader);
+
+        // Listen for global rotation slider changes
+        document.addEventListener('globalRotationSliderChange', (e) => {
+            const slider = document.getElementById('sun-rotation-speed-slider');
+            if (slider) {
+                slider.value = e.detail.value;
+                // Trigger the input event to update the rotation speed
+                const event = new Event('input', { bubbles: true });
+                slider.dispatchEvent(event);
+            }
+        });
 
         // Add axis toggle
         this.addToggle('Show Axis: ', 'sun-axis-toggle', true, (e) => {

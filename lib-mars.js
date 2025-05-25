@@ -4,16 +4,16 @@
 class Mars extends Planet {
     // Static data for Mars
     static factData = {
-        diameter: 6779, // km
+        diameter: 6779.0, // km
         axialTilt: 25.19, // degrees
-        orbitRadius: 227900000, // km (average distance from Sun)
+        orbitRadius: 227900000.0, // km (average distance from Sun)
         rotationPeriod: 24.6, // hours
-        orbitalPeriod: 687, // days
+        orbitalPeriod: 687 // days
     };
 
     static scaleModelData = {
-        diameter: Mars.factData.diameter, // scaled diameter in the model
-        orbitRadius: this.factData.orbitRadius / Planet.scaleDownOrbitFactor, // scaled orbit radius
+        diameter: Mars.factData.diameter/Planet.scaleDownDiameterFactor,                                   // scaled diameter in the model
+        orbitRadius: Mars.factData.orbitRadius/Planet.scaleDownOrbitFactor + Planet.shiftOrbit,   //Mars.orbitRadius / 2000, // scaled orbit radius
         get rotationPeriod() {
             const relativePeriods = Planet.calculateRelativePeriods(Mars.factData.rotationPeriod, Mars.factData.orbitalPeriod);
             return 10 * relativePeriods.rotation;
@@ -219,12 +219,6 @@ class Mars extends Planet {
                 this.rotationEnabled = true;
                 document.getElementById('mars-rotation-toggle').checked = true;
             }
-
-            // Update global rotation speed slider if it exists
-            const globalRotationSlider = document.getElementById('global-rotation-speed-slider');
-            if (globalRotationSlider) {
-                globalRotationSlider.value = value;
-            }
         });
     }
 
@@ -299,12 +293,6 @@ class Mars extends Planet {
                     this.toggleCloseUpView(false, false);
                 }
             }
-
-            // Update global orbit speed slider if it exists
-            const globalOrbitSlider = document.getElementById('global-orbit-speed-slider');
-            if (globalOrbitSlider) {
-                globalOrbitSlider.value = value;
-            }
         });
 
         // Add orbit visibility slider
@@ -340,12 +328,6 @@ class Mars extends Planet {
                     // Keep gray but reduce opacity as visibility goes from 0.5 to 0
                     this.orbitLine.material.color.setRGB(0.5, 0.5, 0.5);
                 }
-            }
-
-            // Update global orbit visibility slider if it exists
-            const globalVisibilitySlider = document.getElementById('global-orbit-visibility-slider');
-            if (globalVisibilitySlider) {
-                globalVisibilitySlider.value = value;
             }
         });
 

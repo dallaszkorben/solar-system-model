@@ -1,33 +1,33 @@
 /**
- * Earth model creator
+ * Mercury model creator
  */
-class Earth extends Planet {
-    // Static data for Earth
+class Mercury extends Planet {
+    // Static data for Mercury
     static factData = {
-        diameter: 12742.0, // km
-        axialTilt: 23.4, // degrees
-        orbitRadius: 149600000.0, // km (average distance from Sun)
-        rotationPeriod: 23.93, // hours
-        orbitalPeriod: 365.25, // days
+        diameter: 4879.4, // km
+        axialTilt: 0.034, // degrees (almost no tilt)
+        orbitRadius: 57909050.0, // km (average distance from Sun)
+        rotationPeriod: 1407.6, // hours (58.6 days)
+        orbitalPeriod: 88.0, // days
     };
 
     static scaleModelData = {
-        diameter: Earth.factData.diameter/Planet.scaleDownDiameterFactor, // scaled diameter in the model
-        orbitRadius: Earth.factData.orbitRadius/Planet.scaleDownOrbitFactor + Planet.shiftOrbit, //Earth.orbitRadius / 2000, // scaled orbit radius
+        diameter: Mercury.factData.diameter/Planet.scaleDownDiameterFactor, // scaled diameter in the model
+        orbitRadius: Mercury.factData.orbitRadius/Planet.scaleDownOrbitFactor + Planet.shiftOrbit, // scaled orbit radius
         get rotationPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Earth.factData.rotationPeriod, Earth.factData.orbitalPeriod);
+            const relativePeriods = Planet.calculateRelativePeriods(Mercury.factData.rotationPeriod, Mercury.factData.orbitalPeriod);
             return 10 * relativePeriods.rotation;
         },
         get maxRotationPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Earth.factData.rotationPeriod, Earth.factData.orbitalPeriod);
+            const relativePeriods = Planet.calculateRelativePeriods(Mercury.factData.rotationPeriod, Mercury.factData.orbitalPeriod);
             return 1 * relativePeriods.rotation;
         },
         get orbitalPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Earth.factData.rotationPeriod, Earth.factData.orbitalPeriod);
+            const relativePeriods = Planet.calculateRelativePeriods(Mercury.factData.rotationPeriod, Mercury.factData.orbitalPeriod);
             return 600 * relativePeriods.orbit;
         },
         get maxOrbitalPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Earth.factData.rotationPeriod, Earth.factData.orbitalPeriod);
+            const relativePeriods = Planet.calculateRelativePeriods(Mercury.factData.rotationPeriod, Mercury.factData.orbitalPeriod);
             return 60 * relativePeriods.orbit;
         },
         rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
@@ -37,23 +37,23 @@ class Earth extends Planet {
     };
 
     static nonScaleModelData = {
-        diameter: Earth.factData.diameter, // visually appealing diameter
-        orbitRadius: 74800, // visually appealing orbit radius
+        diameter: Mercury.factData.diameter, // visually appealing diameter
+        orbitRadius: 37400, // visually appealing orbit radius (half of Earth's)
         get rotationPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Earth.factData.rotationPeriod, Earth.factData.orbitalPeriod);
+            const relativePeriods = Planet.calculateRelativePeriods(Mercury.factData.rotationPeriod, Mercury.factData.orbitalPeriod);
             return 1 * relativePeriods.rotation;
         },
         get maxRotationPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Earth.factData.rotationPeriod, Earth.factData.orbitalPeriod);
+            const relativePeriods = Planet.calculateRelativePeriods(Mercury.factData.rotationPeriod, Mercury.factData.orbitalPeriod);
             return 0.1 * relativePeriods.rotation;
         },
         get orbitalPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Earth.factData.rotationPeriod, Earth.factData.orbitalPeriod);
-            return 60 * relativePeriods.orbit;
+            const relativePeriods = Planet.calculateRelativePeriods(Mercury.factData.rotationPeriod, Mercury.factData.orbitalPeriod);
+            return 30 * relativePeriods.orbit; // Faster than Earth
         },
         get maxOrbitalPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Earth.factData.rotationPeriod, Earth.factData.orbitalPeriod);
-            return 6 * relativePeriods.orbit;
+            const relativePeriods = Planet.calculateRelativePeriods(Mercury.factData.rotationPeriod, Mercury.factData.orbitalPeriod);
+            return 3 * relativePeriods.orbit;
         },
         rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
         maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
@@ -62,72 +62,16 @@ class Earth extends Planet {
     };
 
     constructor() {
-        super(Earth.factData, Earth.nonScaleModelData, Earth.scaleModelData);
+        super(Mercury.factData, Mercury.nonScaleModelData, Mercury.scaleModelData);
 
-        // Season labels properties
-        this.seasonLabels = new THREE.Group(); // Group for season labels
-        this.seasonLabelsVisible = false; // Hide season labels by default
-
-        this.createSphere('images/Earth-texture.jpg');
-        this.createAxis();
+        this.createSphere('images/Mercury-texture.jpg');
+        this.createAxis(0xaaaaaa); // Gray color for Mercury's axis
         this.createLatitudeCircles([
-            { name: 'Equator', angle: 0, color: 0xff0000 },
-            { name: 'Tropic of Cancer', angle: 23.4, color: 0xff8800 },
-            { name: 'Tropic of Capricorn', angle: -23.4, color: 0xff8800 },
-            { name: 'Arctic Circle', angle: 66.6, color: 0x00aaff },
-            { name: 'Antarctic Circle', angle: -66.6, color: 0x00aaff }
+            { name: 'Equator', angle: 0, color: 0xff0000 }
         ]);
         this.applyTilt();
         this.createOrbit();
-        this.createSeasonLabels();
         this.createConsolePane();
-    }
-
-    createSeasonLabels() {
-        // Create labels for all four seasons
-        const seasons = [
-            { name: '', season: 'summer', angle: 0 },       // Aphelion - summer in northern hemisphere
-            { name: '', season: 'winter', angle: Math.PI }, // Perihelion - winter in northern hemisphere
-            { name: '', season: 'spring', angle: Math.PI/2 },
-            { name: '', season: 'autumn', angle: Math.PI*3/2 }
-        ];
-
-        seasons.forEach(season => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = 256;
-            canvas.height = 256;
-
-            // Draw main letter (A or P) if present
-            if (season.name) {
-                ctx.font = 'Bold 120px Arial';
-                ctx.fillStyle = 'white';
-                ctx.textAlign = 'center';
-                ctx.fillText(season.name, 128, 120);
-            }
-
-            // Draw season name
-            ctx.font = '40px Arial';
-            ctx.fillStyle = 'white';
-            ctx.textAlign = 'center';
-            ctx.fillText(`(${season.season})`, 128, season.name ? 180 : 128);
-
-            const texture = new THREE.CanvasTexture(canvas);
-            const material = new THREE.SpriteMaterial({ map: texture });
-            const sprite = new THREE.Sprite(material);
-
-            // Position the label at the correct point on the orbit
-            const x = this.orbitRadius * Math.cos(season.angle);
-            const z = this.orbitRadius * Math.sin(season.angle);
-            sprite.position.set(x, this.radius * 3, z);
-            sprite.scale.set(this.radius * 5, this.radius * 5, 1);
-
-            this.seasonLabels.add(sprite);
-        });
-
-        // Add season labels to the scene, not to the orbit group
-        scene.add(this.seasonLabels);
-        this.seasonLabels.visible = false; // Hide season labels by default
     }
 
     createConsolePane() {
@@ -137,27 +81,27 @@ class Earth extends Planet {
         this.consolePane.style.position = 'absolute';
         this.consolePane.style.bottom = '20px';
         this.consolePane.style.right = '20px';
-        this.consolePane.style.backgroundColor = 'rgba(80, 80, 80, 0.8)'; // Lighter gray
+        this.consolePane.style.backgroundColor = 'rgba(80, 80, 80, 0.8)';
         this.consolePane.style.color = 'white';
-        this.consolePane.style.padding = '0'; // No padding for the container
+        this.consolePane.style.padding = '0';
         this.consolePane.style.borderRadius = '5px';
         this.consolePane.style.fontFamily = 'Arial, sans-serif';
-        this.consolePane.style.display = 'none'; // Hidden by default
+        this.consolePane.style.display = 'none';
         this.consolePane.style.width = '250px';
-        this.consolePane.style.boxShadow = '0 4px 8px rgba(0,0,0,0.5)'; // Add shadow for better visibility
+        this.consolePane.style.boxShadow = '0 4px 8px rgba(0,0,0,0.5)';
 
         // Create header for dragging
         const header = document.createElement('div');
-        header.style.backgroundColor = 'rgba(100, 100, 100, 0.9)'; // Darker than the body
+        header.style.backgroundColor = 'rgba(100, 100, 100, 0.9)';
         header.style.padding = '10px 15px';
         header.style.borderTopLeftRadius = '5px';
         header.style.borderTopRightRadius = '5px';
-        header.style.cursor = 'move'; // Change cursor to indicate draggable
+        header.style.cursor = 'move';
         header.style.borderBottom = '1px solid #666';
 
         // Add title to header
         const title = document.createElement('h3');
-        title.textContent = 'Earth Controls';
+        title.textContent = 'Mercury Controls';
         title.style.margin = '0';
         header.appendChild(title);
 
@@ -194,18 +138,18 @@ class Earth extends Planet {
         this.consoleContent.appendChild(sectionHeader);
 
         // Add day/night effect toggle
-        this.addToggle('Day/Night Effect: ', 'earth-day-night-toggle', this.dayNightEnabled, (e) => {
+        this.addToggle('Day/Night Effect: ', 'mercury-day-night-toggle', this.dayNightEnabled, (e) => {
             this.dayNightEnabled = e.target.checked;
             this.toggleDayNightEffect(this.dayNightEnabled);
         });
 
         // Add side view toggle
-        this.addToggle('Close View: ', 'earth-side-view-toggle', this.sideViewEnabled, (e) => {
+        this.addToggle('Close View: ', 'mercury-side-view-toggle', this.sideViewEnabled, (e) => {
             if (e.target.checked) {
                 this.toggleCloseUpView(true, true);
                 if (this.orbitEnabled) {
                     this.orbitEnabled = false;
-                    document.getElementById('earth-orbit-toggle').checked = false;
+                    document.getElementById('mercury-orbit-toggle').checked = false;
                 }
             } else {
                 this.toggleCloseUpView(false, false);
@@ -217,24 +161,9 @@ class Earth extends Planet {
             if (this.axis) this.axis.visible = e.target.checked;
         });
 
-        // Add location markers toggle
-        this.addToggle('Show Location Markers: ', 'location-markers-toggle', true, (e) => {
-            // This will be handled by the SolarSystem class
-            const event = new CustomEvent('toggleLocationMarkers', {
-                detail: { visible: e.target.checked }
-            });
-            document.dispatchEvent(event);
-        });
-
         // Add latitude circles toggle
         this.addToggle('Show Latitude Circles: ', null, false, (e) => {
             this.latitudeCircles.visible = e.target.checked;
-        });
-
-        // Add season labels toggle
-        this.addToggle('Show Season Labels: ', null, this.seasonLabelsVisible, (e) => {
-            this.seasonLabelsVisible = e.target.checked;
-            this.seasonLabels.visible = e.target.checked;
         });
     }
 
@@ -249,22 +178,21 @@ class Earth extends Planet {
 
         // Listen for global rotation slider changes
         document.addEventListener('globalRotationSliderChange', (e) => {
-            const slider = document.getElementById('earth-rotation-speed-slider');
+            const slider = document.getElementById('mercury-rotation-speed-slider');
             if (slider) {
                 slider.value = e.detail.value;
-                // Trigger the input event to update the rotation speed
                 const event = new Event('input', { bubbles: true });
                 slider.dispatchEvent(event);
             }
         });
 
         // Add rotation toggle
-        this.addToggle('Enable Rotation: ', 'earth-rotation-toggle', this.rotationEnabled, (e) => {
+        this.addToggle('Enable Rotation: ', 'mercury-rotation-toggle', this.rotationEnabled, (e) => {
             this.rotationEnabled = e.target.checked;
         });
 
         // Add rotation speed slider
-        this.addSlider('Rotation Speed: ', 'earth-rotation-speed-slider', 50, (value) => {
+        this.addSlider('Rotation Speed: ', 'mercury-rotation-speed-slider', 50, (value) => {
             if (value === 0) {
                 this.rotationSpeed = 0;
             } else if (value <= 50) {
@@ -280,7 +208,7 @@ class Earth extends Planet {
 
             if (value > 0 && !this.rotationEnabled) {
                 this.rotationEnabled = true;
-                document.getElementById('earth-rotation-toggle').checked = true;
+                document.getElementById('mercury-rotation-toggle').checked = true;
             }
         });
     }
@@ -296,10 +224,9 @@ class Earth extends Planet {
 
         // Listen for global orbit slider changes
         document.addEventListener('globalOrbitSliderChange', (e) => {
-            const slider = document.getElementById('earth-orbit-speed-slider');
+            const slider = document.getElementById('mercury-orbit-speed-slider');
             if (slider) {
                 slider.value = e.detail.value;
-                // Trigger the input event to update the orbit speed
                 const event = new Event('input', { bubbles: true });
                 slider.dispatchEvent(event);
             }
@@ -307,31 +234,27 @@ class Earth extends Planet {
 
         // Listen for global orbit visibility slider changes
         document.addEventListener('globalOrbitVisibilityChange', (e) => {
-            const slider = document.getElementById('earth-orbit-visibility-slider');
+            const slider = document.getElementById('mercury-orbit-visibility-slider');
             if (slider) {
                 slider.value = e.detail.value;
-                // Trigger the input event to update the visibility
                 const event = new Event('input', { bubbles: true });
                 slider.dispatchEvent(event);
             }
         });
 
         // Add orbit toggle
-        this.addToggle('Enable Orbit: ', 'earth-orbit-toggle', this.orbitEnabled, (e) => {
+        this.addToggle('Enable Orbit: ', 'mercury-orbit-toggle', this.orbitEnabled, (e) => {
             this.orbitEnabled = e.target.checked;
 
-            // If orbit is enabled, disable any close-up views
-            if (e.target.checked) {
-                if (this.sideViewEnabled) {
-                    this.sideViewEnabled = false;
-                    document.getElementById('earth-side-view-toggle').checked = false;
-                    this.toggleCloseUpView(false, false);
-                }
+            if (e.target.checked && this.sideViewEnabled) {
+                this.sideViewEnabled = false;
+                document.getElementById('mercury-side-view-toggle').checked = false;
+                this.toggleCloseUpView(false, false);
             }
         });
 
         // Add orbit speed slider
-        this.addSlider('Orbit Speed: ', 'earth-orbit-speed-slider', 50, (value) => {
+        this.addSlider('Orbit Speed: ', 'mercury-orbit-speed-slider', 50, (value) => {
             if (value === 0) {
                 this.orbitSpeed = 0;
             } else if (value <= 50) {
@@ -347,11 +270,11 @@ class Earth extends Planet {
 
             if (value > 0 && !this.orbitEnabled) {
                 this.orbitEnabled = true;
-                document.getElementById('earth-orbit-toggle').checked = true;
+                document.getElementById('mercury-orbit-toggle').checked = true;
 
                 if (this.sideViewEnabled) {
                     this.sideViewEnabled = false;
-                    document.getElementById('earth-side-view-toggle').checked = false;
+                    document.getElementById('mercury-side-view-toggle').checked = false;
                     this.toggleCloseUpView(false, false);
                 }
             }
@@ -372,7 +295,7 @@ class Earth extends Planet {
         visSlider.max = '100';
         visSlider.value = Math.round(this.orbitVisibility * 100);
         visSlider.style.width = '100%';
-        visSlider.id = 'earth-orbit-visibility-slider';
+        visSlider.id = 'mercury-orbit-visibility-slider';
         visSlider.addEventListener('input', (e) => {
             const value = parseInt(e.target.value);
             this.orbitVisibility = value / 100;

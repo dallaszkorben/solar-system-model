@@ -11,6 +11,7 @@ class SolarSystem {
         this.earth = null;
         this.mars = null;
         this.venus = null;
+        this.mercury = null;
         this.planets = [];
 
         // Control panel
@@ -46,9 +47,10 @@ class SolarSystem {
 
         // Create the solar system
         this.createSun();
+        this.createMercury();
+        this.createVenus();
         this.createEarth();
         this.createMars();
-        this.createVenus();
         this.createConsolePane();
     }
 
@@ -57,16 +59,22 @@ class SolarSystem {
         this.group.add(this.sun.getObject());
     }
 
-    createMars() {
-        this.mars = new Mars(); // 6000m diameter
-        this.planets.push(this.mars);
-        this.group.add(this.mars.getObject());
+    createMercury() {
+        this.mercury = new Mercury(); // 4879km diameter
+        this.planets.push(this.mercury);
+        this.group.add(this.mercury.getObject());
     }
 
     createVenus() {
-        this.venus = new Venus(); // 11800m diameter
+        this.venus = new Venus(); // 12104km diameter
         this.planets.push(this.venus);
         this.group.add(this.venus.getObject());
+    }
+
+    createMars() {
+        this.mars = new Mars(); // 6779km diameter
+        this.planets.push(this.mars);
+        this.group.add(this.mars.getObject());
     }
 
     createEarth() {
@@ -268,6 +276,22 @@ class SolarSystem {
             }
         });
 
+        this.addToggle('Show Mercury Controls', false, (checked) => {
+            if (checked && this.mercury) {
+                this.mercury.show();
+            } else if (this.mercury) {
+                this.mercury.hide();
+            }
+        });
+
+        this.addToggle('Show Venus Controls', false, (checked) => {
+            if (checked && this.venus) {
+                this.venus.show();
+            } else if (this.venus) {
+                this.venus.hide();
+            }
+        });
+
         this.addToggle('Show Earth Controls', false, (checked) => {
             if (checked && this.earth) {
                 this.earth.show();
@@ -284,13 +308,6 @@ class SolarSystem {
             }
         });
 
-        this.addToggle('Show Venus Controls', false, (checked) => {
-            if (checked && this.venus) {
-                this.venus.show();
-            } else if (this.venus) {
-                this.venus.hide();
-            }
-        });
     }
 
     addViewButton(label, clickHandler) {
@@ -562,6 +579,11 @@ class SolarSystem {
         // Update Venus
         if (this.venus) {
             this.venus.update(time);
+        }
+
+        // Update Mercury
+        if (this.mercury) {
+            this.mercury.update(time);
         }
 
         // Update location camera if active
@@ -1389,27 +1411,24 @@ class SolarSystem {
         // Apply scale model to all planets
         if (this.planets && this.planets.length > 0) {
             this.planets.forEach(planet => {
-                // Get the appropriate model data
-                const modelData = useScale ?
-                    planet.constructor.name.toLowerCase() + 'ScaleModelData' :
-                    planet.constructor.name.toLowerCase() + 'NonScaleModelData';
+                // Use the appropriate model data directly from the planet instance
+                const modelData = useScale ? planet.scaleModelData : planet.nonScaleModelData;
 
-                // Get the global variable with that name
-                const data = window[modelData];
-
-                if (data) {
+                if (modelData) {
                     // Update planet properties
-                    planet.orbitRadius = data.orbitRadius;
-                    planet.rotationPeriod = data.rotationPeriod;
-                    planet.maxRotationPeriod = data.maxRotationPeriod;
-                    planet.orbitalPeriod = data.orbitalPeriod;
-                    planet.maxOrbitalPeriod = data.maxOrbitalPeriod;
+                    planet.diameter = modelData.diameter;
+                    planet.radius = planet.diameter / 2;
+                    planet.orbitRadius = modelData.orbitRadius;
+                    planet.rotationPeriod = modelData.rotationPeriod;
+                    planet.maxRotationPeriod = modelData.maxRotationPeriod;
+                    planet.orbitalPeriod = modelData.orbitalPeriod;
+                    planet.maxOrbitalPeriod = modelData.maxOrbitalPeriod;
 
                     // Update speeds
-                    planet.rotationSpeed = data.rotationSpeed();
-                    planet.maxRotationSpeed = data.maxRotationSpeed();
-                    planet.orbitSpeed = data.orbitSpeed();
-                    planet.maxOrbitSpeed = data.maxOrbitSpeed();
+                    planet.rotationSpeed = modelData.rotationSpeed();
+                    planet.maxRotationSpeed = modelData.maxRotationSpeed();
+                    planet.orbitSpeed = modelData.orbitSpeed();
+                    planet.maxOrbitSpeed = modelData.maxOrbitSpeed();
 
                     // Update orbit position
                     if (planet.group && planet.orbitLine) {
@@ -1433,13 +1452,32 @@ class SolarSystem {
                         // Update planet position
                         planet.group.position.x = planet.orbitRadius;
                     }
+
+                    // Update planet sphere size
+                    if (planet.sphere) {
+                        const newGeometry = new THREE.SphereGeometry(planet.radius, 64, 32);
+                        planet.sphere.geometry.dispose();
+                        planet.sphere.geometry = newGeometry;
+                    }
                 }
             });
         }
 
-        // Update sun if needed
-        if (this.sun && useScale) {
-            // Apply scale model to sun if needed
+        // Update sun
+        if (this.sun) {
+            // Apply appropriate model data to sun
+            const sunModelData = useScale ? this.sun.scaleModelData : this.sun.nonScaleModelData;
+            if (sunModelData) {
+                this.sun.diameter = sunModelData.diameter;
+                this.sun.radius = this.sun.diameter / 2;
+
+                // Update sun sphere size
+                if (this.sun.sphere) {
+                    const newGeometry = new THREE.SphereGeometry(this.sun.radius, 64, 32);
+                    this.sun.sphere.geometry.dispose();
+                    this.sun.sphere.geometry = newGeometry;
+                }
+            }
         }
     }
 
