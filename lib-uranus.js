@@ -114,7 +114,9 @@ class Uranus extends Planet {
                 vertices.push(x, y, z);
 
                 // UV - map texture radially
-                const u = i / phiSegments;
+                // U goes from 0 to 1 along the radius (width of texture)
+                // Right side (u=1) is closest to planet, left side (u=0) is farthest
+                const u = 1.0 - (i / phiSegments); // Reversed to match description
                 const v = j / thetaSegments;
                 uvs.push(u, v);
             }
@@ -153,7 +155,7 @@ class Uranus extends Planet {
             map: ringTexture,
             side: THREE.DoubleSide,
             transparent: true,
-            opacity: 0.7
+            opacity: 0.6
         });
 
         // Create ring mesh
@@ -221,6 +223,7 @@ class Uranus extends Planet {
                 const toggle = document.createElement('input');
                 toggle.type = 'checkbox';
                 toggle.checked = this.ringsVisible;
+                toggle.id = 'uranus-rings-toggle';
                 toggle.addEventListener('change', (e) => {
                     this.toggleRings(e.target.checked);
                 });

@@ -57,7 +57,7 @@ class LocationCamera {
             45, // Reduced from 75 to 45 degrees for less fisheye distortion
             window.innerWidth / window.innerHeight,
             0.1,
-            1000000
+            10000000 // Increased far clipping plane to see the skybox
         );
 
         this.activeLocation = location;

@@ -6,7 +6,6 @@ let solarSystem;
 function init() {
     // Create the scene
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x000000);
 
     // Create the camera
     camera = new THREE.PerspectiveCamera(
@@ -36,6 +35,10 @@ function init() {
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
     scene.add(ambientLight);
 
+    // Create skybox
+    const skybox = new Skybox();
+    scene.add(skybox.getObject());
+    
     // Create solar system
     solarSystem = new SolarSystem();
     scene.add(solarSystem.getObject());
