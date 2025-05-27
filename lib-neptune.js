@@ -38,7 +38,7 @@ class Neptune extends Planet {
 
     static nonScaleModelData = {
         diameter: Neptune.factData.diameter/3, // visually appealing diameter
-        orbitRadius: 450000, // visually appealing orbit radius
+        orbitRadius: 600000, // visually appealing orbit radius
         get rotationPeriod() {
             const relativePeriods = Planet.calculateRelativePeriods(Neptune.factData.rotationPeriod, Neptune.factData.orbitalPeriod);
             return 1 * relativePeriods.rotation;

@@ -34,12 +34,12 @@ class SolarSystem {
         this.cameraSettings = {
             'topView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
             'sideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
-            'sunView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
-            'earthView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
-            'jupiterView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
-            'saturnView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
-            'uranusView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
-            'neptuneView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
+            'sunSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
+            'earthSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
+            'jupiterSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
+            'saturnSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
+            'uranusSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
+            'neptuneSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
             'budapest': { horizontalAngle: Math.PI, verticalAngle: 0.0, elevation: 0.01 },
             'kiruna': { horizontalAngle: 0, verticalAngle: 0.0, elevation: 0.01 }
         };
@@ -500,23 +500,33 @@ class SolarSystem {
     }
 
     createViewSection() {
-        // Create section header
-        const sectionHeader = document.createElement('h4');
-        sectionHeader.textContent = 'Global View';
-        sectionHeader.style.margin = '0 0 10px 0';
-        sectionHeader.style.borderBottom = '1px solid #555';
-        sectionHeader.style.paddingBottom = '5px';
-        this.viewConsoleContent.appendChild(sectionHeader);
+        // Create Global Views section header
+        const globalSectionHeader = document.createElement('h4');
+        globalSectionHeader.textContent = 'Global Views';
+        globalSectionHeader.style.margin = '0 0 10px 0';
+        globalSectionHeader.style.borderBottom = '1px solid #555';
+        globalSectionHeader.style.paddingBottom = '5px';
+        this.viewConsoleContent.appendChild(globalSectionHeader);
 
-        // Add buttons for different views
+        // Add buttons for global views
         this.addViewButton('Top View', () => this.setTopView(), this.viewConsoleContent);
         this.addViewButton('Side View', () => this.setSideView(), this.viewConsoleContent);
-        this.addViewButton('Sun View', () => this.setSunView(), this.viewConsoleContent);
-        this.addViewButton('Earth View', () => this.setEarthView(), this.viewConsoleContent);
-        this.addViewButton('Jupiter View', () => this.setJupiterView(), this.viewConsoleContent);
-        this.addViewButton('Saturn View', () => this.setSaturnView(), this.viewConsoleContent);
-        this.addViewButton('Uranus View', () => this.setUranusView(), this.viewConsoleContent);
-        this.addViewButton('Neptune View', () => this.setNeptuneView(), this.viewConsoleContent);
+        
+        // Create Planet Side Views section header with extra margin
+        const planetSectionHeader = document.createElement('h4');
+        planetSectionHeader.textContent = 'Planet Side Views';
+        planetSectionHeader.style.margin = '20px 0 10px 0';
+        planetSectionHeader.style.borderBottom = '1px solid #555';
+        planetSectionHeader.style.paddingBottom = '5px';
+        this.viewConsoleContent.appendChild(planetSectionHeader);
+        
+        // Add buttons for planet side views
+        this.addViewButton('Sun Side View', () => this.setSunView(), this.viewConsoleContent);
+        this.addViewButton('Earth Side View', () => this.setEarthView(), this.viewConsoleContent);
+        this.addViewButton('Jupiter Side View', () => this.setJupiterView(), this.viewConsoleContent);
+        this.addViewButton('Saturn Side View', () => this.setSaturnView(), this.viewConsoleContent);
+        this.addViewButton('Uranus Side View', () => this.setUranusView(), this.viewConsoleContent);
+        this.addViewButton('Neptune Side View', () => this.setNeptuneView(), this.viewConsoleContent);
     }
 
     addViewButton(label, clickHandler, container) {
@@ -634,6 +644,14 @@ class SolarSystem {
             }
         }
 
+        // Disable any existing marker views on all planets
+        this.planets.forEach(planet => {
+            if (planet.planetMarker && planet.planetMarker.cameraView) {
+                planet.planetMarker.setCameraView(false);
+                planet.setMarkerVisible(false);
+            }
+        });
+
         // Find the largest orbit radius among all planets
         let maxOrbitRadius = 1500000; // Default value
 
@@ -695,6 +713,14 @@ class SolarSystem {
             }
         }
 
+        // Disable any existing marker views on all planets
+        this.planets.forEach(planet => {
+            if (planet.planetMarker && planet.planetMarker.cameraView) {
+                planet.planetMarker.setCameraView(false);
+                planet.setMarkerVisible(false);
+            }
+        });
+
         // Position camera to the side of the solar system
         const maxOrbitRadius = this.earth ? this.earth.orbitRadius : 150000;
         const distance = maxOrbitRadius * 1.5;
@@ -735,20 +761,33 @@ class SolarSystem {
             }
         }
 
-        // Position camera to view the Sun up close
-        const viewFactor = 0.8; // 80% of vertical screen
-        const distance = this.sun.diameter / (2 * Math.tan((camera.fov * Math.PI / 180) / 2) * viewFactor);
+        // Disable any existing marker views on all planets
+        this.planets.forEach(planet => {
+            if (planet.planetMarker && planet.planetMarker.cameraView) {
+                planet.planetMarker.setCameraView(false);
+                planet.setMarkerVisible(false);
+            }
+        });
 
-        camera.position.set(0, 0, distance);
-        camera.lookAt(0, 0, 0);
-
-        if (controls) {
-            controls.target.set(0, 0, 0);
-            controls.update();
+        // Disable any existing marker view on the sun
+        if (this.sun.planetMarker && this.sun.planetMarker.cameraView) {
+            this.sun.planetMarker.setCameraView(false);
+            this.sun.setMarkerVisible(false);
         }
 
+        // Create marker if it doesn't exist
+        if (!this.sun.marker) {
+            this.sun.createMarker();
+        }
+        
+        // Make marker visible
+        this.sun.setMarkerVisible(true);
+        
+        // Set up the marker view
+        this.sun.setPlanetMarkerView();
+        
         // Set active view and update camera controls
-        this.activeView = 'sunView';
+        this.activeView = 'sunSideView';
         this.updateCameraControls();
     }
 
@@ -771,29 +810,27 @@ class SolarSystem {
             }
         }
 
-        // Get Earth's current position
-        const earthPos = new THREE.Vector3();
-        this.earth.group.getWorldPosition(earthPos);
+        // Disable any existing marker views on other planets
+        this.planets.forEach(planet => {
+            if (planet !== this.earth && planet.planetMarker && planet.planetMarker.cameraView) {
+                planet.planetMarker.setCameraView(false);
+                planet.setMarkerVisible(false);
+            }
+        });
 
-        // Position camera to view Earth up close
-        const viewFactor = 0.5; // 50% of vertical screen
-        const distance = this.earth.diameter / (2 * Math.tan((camera.fov * Math.PI / 180) / 2) * viewFactor);
-
-        // Calculate camera position
-        const cameraPos = new THREE.Vector3();
-        cameraPos.copy(earthPos);
-        cameraPos.z += distance;
-
-        camera.position.copy(cameraPos);
-        camera.lookAt(earthPos);
-
-        if (controls) {
-            controls.target.copy(earthPos);
-            controls.update();
+        // Create marker if it doesn't exist
+        if (!this.earth.marker) {
+            this.earth.createMarker();
         }
-
+        
+        // Make marker visible
+        this.earth.setMarkerVisible(true);
+        
+        // Set up the marker view
+        this.earth.setPlanetMarkerView();
+        
         // Set active view and update camera controls
-        this.activeView = 'earthView';
+        this.activeView = 'earthSideView';
         this.updateCameraControls();
     }
     
@@ -816,29 +853,27 @@ class SolarSystem {
             }
         }
 
-        // Get Saturn's current position
-        const saturnPos = new THREE.Vector3();
-        this.saturn.group.getWorldPosition(saturnPos);
+        // Disable any existing marker views on other planets
+        this.planets.forEach(planet => {
+            if (planet !== this.saturn && planet.planetMarker && planet.planetMarker.cameraView) {
+                planet.planetMarker.setCameraView(false);
+                planet.setMarkerVisible(false);
+            }
+        });
 
-        // Position camera to view Saturn up close
-        const viewFactor = 0.5; // 50% of vertical screen
-        const distance = this.saturn.diameter / (2 * Math.tan((camera.fov * Math.PI / 180) / 2) * viewFactor);
-
-        // Calculate camera position
-        const cameraPos = new THREE.Vector3();
-        cameraPos.copy(saturnPos);
-        cameraPos.z += distance;
-
-        camera.position.copy(cameraPos);
-        camera.lookAt(saturnPos);
-
-        if (controls) {
-            controls.target.copy(saturnPos);
-            controls.update();
+        // Create marker if it doesn't exist
+        if (!this.saturn.marker) {
+            this.saturn.createMarker();
         }
-
+        
+        // Make marker visible
+        this.saturn.setMarkerVisible(true);
+        
+        // Set up the marker view
+        this.saturn.setPlanetMarkerView();
+        
         // Set active view and update camera controls
-        this.activeView = 'saturnView';
+        this.activeView = 'saturnSideView';
         this.updateCameraControls();
     }
     
@@ -861,29 +896,27 @@ class SolarSystem {
             }
         }
 
-        // Get Jupiter's current position
-        const jupiterPos = new THREE.Vector3();
-        this.jupiter.group.getWorldPosition(jupiterPos);
+        // Disable any existing marker views on other planets
+        this.planets.forEach(planet => {
+            if (planet !== this.jupiter && planet.planetMarker && planet.planetMarker.cameraView) {
+                planet.planetMarker.setCameraView(false);
+                planet.setMarkerVisible(false);
+            }
+        });
 
-        // Position camera to view Jupiter up close
-        const viewFactor = 0.5; // 50% of vertical screen
-        const distance = this.jupiter.diameter / (2 * Math.tan((camera.fov * Math.PI / 180) / 2) * viewFactor);
-
-        // Calculate camera position
-        const cameraPos = new THREE.Vector3();
-        cameraPos.copy(jupiterPos);
-        cameraPos.z += distance;
-
-        camera.position.copy(cameraPos);
-        camera.lookAt(jupiterPos);
-
-        if (controls) {
-            controls.target.copy(jupiterPos);
-            controls.update();
+        // Create marker if it doesn't exist
+        if (!this.jupiter.marker) {
+            this.jupiter.createMarker();
         }
-
+        
+        // Make marker visible
+        this.jupiter.setMarkerVisible(true);
+        
+        // Set up the marker view
+        this.jupiter.setPlanetMarkerView();
+        
         // Set active view and update camera controls
-        this.activeView = 'jupiterView';
+        this.activeView = 'jupiterSideView';
         this.updateCameraControls();
     }
     
@@ -906,29 +939,27 @@ class SolarSystem {
             }
         }
 
-        // Get Uranus's current position
-        const uranusPos = new THREE.Vector3();
-        this.uranus.group.getWorldPosition(uranusPos);
+        // Disable any existing marker views on other planets
+        this.planets.forEach(planet => {
+            if (planet !== this.uranus && planet.planetMarker && planet.planetMarker.cameraView) {
+                planet.planetMarker.setCameraView(false);
+                planet.setMarkerVisible(false);
+            }
+        });
 
-        // Position camera to view Uranus up close
-        const viewFactor = 0.5; // 50% of vertical screen
-        const distance = this.uranus.diameter / (2 * Math.tan((camera.fov * Math.PI / 180) / 2) * viewFactor);
-
-        // Calculate camera position
-        const cameraPos = new THREE.Vector3();
-        cameraPos.copy(uranusPos);
-        cameraPos.z += distance;
-
-        camera.position.copy(cameraPos);
-        camera.lookAt(uranusPos);
-
-        if (controls) {
-            controls.target.copy(uranusPos);
-            controls.update();
+        // Create marker if it doesn't exist
+        if (!this.uranus.marker) {
+            this.uranus.createMarker();
         }
-
+        
+        // Make marker visible
+        this.uranus.setMarkerVisible(true);
+        
+        // Set up the marker view
+        this.uranus.setPlanetMarkerView();
+        
         // Set active view and update camera controls
-        this.activeView = 'uranusView';
+        this.activeView = 'uranusSideView';
         this.updateCameraControls();
     }
     
@@ -951,29 +982,27 @@ class SolarSystem {
             }
         }
 
-        // Get Neptune's current position
-        const neptunePos = new THREE.Vector3();
-        this.neptune.group.getWorldPosition(neptunePos);
+        // Disable any existing marker views on other planets
+        this.planets.forEach(planet => {
+            if (planet !== this.neptune && planet.planetMarker && planet.planetMarker.cameraView) {
+                planet.planetMarker.setCameraView(false);
+                planet.setMarkerVisible(false);
+            }
+        });
 
-        // Position camera to view Neptune up close
-        const viewFactor = 0.5; // 50% of vertical screen
-        const distance = this.neptune.diameter / (2 * Math.tan((camera.fov * Math.PI / 180) / 2) * viewFactor);
-
-        // Calculate camera position
-        const cameraPos = new THREE.Vector3();
-        cameraPos.copy(neptunePos);
-        cameraPos.z += distance;
-
-        camera.position.copy(cameraPos);
-        camera.lookAt(neptunePos);
-
-        if (controls) {
-            controls.target.copy(neptunePos);
-            controls.update();
+        // Create marker if it doesn't exist
+        if (!this.neptune.marker) {
+            this.neptune.createMarker();
         }
-
+        
+        // Make marker visible
+        this.neptune.setMarkerVisible(true);
+        
+        // Set up the marker view
+        this.neptune.setPlanetMarkerView();
+        
         // Set active view and update camera controls
-        this.activeView = 'neptuneView';
+        this.activeView = 'neptuneSideView';
         this.updateCameraControls();
     }
 
@@ -1057,6 +1086,14 @@ class SolarSystem {
             this.locationMarkers.forEach(marker => {
                 this.addViewButton(`View from ${marker.options.name}`, () => {
                     if (this.locationCamera) {
+                        // Disable any existing marker views on all planets
+                        this.planets.forEach(planet => {
+                            if (planet.planetMarker && planet.planetMarker.cameraView) {
+                                planet.planetMarker.setCameraView(false);
+                                planet.setMarkerVisible(false);
+                            }
+                        });
+                        
                         // Set flag that we're entering a location view
                         this.inLocationView = true;
 

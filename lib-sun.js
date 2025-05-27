@@ -170,6 +170,51 @@ class Sun extends Planet {
             }
         });
 
+        // Add marker toggle
+        this.addToggle('Show Marker: ', 'sun-marker-toggle', false, (e) => {
+            // Create marker if it doesn't exist
+            if (!this.marker && e.target.checked) {
+                this.createMarker();
+            }
+            
+            // Set marker visibility
+            this.setMarkerVisible(e.target.checked);
+        });
+
+        // Add side marker view toggle
+        this.addToggle('Side Marker View: ', 'sun-side-marker-view-toggle', false, (e) => {
+            if (e.target.checked) {
+                // Create marker if it doesn't exist
+                if (!this.marker) {
+                    this.createMarker();
+                }
+                
+                // Make marker visible
+                this.setMarkerVisible(true);
+                
+                // Enable rotation so the marker rotates with the sun
+                this.rotationEnabled = true;
+                document.getElementById('sun-rotation-toggle').checked = true;
+                
+                // Set up the marker view
+                this.setPlanetMarkerView();
+            } else {
+                // Disable camera view mode
+                if (this.planetMarker) {
+                    this.planetMarker.setCameraView(false);
+                }
+                
+                // Hide marker
+                this.setMarkerVisible(false);
+                
+                // Restore original view
+                this.toggleCloseUpView(false, false);
+            }
+        });
+
+        // Add side marker distance slider
+        this.createMarkerDistanceSlider('sun');
+
         // Add rotation toggle
         this.addToggle('Enable Rotation: ', 'sun-rotation-toggle', this.rotationEnabled, (e) => {
             this.rotationEnabled = e.target.checked;

@@ -76,10 +76,15 @@ class Planet {
         this.closeUpViewEnabled = false;
         this.sideViewEnabled = false;
         this.originalCameraPosition = null;
-        
+
         // Season labels properties (used by some planets)
         this.seasonLabels = null;
         this.seasonLabelsVisible = false;
+
+        // Planet marker properties
+        this.marker = null;
+        this.markerVisible = false;
+        this.sideMarkerDistanceFactor = 4; // Default: 4 times the planet radius
     }
 
     createSphere(texturePath) {
@@ -300,6 +305,103 @@ class Planet {
         }
     }
 
+    /**
+     * Create a marker in the planet's equatorial plane
+     */
+    createMarker() {
+        if (this.marker) return; // Marker already exists
+
+        // Create a marker using the PlanetMarker class
+        this.planetMarker = new PlanetMarker(this);
+        this.marker = this.planetMarker.marker;
+
+        // The marker distance is already set in the PlanetMarker constructor
+        // using this.markerDistanceFactor
+
+        // Hide by default
+        this.setMarkerVisible(this.markerVisible);
+    }
+
+    /**
+     * Update the marker's position based on the side marker distance factor
+     */
+    updateMarkerPosition() {
+        if (!this.marker || !this.planetMarker) return;
+
+        // Use the PlanetMarker instance to update the position
+        this.planetMarker.setMarkerDistance(this.sideMarkerDistanceFactor);
+
+        // The camera position will be automatically updated by the PlanetMarker
+        // if it's in camera view mode
+    }
+
+    /**
+     * Set the side marker's distance from the planet center
+     * @param {number} distanceFactor - Distance as a factor of the planet's radius
+     */
+    setMarkerDistance(distanceFactor) {
+        console.log(`Planet.setMarkerDistance: ${distanceFactor}`);
+        this.sideMarkerDistanceFactor = distanceFactor;
+
+        // Update the marker position if it exists
+        if (this.planetMarker) {
+            this.planetMarker.setMarkerDistance(distanceFactor);
+        }
+    }
+
+    /**
+     * Set the marker's visibility
+     * @param {boolean} visible - Whether the marker should be visible
+     */
+    setMarkerVisible(visible) {
+        this.markerVisible = visible;
+        if (this.planetMarker) {
+            this.planetMarker.setVisible(visible);
+        }
+    }
+
+    /**
+     * Get the marker's world position
+     * @returns {THREE.Vector3} The marker's position in world coordinates
+     */
+    getMarkerWorldPosition() {
+        if (this.planetMarker) {
+            return this.planetMarker.getWorldPosition();
+        }
+        return new THREE.Vector3();
+    }
+
+    /**
+     * Set up planet side view from the marker position
+     */
+    setPlanetMarkerView() {
+        if (!camera) return;
+
+        // Create marker if it doesn't exist
+        if (!this.marker) {
+            this.createMarker();
+        }
+
+        // Only store original camera position the first time
+        if (!this.originalCameraPosition) {
+            this.originalCameraPosition = {
+                x: camera.position.x,
+                y: camera.position.y,
+                z: camera.position.z
+            };
+        }
+
+        // Enable camera view mode on the marker and immediately position the camera
+        if (this.planetMarker) {
+            this.planetMarker.setCameraView(true);
+            this.planetMarker.updateCameraPosition(); // Force immediate camera update
+        }
+
+        // Set view state
+        this.closeUpViewEnabled = true;
+        this.sideViewEnabled = false;
+    }
+
     toggleCloseUpView(enabled, sideView = false) {
         if (!camera) return;
 
@@ -405,6 +507,11 @@ class Planet {
         if (this.rotationEnabled && this.rotationSpeed > 0) {
             // Default rotation direction (counterclockwise)
             this.sphere.rotation.y += this.rotationSpeed;
+
+            // Update camera position if marker view is active
+            if (this.planetMarker && this.planetMarker.cameraView) {
+                this.planetMarker.updateCameraPosition();
+            }
         }
 
         // Orbit around the Sun if orbit is enabled
@@ -413,6 +520,11 @@ class Planet {
             this.orbitGroup.rotation.y += this.orbitSpeed;
             const deltaAngle = this.orbitGroup.rotation.y - previousOrbitAngle;
             this.group.rotation.y -= deltaAngle;
+
+            // Update camera position if marker view is active
+            if (this.planetMarker && this.planetMarker.cameraView) {
+                this.planetMarker.updateCameraPosition();
+            }
         }
     }
 
@@ -483,7 +595,7 @@ class Planet {
      */
     createVisibilitySection() {
         const planetName = this.constructor.name.toLowerCase();
-        
+
         // Create section header
         const sectionHeader = document.createElement('h4');
         sectionHeader.textContent = 'Visibility Controls';
@@ -498,13 +610,59 @@ class Planet {
             this.toggleDayNightEffect(this.dayNightEnabled);
         });
 
+        // Add side marker view toggle
+        this.addToggle('Side Marker View: ', `${planetName}-side-marker-view-toggle`, false, (e) => {
+            if (e.target.checked) {
+                // Create marker if it doesn't exist
+                if (!this.marker) {
+                    this.createMarker();
+                }
+
+                // Make marker visible
+                this.setMarkerVisible(true);
+
+                // Enable rotation so the marker rotates with the planet
+                this.rotationEnabled = true;
+                document.getElementById(`${planetName}-rotation-toggle`).checked = true;
+
+                // Set up the marker view
+                this.setPlanetMarkerView();
+
+                // Disable side view if enabled
+                if (this.sideViewEnabled) {
+                    this.sideViewEnabled = false;
+                    document.getElementById(`${planetName}-side-view-toggle`).checked = false;
+                }
+            } else {
+                // Disable camera view mode
+                if (this.planetMarker) {
+                    this.planetMarker.setCameraView(false);
+                }
+
+                // Hide marker
+                this.setMarkerVisible(false);
+
+                // Restore original view
+                this.toggleCloseUpView(false, false);
+            }
+        });
+
         // Add side view toggle
         this.addToggle('Close View: ', `${planetName}-side-view-toggle`, this.sideViewEnabled, (e) => {
             if (e.target.checked) {
                 this.toggleCloseUpView(true, true);
+
+                // Disable orbit if enabled
                 if (this.orbitEnabled) {
                     this.orbitEnabled = false;
                     document.getElementById(`${planetName}-orbit-toggle`).checked = false;
+                }
+
+                // Disable marker view if enabled
+                const markerViewToggle = document.getElementById(`${planetName}-marker-view-toggle`);
+                if (markerViewToggle && markerViewToggle.checked) {
+                    markerViewToggle.checked = false;
+                    this.setMarkerVisible(false);
                 }
             } else {
                 this.toggleCloseUpView(false, false);
@@ -521,6 +679,20 @@ class Planet {
             this.latitudeCircles.visible = e.target.checked;
         });
 
+        // Add marker toggle
+        this.addToggle('Show Marker: ', `${planetName}-marker-toggle`, false, (e) => {
+            // Create marker if it doesn't exist
+            if (!this.marker && e.target.checked) {
+                this.createMarker();
+            }
+
+            // Set marker visibility
+            this.setMarkerVisible(e.target.checked);
+        });
+
+        // Add marker distance slider with wider range
+        this.createMarkerDistanceSlider(planetName);
+
         // Add season labels toggle if they exist
         if (this.seasonLabels) {
             this.addToggle('Show Season Labels: ', null, this.seasonLabelsVisible, (e) => {
@@ -528,9 +700,58 @@ class Planet {
                 this.seasonLabels.visible = e.target.checked;
             });
         }
-        
+
         // Add orbit visibility slider
         this.createOrbitVisibilitySlider(planetName);
+    }
+
+    /**
+     * Creates the side marker distance slider
+     * @param {string} planetName - The name of the planet for element IDs
+     */
+    createMarkerDistanceSlider(planetName) {
+        const sideMarkerDistanceContainer = document.createElement('div');
+        sideMarkerDistanceContainer.style.marginBottom = '15px';
+
+        const sideMarkerDistanceLabel = document.createElement('label');
+        sideMarkerDistanceLabel.textContent = 'Side Marker Distance: ';
+        sideMarkerDistanceLabel.style.display = 'block';
+        sideMarkerDistanceLabel.style.marginBottom = '5px';
+
+        const sideMarkerDistanceSlider = document.createElement('input');
+        sideMarkerDistanceSlider.type = 'range';
+        sideMarkerDistanceSlider.min = '1.1';
+        sideMarkerDistanceSlider.max = '6.0'; // Increased max value to 6.0
+        sideMarkerDistanceSlider.step = '0.1';
+        sideMarkerDistanceSlider.value = this.sideMarkerDistanceFactor.toString();
+        sideMarkerDistanceSlider.style.width = '100%';
+        sideMarkerDistanceSlider.id = `${planetName}-side-marker-distance-slider`;
+
+        // Add value display
+        const valueDisplay = document.createElement('span');
+        valueDisplay.textContent = this.sideMarkerDistanceFactor.toString();
+        valueDisplay.style.marginLeft = '10px';
+        valueDisplay.style.fontSize = '12px';
+
+        sideMarkerDistanceSlider.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            this.sideMarkerDistanceFactor = value;
+            valueDisplay.textContent = value.toString();
+
+            // Update marker position if it exists
+            // This will automatically update the camera position if in camera view mode
+            this.updateMarkerPosition();
+        });
+
+        const sliderContainer = document.createElement('div');
+        sliderContainer.style.display = 'flex';
+        sliderContainer.style.alignItems = 'center';
+        sliderContainer.appendChild(sideMarkerDistanceSlider);
+        sliderContainer.appendChild(valueDisplay);
+
+        sideMarkerDistanceContainer.appendChild(sideMarkerDistanceLabel);
+        sideMarkerDistanceContainer.appendChild(sliderContainer);
+        this.consoleContent.appendChild(sideMarkerDistanceContainer);
     }
 
     /**
@@ -538,7 +759,7 @@ class Planet {
      */
     createRotationSection() {
         const planetName = this.constructor.name.toLowerCase();
-        
+
         // Create section header
         const sectionHeader = document.createElement('h4');
         sectionHeader.textContent = 'Rotation Controls';
@@ -589,7 +810,7 @@ class Planet {
      */
     createOrbitSection() {
         const planetName = this.constructor.name.toLowerCase();
-        
+
         // Create section header
         const sectionHeader = document.createElement('h4');
         sectionHeader.textContent = 'Orbit Controls';
@@ -700,9 +921,9 @@ class Planet {
      */
     createSeasonLabels(seasons) {
         if (!seasons || !seasons.length) return;
-        
+
         this.seasonLabels = new THREE.Group();
-        
+
         seasons.forEach(season => {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');

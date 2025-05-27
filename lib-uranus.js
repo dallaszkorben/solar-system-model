@@ -40,7 +40,7 @@ class Uranus extends Planet {
 
     static nonScaleModelData = {
         diameter: Uranus.factData.diameter/3, // visually appealing diameter
-        orbitRadius: 400000, // visually appealing orbit radius
+        orbitRadius: 500000, // visually appealing orbit radius
         get rotationPeriod() {
             const relativePeriods = Planet.calculateRelativePeriods(Uranus.factData.rotationPeriod, Uranus.factData.orbitalPeriod);
             return 1 * relativePeriods.rotation;

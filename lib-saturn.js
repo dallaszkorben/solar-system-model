@@ -40,7 +40,7 @@ class Saturn extends Planet {
 
     static nonScaleModelData = {
         diameter: Saturn.factData.diameter/3, // visually appealing diameter
-        orbitRadius: 300000, // visually appealing orbit radius
+        orbitRadius: 350000, // visually appealing orbit radius
         get rotationPeriod() {
             const relativePeriods = Planet.calculateRelativePeriods(Saturn.factData.rotationPeriod, Saturn.factData.orbitalPeriod);
             return 1 * relativePeriods.rotation;
@@ -94,25 +94,25 @@ class Saturn extends Planet {
         const phiSegments = 1;
         const thetaStart = 0;
         const thetaLength = Math.PI * 2;
-        
+
         // Create vertices for a custom ring
         const vertices = [];
         const indices = [];
         const uvs = [];
-        
+
         // Generate vertices and UVs
         for (let i = 0; i <= phiSegments; i++) {
             const radius = innerRadius + ((outerRadius - innerRadius) * i / phiSegments);
-            
+
             for (let j = 0; j <= thetaSegments; j++) {
                 const segment = thetaStart + j / thetaSegments * thetaLength;
-                
+
                 // Vertex
                 const x = radius * Math.cos(segment);
                 const y = 0;
                 const z = radius * Math.sin(segment);
                 vertices.push(x, y, z);
-                
+
                 // UV - map texture radially
                 // U goes from 0 to 1 along the radius (width of texture)
                 // V goes from 0 to 1 around the ring (height of texture)
@@ -121,31 +121,31 @@ class Saturn extends Planet {
                 uvs.push(u, v);
             }
         }
-        
+
         // Generate indices
         for (let i = 0; i < phiSegments; i++) {
             const thetaSegmentLevel = i * (thetaSegments + 1);
-            
+
             for (let j = 0; j < thetaSegments; j++) {
                 const segment = j + thetaSegmentLevel;
-                
+
                 const a = segment;
                 const b = segment + thetaSegments + 1;
                 const c = segment + thetaSegments + 2;
                 const d = segment + 1;
-                
+
                 // Add two triangles
                 indices.push(a, b, d);
                 indices.push(b, c, d);
             }
         }
-        
+
         // Create buffer geometry
         const ringGeometry = new THREE.BufferGeometry();
         ringGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
         ringGeometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
         ringGeometry.setIndex(indices);
-        
+
         // Load ring texture
         const textureLoader = new THREE.TextureLoader();
         const ringTexture = textureLoader.load('images/saturn-ring-texture.png');
