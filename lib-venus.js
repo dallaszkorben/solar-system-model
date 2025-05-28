@@ -107,6 +107,11 @@ class Venus extends Planet {
             // Venus rotates in the opposite direction (retrograde rotation)
             // due to its axial tilt of ~177.3 degrees (nearly upside down)
             this.sphere.rotation.y += this.rotationSpeed;
+            
+            // Update camera position if marker view is active
+            if (this.planetMarker && this.planetMarker.cameraView) {
+                this.planetMarker.updateCameraPosition();
+            }
         }
 
         // Orbit around the Sun if orbit is enabled
@@ -115,23 +120,11 @@ class Venus extends Planet {
             this.orbitGroup.rotation.y += this.orbitSpeed;
             const deltaAngle = this.orbitGroup.rotation.y - previousOrbitAngle;
             this.group.rotation.y -= deltaAngle;
-        }
-    }
-
-    update(time) {
-        // Rotate the sphere around its axis if rotation is enabled
-        if (this.rotationEnabled && this.rotationSpeed > 0) {
-            // Venus rotates in the opposite direction (retrograde rotation)
-            // due to its axial tilt of ~177.3 degrees (nearly upside down)
-            this.sphere.rotation.y += this.rotationSpeed;
-        }
-
-        // Orbit around the Sun if orbit is enabled
-        if (this.orbitEnabled && this.orbitSpeed > 0) {
-            const previousOrbitAngle = this.orbitGroup.rotation.y;
-            this.orbitGroup.rotation.y += this.orbitSpeed;
-            const deltaAngle = this.orbitGroup.rotation.y - previousOrbitAngle;
-            this.group.rotation.y -= deltaAngle;
+            
+            // Update camera position if marker view is active
+            if (this.planetMarker && this.planetMarker.cameraView) {
+                this.planetMarker.updateCameraPosition();
+            }
         }
     }
 }

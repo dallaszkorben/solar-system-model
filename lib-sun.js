@@ -125,6 +125,11 @@ class Sun extends Planet {
         title.style.margin = '0';
         header.appendChild(title);
         
+        // Create icons container for collapse and close
+        const iconsContainer = document.createElement('div');
+        iconsContainer.style.display = 'flex';
+        iconsContainer.style.alignItems = 'center';
+        
         // Add collapse/expand icon
         const collapseIcon = document.createElement('div');
         collapseIcon.innerHTML = '&#9650;'; // Up arrow (collapse)
@@ -136,7 +141,39 @@ class Sun extends Planet {
         collapseIcon.style.justifyContent = 'center';
         collapseIcon.style.alignItems = 'center';
         collapseIcon.style.userSelect = 'none';
-        header.appendChild(collapseIcon);
+        collapseIcon.title = 'Collapse/Expand';
+        iconsContainer.appendChild(collapseIcon);
+        
+        // Add close icon
+        const closeIcon = document.createElement('div');
+        closeIcon.innerHTML = '&#10006;'; // X symbol
+        closeIcon.style.cursor = 'pointer';
+        closeIcon.style.fontSize = '16px';
+        closeIcon.style.width = '20px';
+        closeIcon.style.height = '20px';
+        closeIcon.style.display = 'flex';
+        closeIcon.style.justifyContent = 'center';
+        closeIcon.style.alignItems = 'center';
+        closeIcon.style.userSelect = 'none';
+        closeIcon.style.marginLeft = '8px';
+        closeIcon.title = 'Close';
+        
+        // Add click handler to hide the panel
+        closeIcon.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent dragging
+            this.hide();
+            
+            // Find the toggle for sun in the Solar System Controls
+            const toggle = document.getElementById('sun-controls-toggle');
+            if (toggle) {
+                toggle.checked = false;
+            }
+        });
+        
+        iconsContainer.appendChild(closeIcon);
+        
+        // Add icons container to header
+        header.appendChild(iconsContainer);
 
         // Add the header to the console pane
         this.consolePane.appendChild(header);
@@ -160,23 +197,65 @@ class Sun extends Planet {
             const currentTop = this.consolePane.offsetTop;
             const currentLeft = this.consolePane.offsetLeft;
             
+            // Get animation duration from SolarSystem if available, or use default
+            const animationDuration = window.solarSystem?.uiConfig?.panelAnimationDuration || 1.0;
+            
             if (content.style.display === 'none') {
                 // Expand
                 content.style.display = 'block';
+                content.style.height = '0';
+                content.style.overflow = 'hidden';
+                content.style.transition = `height ${animationDuration}s ease`;
+                this.consolePane.style.transition = `height ${animationDuration}s ease`;
+                
+                // Trigger reflow to ensure transition works
+                content.offsetHeight;
+                
+                // Get the natural height
+                const contentHeight = content.scrollHeight;
+                
+                // Animate expansion
+                content.style.height = contentHeight + 'px';
+                this.consolePane.style.height = (header.offsetHeight + contentHeight) + 'px';
                 collapseIcon.innerHTML = '&#9650;'; // Up arrow (collapse)
                 this.consolePane.style.borderBottomLeftRadius = '5px';
                 this.consolePane.style.borderBottomRightRadius = '5px';
-                // Reset height to auto to accommodate content
-                this.consolePane.style.height = 'auto';
+                
+                // Reset height to auto after animation
+                setTimeout(() => {
+                    content.style.height = 'auto';
+                    content.style.overflow = 'visible';
+                    content.style.transition = '';
+                    this.consolePane.style.height = 'auto';
+                    this.consolePane.style.transition = '';
+                }, animationDuration * 1000);
             } else {
-                // Collapse
-                content.style.display = 'none';
+                // Get current content height before collapsing
+                const contentHeight = content.offsetHeight;
+                const headerHeight = header.offsetHeight;
+                
+                content.style.height = contentHeight + 'px';
+                content.style.overflow = 'hidden';
+                content.style.transition = `height ${animationDuration}s ease`;
+                this.consolePane.style.height = (headerHeight + contentHeight) + 'px';
+                this.consolePane.style.transition = `height ${animationDuration}s ease`;
+                
+                // Trigger reflow to ensure transition works
+                content.offsetHeight;
+                
+                // Animate collapse
+                content.style.height = '0';
+                this.consolePane.style.height = `${headerHeight}px`;
                 collapseIcon.innerHTML = '&#9660;'; // Down arrow (expand)
                 this.consolePane.style.borderBottomLeftRadius = '0';
                 this.consolePane.style.borderBottomRightRadius = '0';
-                // Set height to just include the header
-                const headerHeight = header.offsetHeight;
-                this.consolePane.style.height = `${headerHeight}px`;
+                
+                // Hide content after animation completes
+                setTimeout(() => {
+                    content.style.display = 'none';
+                    content.style.transition = '';
+                    this.consolePane.style.transition = '';
+                }, animationDuration * 1000);
             }
             
             // Restore position after changing display

@@ -24,6 +24,11 @@ class SolarSystem {
         this.viewConsolePane = null;
         this.viewConsoleVisible = false;
 
+        // UI configuration
+        this.uiConfig = {
+            panelAnimationDuration: 0.2 // Animation duration in seconds for panel collapse/expand
+        };
+
         // Scale model flag
         this.useScaleModel = false;
 
@@ -35,7 +40,10 @@ class SolarSystem {
             'topView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
             'sideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
             'sunSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
+            'mercurySideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
+            'venusSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
             'earthSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
+            'marsSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
             'jupiterSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
             'saturnSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
             'uranusSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
@@ -91,25 +99,25 @@ class SolarSystem {
         this.planets.push(this.mars);
         this.group.add(this.mars.getObject());
     }
-    
+
     createJupiter() {
         this.jupiter = new Jupiter(); // 139820km diameter
         this.planets.push(this.jupiter);
         this.group.add(this.jupiter.getObject());
     }
-    
+
     createSaturn() {
         this.saturn = new Saturn(); // 116460km diameter
         this.planets.push(this.saturn);
         this.group.add(this.saturn.getObject());
     }
-    
+
     createUranus() {
         this.uranus = new Uranus(); // 50724km diameter
         this.planets.push(this.uranus);
         this.group.add(this.uranus.getObject());
     }
-    
+
     createNeptune() {
         this.neptune = new Neptune(); // 49528km diameter
         this.planets.push(this.neptune);
@@ -187,7 +195,7 @@ class SolarSystem {
         title.textContent = 'Solar System Controls';
         title.style.margin = '0';
         header.appendChild(title);
-        
+
         // Add collapse/expand icon
         const collapseIcon = document.createElement('div');
         collapseIcon.innerHTML = '&#9650;'; // Up arrow (collapse)
@@ -207,7 +215,7 @@ class SolarSystem {
         // Create content container with padding
         const content = document.createElement('div');
         this.consolePane.appendChild(content);
-        
+
         // Create scale model toggle container
         const scaleModelContainer = document.createElement('div');
         scaleModelContainer.className = 'scale-model-container';
@@ -252,34 +260,63 @@ class SolarSystem {
         const innerContent = document.createElement('div');
         innerContent.style.padding = '15px';
         content.appendChild(innerContent);
-        
+
         // Add collapse/expand functionality
         collapseIcon.addEventListener('click', (e) => {
             e.stopPropagation(); // Prevent dragging when clicking the icon
-            
+
             // Get current position before changing display
             const currentTop = this.consolePane.offsetTop;
             const currentLeft = this.consolePane.offsetLeft;
-            
+
             if (content.style.display === 'none') {
                 // Expand
                 content.style.display = 'block';
+                content.style.height = '0';
+                content.style.overflow = 'hidden';
+                content.style.transition = `height ${this.uiConfig.panelAnimationDuration}s ease`;
+
+                // Trigger reflow to ensure transition works
+                content.offsetHeight;
+
+                // Get the natural height
+                const contentHeight = content.scrollHeight;
+
+                // Animate expansion
+                content.style.height = contentHeight + 'px';
                 collapseIcon.innerHTML = '&#9650;'; // Up arrow (collapse)
                 this.consolePane.style.borderBottomLeftRadius = '5px';
                 this.consolePane.style.borderBottomRightRadius = '5px';
-                // Reset height to auto to accommodate content
-                this.consolePane.style.height = 'auto';
+
+                // Reset height to auto after animation
+                setTimeout(() => {
+                    content.style.height = 'auto';
+                    content.style.overflow = 'visible';
+                    content.style.transition = '';
+                }, this.uiConfig.panelAnimationDuration * 1000);
             } else {
-                // Collapse
-                content.style.display = 'none';
+                // Get current content height before collapsing
+                const contentHeight = content.offsetHeight;
+                content.style.height = contentHeight + 'px';
+                content.style.overflow = 'hidden';
+                content.style.transition = `height ${this.uiConfig.panelAnimationDuration}s ease`;
+
+                // Trigger reflow to ensure transition works
+                content.offsetHeight;
+
+                // Animate collapse
+                content.style.height = '0';
                 collapseIcon.innerHTML = '&#9660;'; // Down arrow (expand)
                 this.consolePane.style.borderBottomLeftRadius = '0';
                 this.consolePane.style.borderBottomRightRadius = '0';
-                // Set height to just include the header
-                const headerHeight = header.offsetHeight;
-                this.consolePane.style.height = `${headerHeight}px`;
+
+                // Hide content after animation completes
+                setTimeout(() => {
+                    content.style.display = 'none';
+                    content.style.transition = '';
+                }, this.uiConfig.panelAnimationDuration * 1000);
             }
-            
+
             // Restore position after changing display
             this.consolePane.style.top = `${currentTop}px`;
             this.consolePane.style.left = `${currentLeft}px`;
@@ -338,7 +375,7 @@ class SolarSystem {
         title.textContent = 'View Controls';
         title.style.margin = '0';
         header.appendChild(title);
-        
+
         // Add collapse/expand icon
         const collapseIcon = document.createElement('div');
         collapseIcon.innerHTML = '&#9650;'; // Up arrow (collapse)
@@ -365,34 +402,63 @@ class SolarSystem {
 
         // Store view content container for adding controls
         this.viewConsoleContent = content;
-        
+
         // Add collapse/expand functionality
         collapseIcon.addEventListener('click', (e) => {
             e.stopPropagation(); // Prevent dragging when clicking the icon
-            
+
             // Get current position before changing display
             const currentTop = this.viewConsolePane.offsetTop;
             const currentLeft = this.viewConsolePane.offsetLeft;
-            
+
             if (content.style.display === 'none') {
                 // Expand
                 content.style.display = 'block';
+                content.style.height = '0';
+                content.style.overflow = 'hidden';
+                content.style.transition = `height ${this.uiConfig.panelAnimationDuration}s ease`;
+
+                // Trigger reflow to ensure transition works
+                content.offsetHeight;
+
+                // Get the natural height
+                const contentHeight = content.scrollHeight;
+
+                // Animate expansion
+                content.style.height = contentHeight + 'px';
                 collapseIcon.innerHTML = '&#9650;'; // Up arrow (collapse)
                 this.viewConsolePane.style.borderBottomLeftRadius = '5px';
                 this.viewConsolePane.style.borderBottomRightRadius = '5px';
-                // Reset height to auto to accommodate content
-                this.viewConsolePane.style.height = 'auto';
+
+                // Reset height to auto after animation
+                setTimeout(() => {
+                    content.style.height = 'auto';
+                    content.style.overflow = 'visible';
+                    content.style.transition = '';
+                }, this.uiConfig.panelAnimationDuration * 1000);
             } else {
-                // Collapse
-                content.style.display = 'none';
+                // Get current content height before collapsing
+                const contentHeight = content.offsetHeight;
+                content.style.height = contentHeight + 'px';
+                content.style.overflow = 'hidden';
+                content.style.transition = `height ${this.uiConfig.panelAnimationDuration}s ease`;
+
+                // Trigger reflow to ensure transition works
+                content.offsetHeight;
+
+                // Animate collapse
+                content.style.height = '0';
                 collapseIcon.innerHTML = '&#9660;'; // Down arrow (expand)
                 this.viewConsolePane.style.borderBottomLeftRadius = '0';
                 this.viewConsolePane.style.borderBottomRightRadius = '0';
-                // Set height to just include the header
-                const headerHeight = header.offsetHeight;
-                this.viewConsolePane.style.height = `${headerHeight}px`;
+
+                // Hide content after animation completes
+                setTimeout(() => {
+                    content.style.display = 'none';
+                    content.style.transition = '';
+                }, this.uiConfig.panelAnimationDuration * 1000);
             }
-            
+
             // Restore position after changing display
             this.viewConsolePane.style.top = `${currentTop}px`;
             this.viewConsolePane.style.left = `${currentLeft}px`;
@@ -497,7 +563,7 @@ class SolarSystem {
                 }
             }
         });
-        
+
         this.addToggle('Jupiter', false, (checked) => {
             if (checked && this.jupiter) {
                 this.jupiter.show();
@@ -513,7 +579,7 @@ class SolarSystem {
                 }
             }
         });
-        
+
         this.addToggle('Saturn', false, (checked) => {
             if (checked && this.saturn) {
                 this.saturn.show();
@@ -529,7 +595,7 @@ class SolarSystem {
                 }
             }
         });
-        
+
         this.addToggle('Uranus', false, (checked) => {
             if (checked && this.uranus) {
                 this.uranus.show();
@@ -545,7 +611,7 @@ class SolarSystem {
                 }
             }
         });
-        
+
         this.addToggle('Neptune', false, (checked) => {
             if (checked && this.neptune) {
                 this.neptune.show();
@@ -614,7 +680,7 @@ class SolarSystem {
         // Add buttons for global views
         this.addViewButton('Top View', () => this.setTopView(), this.viewConsoleContent);
         this.addViewButton('Side View', () => this.setSideView(), this.viewConsoleContent);
-        
+
         // Create Planet Side Views section header with extra margin
         const planetSectionHeader = document.createElement('h4');
         planetSectionHeader.textContent = 'Planet Side Views';
@@ -622,10 +688,13 @@ class SolarSystem {
         planetSectionHeader.style.borderBottom = '1px solid #555';
         planetSectionHeader.style.paddingBottom = '5px';
         this.viewConsoleContent.appendChild(planetSectionHeader);
-        
+
         // Add buttons for planet side views
         this.addViewButton('Sun Side View', () => this.setSunView(), this.viewConsoleContent);
+        this.addViewButton('Mercury Side View', () => this.setMercuryView(), this.viewConsoleContent);
+        this.addViewButton('Venus Side View', () => this.setVenusView(), this.viewConsoleContent);
         this.addViewButton('Earth Side View', () => this.setEarthView(), this.viewConsoleContent);
+        this.addViewButton('Mars Side View', () => this.setMarsView(), this.viewConsoleContent);
         this.addViewButton('Jupiter Side View', () => this.setJupiterView(), this.viewConsoleContent);
         this.addViewButton('Saturn Side View', () => this.setSaturnView(), this.viewConsoleContent);
         this.addViewButton('Uranus Side View', () => this.setUranusView(), this.viewConsoleContent);
@@ -708,6 +777,7 @@ class SolarSystem {
         const toggle2 = document.createElement('input');
         toggle2.type = 'checkbox';
         toggle2.checked = initialState;
+        toggle2.id = `${label.toLowerCase()}-controls-toggle`;
         toggle2.addEventListener('change', (e) => {
             if (controlsChangeHandler) {
                 controlsChangeHandler(e.target.checked);
@@ -882,15 +952,101 @@ class SolarSystem {
         if (!this.sun.marker) {
             this.sun.createMarker();
         }
-        
+
         // Make marker visible
         this.sun.setMarkerVisible(true);
-        
+
         // Set up the marker view
         this.sun.setPlanetMarkerView();
-        
+
         // Set active view and update camera controls
         this.activeView = 'sunSideView';
+        this.updateCameraControls();
+    }
+
+    setMercuryView() {
+        if (!camera || !this.mercury) return;
+
+        // If we're in a location view, deactivate it first
+        if (this.locationCamera && this.locationCamera.isActive) {
+            this.locationCamera.deactivateView();
+
+            // We're exiting a location view
+            if (this.inLocationView) {
+                this.inLocationView = false;
+
+                // Restore location markers based on Earth Controls panel setting
+                const markerToggle = document.getElementById('location-markers-toggle');
+                if (markerToggle) {
+                    this.toggleLocationMarkers(markerToggle.checked);
+                }
+            }
+        }
+
+        // Disable any existing marker views on other planets
+        this.planets.forEach(planet => {
+            if (planet !== this.mercury && planet.planetMarker && planet.planetMarker.cameraView) {
+                planet.planetMarker.setCameraView(false);
+                planet.setMarkerVisible(false);
+            }
+        });
+
+        // Create marker if it doesn't exist
+        if (!this.mercury.marker) {
+            this.mercury.createMarker();
+        }
+
+        // Make marker visible
+        this.mercury.setMarkerVisible(true);
+
+        // Set up the marker view
+        this.mercury.setPlanetMarkerView();
+
+        // Set active view and update camera controls
+        this.activeView = 'mercurySideView';
+        this.updateCameraControls();
+    }
+
+    setVenusView() {
+        if (!camera || !this.venus) return;
+
+        // If we're in a location view, deactivate it first
+        if (this.locationCamera && this.locationCamera.isActive) {
+            this.locationCamera.deactivateView();
+
+            // We're exiting a location view
+            if (this.inLocationView) {
+                this.inLocationView = false;
+
+                // Restore location markers based on Earth Controls panel setting
+                const markerToggle = document.getElementById('location-markers-toggle');
+                if (markerToggle) {
+                    this.toggleLocationMarkers(markerToggle.checked);
+                }
+            }
+        }
+
+        // Disable any existing marker views on other planets
+        this.planets.forEach(planet => {
+            if (planet !== this.venus && planet.planetMarker && planet.planetMarker.cameraView) {
+                planet.planetMarker.setCameraView(false);
+                planet.setMarkerVisible(false);
+            }
+        });
+
+        // Create marker if it doesn't exist
+        if (!this.venus.marker) {
+            this.venus.createMarker();
+        }
+
+        // Make marker visible
+        this.venus.setMarkerVisible(true);
+
+        // Set up the marker view
+        this.venus.setPlanetMarkerView();
+
+        // Set active view and update camera controls
+        this.activeView = 'venusSideView';
         this.updateCameraControls();
     }
 
@@ -925,18 +1081,61 @@ class SolarSystem {
         if (!this.earth.marker) {
             this.earth.createMarker();
         }
-        
+
         // Make marker visible
         this.earth.setMarkerVisible(true);
-        
+
         // Set up the marker view
         this.earth.setPlanetMarkerView();
-        
+
         // Set active view and update camera controls
         this.activeView = 'earthSideView';
         this.updateCameraControls();
     }
-    
+
+    setMarsView() {
+        if (!camera || !this.mars) return;
+
+        // If we're in a location view, deactivate it first
+        if (this.locationCamera && this.locationCamera.isActive) {
+            this.locationCamera.deactivateView();
+
+            // We're exiting a location view
+            if (this.inLocationView) {
+                this.inLocationView = false;
+
+                // Restore location markers based on Earth Controls panel setting
+                const markerToggle = document.getElementById('location-markers-toggle');
+                if (markerToggle) {
+                    this.toggleLocationMarkers(markerToggle.checked);
+                }
+            }
+        }
+
+        // Disable any existing marker views on other planets
+        this.planets.forEach(planet => {
+            if (planet !== this.mars && planet.planetMarker && planet.planetMarker.cameraView) {
+                planet.planetMarker.setCameraView(false);
+                planet.setMarkerVisible(false);
+            }
+        });
+
+        // Create marker if it doesn't exist
+        if (!this.mars.marker) {
+            this.mars.createMarker();
+        }
+
+        // Make marker visible
+        this.mars.setMarkerVisible(true);
+
+        // Set up the marker view
+        this.mars.setPlanetMarkerView();
+
+        // Set active view and update camera controls
+        this.activeView = 'marsSideView';
+        this.updateCameraControls();
+    }
+
     setSaturnView() {
         if (!camera || !this.saturn) return;
 
@@ -968,18 +1167,18 @@ class SolarSystem {
         if (!this.saturn.marker) {
             this.saturn.createMarker();
         }
-        
+
         // Make marker visible
         this.saturn.setMarkerVisible(true);
-        
+
         // Set up the marker view
         this.saturn.setPlanetMarkerView();
-        
+
         // Set active view and update camera controls
         this.activeView = 'saturnSideView';
         this.updateCameraControls();
     }
-    
+
     setJupiterView() {
         if (!camera || !this.jupiter) return;
 
@@ -1011,18 +1210,18 @@ class SolarSystem {
         if (!this.jupiter.marker) {
             this.jupiter.createMarker();
         }
-        
+
         // Make marker visible
         this.jupiter.setMarkerVisible(true);
-        
+
         // Set up the marker view
         this.jupiter.setPlanetMarkerView();
-        
+
         // Set active view and update camera controls
         this.activeView = 'jupiterSideView';
         this.updateCameraControls();
     }
-    
+
     setUranusView() {
         if (!camera || !this.uranus) return;
 
@@ -1054,18 +1253,18 @@ class SolarSystem {
         if (!this.uranus.marker) {
             this.uranus.createMarker();
         }
-        
+
         // Make marker visible
         this.uranus.setMarkerVisible(true);
-        
+
         // Set up the marker view
         this.uranus.setPlanetMarkerView();
-        
+
         // Set active view and update camera controls
         this.activeView = 'uranusSideView';
         this.updateCameraControls();
     }
-    
+
     setNeptuneView() {
         if (!camera || !this.neptune) return;
 
@@ -1097,13 +1296,13 @@ class SolarSystem {
         if (!this.neptune.marker) {
             this.neptune.createMarker();
         }
-        
+
         // Make marker visible
         this.neptune.setMarkerVisible(true);
-        
+
         // Set up the marker view
         this.neptune.setPlanetMarkerView();
-        
+
         // Set active view and update camera controls
         this.activeView = 'neptuneSideView';
         this.updateCameraControls();
@@ -1148,22 +1347,22 @@ class SolarSystem {
         if (this.mercury) {
             this.mercury.update(time);
         }
-        
+
         // Update Jupiter
         if (this.jupiter) {
             this.jupiter.update(time);
         }
-        
+
         // Update Saturn
         if (this.saturn) {
             this.saturn.update(time);
         }
-        
+
         // Update Uranus
         if (this.uranus) {
             this.uranus.update(time);
         }
-        
+
         // Update Neptune
         if (this.neptune) {
             this.neptune.update(time);
@@ -1196,7 +1395,7 @@ class SolarSystem {
                                 planet.setMarkerVisible(false);
                             }
                         });
-                        
+
                         // Set flag that we're entering a location view
                         this.inLocationView = true;
 
@@ -1238,13 +1437,13 @@ class SolarSystem {
         const horizontalLabel = document.createElement('div');
         horizontalLabel.style.display = 'flex';
         horizontalLabel.style.alignItems = 'center';
-        
+
         const horizontalIcon = document.createElement('img');
         horizontalIcon.src = 'icons/rotate-vertical.png';
         horizontalIcon.style.width = '24px';
         horizontalIcon.style.height = '24px';
         horizontalIcon.style.marginRight = '5px';
-        
+
         horizontalLabel.appendChild(horizontalIcon);
         horizontalLabel.style.alignSelf = 'center';
         cameraControlsContainer.appendChild(horizontalLabel);
@@ -1306,13 +1505,13 @@ class SolarSystem {
         const verticalLabel = document.createElement('div');
         verticalLabel.style.display = 'flex';
         verticalLabel.style.alignItems = 'center';
-        
+
         const verticalIcon = document.createElement('img');
         verticalIcon.src = 'icons/rotate-horizontal.png';
         verticalIcon.style.width = '24px';
         verticalIcon.style.height = '24px';
         verticalIcon.style.marginRight = '5px';
-        
+
         verticalLabel.appendChild(verticalIcon);
         verticalLabel.style.alignSelf = 'center';
         cameraControlsContainer.appendChild(verticalLabel);
@@ -1367,13 +1566,13 @@ class SolarSystem {
         const elevationLabel = document.createElement('div');
         elevationLabel.style.display = 'flex';
         elevationLabel.style.alignItems = 'center';
-        
+
         const elevationIcon = document.createElement('img');
         elevationIcon.src = 'icons/translate-vertical.png';
         elevationIcon.style.width = '24px';
         elevationIcon.style.height = '24px';
         elevationIcon.style.marginRight = '5px';
-        
+
         elevationLabel.appendChild(elevationIcon);
         elevationLabel.style.alignSelf = 'center';
         cameraControlsContainer.appendChild(elevationLabel);
