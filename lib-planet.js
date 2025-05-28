@@ -560,12 +560,28 @@ class Planet {
         header.style.borderTopRightRadius = '5px';
         header.style.cursor = 'move';
         header.style.borderBottom = '1px solid #666';
+        header.style.display = 'flex';
+        header.style.justifyContent = 'space-between';
+        header.style.alignItems = 'center';
 
         // Add title to header
         const title = document.createElement('h3');
         title.textContent = `${planetName} Controls`;
         title.style.margin = '0';
         header.appendChild(title);
+        
+        // Add collapse/expand icon
+        const collapseIcon = document.createElement('div');
+        collapseIcon.innerHTML = '&#9650;'; // Up arrow (collapse)
+        collapseIcon.style.cursor = 'pointer';
+        collapseIcon.style.fontSize = '16px';
+        collapseIcon.style.width = '20px';
+        collapseIcon.style.height = '20px';
+        collapseIcon.style.display = 'flex';
+        collapseIcon.style.justifyContent = 'center';
+        collapseIcon.style.alignItems = 'center';
+        collapseIcon.style.userSelect = 'none';
+        header.appendChild(collapseIcon);
 
         // Add the header to the console pane
         this.consolePane.appendChild(header);
@@ -580,6 +596,38 @@ class Planet {
 
         // Store content container for adding controls
         this.consoleContent = content;
+        
+        // Add collapse/expand functionality
+        collapseIcon.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent dragging when clicking the icon
+            
+            // Get current position before changing display
+            const currentTop = this.consolePane.offsetTop;
+            const currentLeft = this.consolePane.offsetLeft;
+            
+            if (content.style.display === 'none') {
+                // Expand
+                content.style.display = 'block';
+                collapseIcon.innerHTML = '&#9650;'; // Up arrow (collapse)
+                this.consolePane.style.borderBottomLeftRadius = '5px';
+                this.consolePane.style.borderBottomRightRadius = '5px';
+                // Reset height to auto to accommodate content
+                this.consolePane.style.height = 'auto';
+            } else {
+                // Collapse
+                content.style.display = 'none';
+                collapseIcon.innerHTML = '&#9660;'; // Down arrow (expand)
+                this.consolePane.style.borderBottomLeftRadius = '0';
+                this.consolePane.style.borderBottomRightRadius = '0';
+                // Set height to just include the header
+                const headerHeight = header.offsetHeight;
+                this.consolePane.style.height = `${headerHeight}px`;
+            }
+            
+            // Restore position after changing display
+            this.consolePane.style.top = `${currentTop}px`;
+            this.consolePane.style.left = `${currentLeft}px`;
+        });
 
         // Create sections for better organization
         this.createVisibilitySection();
