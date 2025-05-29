@@ -677,9 +677,15 @@ class SolarSystem {
         globalSectionHeader.style.paddingBottom = '5px';
         this.viewConsoleContent.appendChild(globalSectionHeader);
 
-        // Add buttons for global views
-        this.addViewButton('Top View', () => this.setTopView(), this.viewConsoleContent);
-        this.addViewButton('Side View', () => this.setSideView(), this.viewConsoleContent);
+        // Create radio button group for views
+        const viewRadioGroup = document.createElement('div');
+        viewRadioGroup.className = 'view-radio-group';
+        viewRadioGroup.style.marginBottom = '15px';
+        this.viewConsoleContent.appendChild(viewRadioGroup);
+
+        // Add radio buttons for global views
+        this.addViewRadioButton('Top View', 'view', 'topView', () => this.setTopView(), viewRadioGroup, true);
+        this.addViewRadioButton('Side View', 'view', 'sideView', () => this.setSideView(), viewRadioGroup);
 
         // Create Planet Side Views section header with extra margin
         const planetSectionHeader = document.createElement('h4');
@@ -689,16 +695,22 @@ class SolarSystem {
         planetSectionHeader.style.paddingBottom = '5px';
         this.viewConsoleContent.appendChild(planetSectionHeader);
 
-        // Add buttons for planet side views
-        this.addViewButton('Sun Side View', () => this.setSunView(), this.viewConsoleContent);
-        this.addViewButton('Mercury Side View', () => this.setMercuryView(), this.viewConsoleContent);
-        this.addViewButton('Venus Side View', () => this.setVenusView(), this.viewConsoleContent);
-        this.addViewButton('Earth Side View', () => this.setEarthView(), this.viewConsoleContent);
-        this.addViewButton('Mars Side View', () => this.setMarsView(), this.viewConsoleContent);
-        this.addViewButton('Jupiter Side View', () => this.setJupiterView(), this.viewConsoleContent);
-        this.addViewButton('Saturn Side View', () => this.setSaturnView(), this.viewConsoleContent);
-        this.addViewButton('Uranus Side View', () => this.setUranusView(), this.viewConsoleContent);
-        this.addViewButton('Neptune Side View', () => this.setNeptuneView(), this.viewConsoleContent);
+        // Create radio button group for planet side views
+        const planetViewRadioGroup = document.createElement('div');
+        planetViewRadioGroup.className = 'view-radio-group';
+        planetViewRadioGroup.style.marginBottom = '15px';
+        this.viewConsoleContent.appendChild(planetViewRadioGroup);
+
+        // Add radio buttons for planet side views
+        this.addViewRadioButton('Sun Side View', 'view', 'sunSideView', () => this.setSunView(), planetViewRadioGroup);
+        this.addViewRadioButton('Mercury Side View', 'view', 'mercurySideView', () => this.setMercuryView(), planetViewRadioGroup);
+        this.addViewRadioButton('Venus Side View', 'view', 'venusSideView', () => this.setVenusView(), planetViewRadioGroup);
+        this.addViewRadioButton('Earth Side View', 'view', 'earthSideView', () => this.setEarthView(), planetViewRadioGroup);
+        this.addViewRadioButton('Mars Side View', 'view', 'marsSideView', () => this.setMarsView(), planetViewRadioGroup);
+        this.addViewRadioButton('Jupiter Side View', 'view', 'jupiterSideView', () => this.setJupiterView(), planetViewRadioGroup);
+        this.addViewRadioButton('Saturn Side View', 'view', 'saturnSideView', () => this.setSaturnView(), planetViewRadioGroup);
+        this.addViewRadioButton('Uranus Side View', 'view', 'uranusSideView', () => this.setUranusView(), planetViewRadioGroup);
+        this.addViewRadioButton('Neptune Side View', 'view', 'neptuneSideView', () => this.setNeptuneView(), planetViewRadioGroup);
     }
 
     addViewButton(label, clickHandler, container) {
@@ -718,6 +730,38 @@ class SolarSystem {
 
         buttonContainer.appendChild(button);
         container.appendChild(buttonContainer);
+    }
+    
+    addViewRadioButton(label, name, value, clickHandler, container, isChecked = false) {
+        const radioContainer = document.createElement('div');
+        radioContainer.style.marginBottom = '10px';
+        radioContainer.style.display = 'flex';
+        radioContainer.style.alignItems = 'center';
+        
+        const radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = name;
+        radio.value = value;
+        radio.id = `radio-${value}`;
+        radio.checked = isChecked;
+        radio.style.marginRight = '10px';
+        radio.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                clickHandler();
+            }
+        });
+        
+        const radioLabel = document.createElement('label');
+        radioLabel.htmlFor = `radio-${value}`;
+        radioLabel.textContent = label;
+        radioLabel.style.flexGrow = '1';
+        radioLabel.style.cursor = 'pointer';
+        
+        radioContainer.appendChild(radio);
+        radioContainer.appendChild(radioLabel);
+        container.appendChild(radioContainer);
+        
+        return radio;
     }
 
     addToggle(label, initialState, controlsChangeHandler, visibilityChangeHandler) {
@@ -865,6 +909,12 @@ class SolarSystem {
         // Set active view and update camera controls
         this.activeView = 'topView';
         this.updateCameraControls();
+        
+        // Update radio button selection
+        const topViewRadio = document.getElementById('radio-topView');
+        if (topViewRadio) {
+            topViewRadio.checked = true;
+        }
     }
 
     setSideView() {
@@ -913,6 +963,12 @@ class SolarSystem {
         // Set active view and update camera controls
         this.activeView = 'sideView';
         this.updateCameraControls();
+        
+        // Update radio button selection
+        const sideViewRadio = document.getElementById('radio-sideView');
+        if (sideViewRadio) {
+            sideViewRadio.checked = true;
+        }
     }
 
     setSunView() {
@@ -962,6 +1018,12 @@ class SolarSystem {
         // Set active view and update camera controls
         this.activeView = 'sunSideView';
         this.updateCameraControls();
+        
+        // Update radio button selection
+        const sunViewRadio = document.getElementById('radio-sunSideView');
+        if (sunViewRadio) {
+            sunViewRadio.checked = true;
+        }
     }
 
     setMercuryView() {
@@ -1005,6 +1067,12 @@ class SolarSystem {
         // Set active view and update camera controls
         this.activeView = 'mercurySideView';
         this.updateCameraControls();
+        
+        // Update radio button selection
+        const mercuryViewRadio = document.getElementById('radio-mercurySideView');
+        if (mercuryViewRadio) {
+            mercuryViewRadio.checked = true;
+        }
     }
 
     setVenusView() {
@@ -1048,6 +1116,12 @@ class SolarSystem {
         // Set active view and update camera controls
         this.activeView = 'venusSideView';
         this.updateCameraControls();
+        
+        // Update radio button selection
+        const venusViewRadio = document.getElementById('radio-venusSideView');
+        if (venusViewRadio) {
+            venusViewRadio.checked = true;
+        }
     }
 
     setEarthView() {
@@ -1091,6 +1165,12 @@ class SolarSystem {
         // Set active view and update camera controls
         this.activeView = 'earthSideView';
         this.updateCameraControls();
+        
+        // Update radio button selection
+        const earthViewRadio = document.getElementById('radio-earthSideView');
+        if (earthViewRadio) {
+            earthViewRadio.checked = true;
+        }
     }
 
     setMarsView() {
@@ -1134,6 +1214,12 @@ class SolarSystem {
         // Set active view and update camera controls
         this.activeView = 'marsSideView';
         this.updateCameraControls();
+        
+        // Update radio button selection
+        const marsViewRadio = document.getElementById('radio-marsSideView');
+        if (marsViewRadio) {
+            marsViewRadio.checked = true;
+        }
     }
 
     setSaturnView() {
@@ -1177,6 +1263,12 @@ class SolarSystem {
         // Set active view and update camera controls
         this.activeView = 'saturnSideView';
         this.updateCameraControls();
+        
+        // Update radio button selection
+        const saturnViewRadio = document.getElementById('radio-saturnSideView');
+        if (saturnViewRadio) {
+            saturnViewRadio.checked = true;
+        }
     }
 
     setJupiterView() {
@@ -1220,6 +1312,12 @@ class SolarSystem {
         // Set active view and update camera controls
         this.activeView = 'jupiterSideView';
         this.updateCameraControls();
+        
+        // Update radio button selection
+        const jupiterViewRadio = document.getElementById('radio-jupiterSideView');
+        if (jupiterViewRadio) {
+            jupiterViewRadio.checked = true;
+        }
     }
 
     setUranusView() {
@@ -1263,6 +1361,12 @@ class SolarSystem {
         // Set active view and update camera controls
         this.activeView = 'uranusSideView';
         this.updateCameraControls();
+        
+        // Update radio button selection
+        const uranusViewRadio = document.getElementById('radio-uranusSideView');
+        if (uranusViewRadio) {
+            uranusViewRadio.checked = true;
+        }
     }
 
     setNeptuneView() {
@@ -1306,6 +1410,12 @@ class SolarSystem {
         // Set active view and update camera controls
         this.activeView = 'neptuneSideView';
         this.updateCameraControls();
+        
+        // Update radio button selection
+        const neptuneViewRadio = document.getElementById('radio-neptuneSideView');
+        if (neptuneViewRadio) {
+            neptuneViewRadio.checked = true;
+        }
     }
 
     show() {
@@ -1377,16 +1487,22 @@ class SolarSystem {
     createLocationViewsSection() {
         // Create section header
         const locationHeader = document.createElement('h4');
-        locationHeader.textContent = 'Location Views';
+        locationHeader.textContent = 'Local Views';
         locationHeader.style.margin = '15px 0 10px 0';
         locationHeader.style.borderBottom = '1px solid #555';
         locationHeader.style.paddingBottom = '5px';
         this.viewConsoleContent.appendChild(locationHeader);
 
-        // Add buttons for each location marker
+        // Create radio button group for location views
+        const locationViewRadioGroup = document.createElement('div');
+        locationViewRadioGroup.className = 'view-radio-group';
+        locationViewRadioGroup.style.marginBottom = '15px';
+        this.viewConsoleContent.appendChild(locationViewRadioGroup);
+
+        // Add radio buttons for each location marker
         if (this.locationMarkers && this.locationMarkers.length > 0) {
             this.locationMarkers.forEach(marker => {
-                this.addViewButton(`View from ${marker.options.name}`, () => {
+                this.addViewRadioButton(`View from ${marker.options.name}`, 'view', `${marker.options.name.toLowerCase()}`, () => {
                     if (this.locationCamera) {
                         // Disable any existing marker views on all planets
                         this.planets.forEach(planet => {
@@ -1407,7 +1523,7 @@ class SolarSystem {
                         this.activeView = marker.options.name.toLowerCase();
                         this.updateCameraControls();
                     }
-                }, this.viewConsoleContent);
+                }, locationViewRadioGroup);
             });
         }
     }

@@ -73,6 +73,12 @@ function init() {
 
     // Set top view as default
     solarSystem.setTopView();
+    
+    // Ensure the Top View radio button is checked by default
+    const topViewRadio = document.getElementById('radio-topView');
+    if (topViewRadio) {
+        topViewRadio.checked = true;
+    }
 
     // Handle window resize
     window.addEventListener('resize', onWindowResize);

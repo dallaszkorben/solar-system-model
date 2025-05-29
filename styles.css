@@ -92,3 +92,18 @@ input:checked + .slider:before {
     font-weight: bold;
     margin-right: 10px;
 }
+
+/* Radio button styling */
+.view-radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.view-radio-group input[type="radio"] {
+    cursor: pointer;
+}
+
+.view-radio-group label {
+    cursor: pointer;
+}
