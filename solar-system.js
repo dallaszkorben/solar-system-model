@@ -748,6 +748,14 @@ class SolarSystem {
         radio.addEventListener('change', (e) => {
             if (e.target.checked) {
                 clickHandler();
+                
+                // Determine if this is a local view
+                const isLocalView = value === 'budapest' || value === 'kiruna';
+                
+                // Disable camera controls for non-local views
+                if (!isLocalView) {
+                    this.setCameraControlsEnabled(false);
+                }
             }
         });
         
@@ -1522,6 +1530,9 @@ class SolarSystem {
                         // Set active view based on location name
                         this.activeView = marker.options.name.toLowerCase();
                         this.updateCameraControls();
+                        
+                        // Enable camera controls for local views
+                        this.setCameraControlsEnabled(true);
                     }
                 }, locationViewRadioGroup);
             });
@@ -1537,6 +1548,15 @@ class SolarSystem {
         controlHeader.style.paddingBottom = '5px';
         controlHeader.style.marginTop = '25px'; // Add extra margin to separate from previous section
         this.viewConsoleContent.appendChild(controlHeader);
+        
+        // Add note about camera controls availability
+        const controlNote = document.createElement('p');
+        controlNote.textContent = 'Camera controls are only available for Local Views';
+        controlNote.style.fontSize = '12px';
+        controlNote.style.fontStyle = 'italic';
+        controlNote.style.margin = '0 0 10px 0';
+        controlNote.style.color = '#aaa';
+        this.viewConsoleContent.appendChild(controlNote);
 
         // Create container for camera controls in two columns
         const cameraControlsContainer = document.createElement('div');
@@ -2175,6 +2195,12 @@ class SolarSystem {
         if (!this.activeView || !this.cameraSettings[this.activeView]) return;
 
         const settings = this.cameraSettings[this.activeView];
+        
+        // Determine if this is a local view (location view)
+        const isLocalView = this.activeView === 'budapest' || this.activeView === 'kiruna' || this.inLocationView;
+        
+        // Enable or disable camera controls based on view type
+        this.setCameraControlsEnabled(isLocalView);
 
         // Update horizontal slider
         if (this.horizontalInput) {
@@ -2201,6 +2227,24 @@ class SolarSystem {
             this.locationCamera.cameraVerticalAngle = settings.verticalAngle;
             this.locationCamera.cameraElevation = settings.elevation;
             this.locationCamera.updateView();
+        }
+    }
+    
+    setCameraControlsEnabled(enabled) {
+        // Enable or disable camera control sliders
+        if (this.horizontalInput) {
+            this.horizontalInput.disabled = !enabled;
+            this.horizontalInput.style.opacity = enabled ? '1' : '0.5';
+        }
+        
+        if (this.verticalInput) {
+            this.verticalInput.disabled = !enabled;
+            this.verticalInput.style.opacity = enabled ? '1' : '0.5';
+        }
+        
+        if (this.elevationInput) {
+            this.elevationInput.disabled = !enabled;
+            this.elevationInput.style.opacity = enabled ? '1' : '0.5';
         }
     }
 

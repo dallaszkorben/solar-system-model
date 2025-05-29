@@ -79,6 +79,9 @@ function init() {
     if (topViewRadio) {
         topViewRadio.checked = true;
     }
+    
+    // Disable camera controls initially since we start with a global view
+    solarSystem.setCameraControlsEnabled(false);
 
     // Handle window resize
     window.addEventListener('resize', onWindowResize);
