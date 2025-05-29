@@ -1745,11 +1745,30 @@ class SolarSystem {
                 this.cameraSettings[this.activeView].elevation = elevation;
             }
 
-            // Only apply changes for local views
-            // For planet side views, the slider is active but doesn't do anything yet
+            // For local views, apply to location camera
             if (this.locationCamera && this.locationCamera.isActive) {
                 this.locationCamera.cameraElevation = elevation;
                 this.locationCamera.updateView();
+            } 
+            // For planet side views, move the marker along the sphere
+            else if (this.activeView && this.activeView.includes('SideView')) {
+                // Map elevation slider value (0.001 to 0.05) to latitude (-PI/2 to PI/2)
+                // 0.001 -> -PI/2 (south pole)
+                // 0.025 -> 0 (equator)
+                // 0.05 -> PI/2 (north pole)
+                const minElevation = 0.001;
+                const maxElevation = 0.05;
+                const normalizedValue = (elevation - minElevation) / (maxElevation - minElevation);
+                const latitude = (normalizedValue * Math.PI) - (Math.PI / 2);
+                
+                // Find the active planet
+                const planetName = this.activeView.replace('SideView', '');
+                const planet = this[planetName.toLowerCase()];
+                
+                if (planet && planet.planetMarker) {
+                    // Update marker position with the new latitude
+                    planet.planetMarker.updateMarkerPosition(latitude);
+                }
             }
         });
 
