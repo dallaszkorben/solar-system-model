@@ -5,7 +5,7 @@ class Venus extends Planet {
     // Static data for Venus
     static factData = {
         diameter: 12104.0, // km
-        axialTilt: 10.4, // degrees (retrograde rotation)
+        axialTilt: 177.36, // degrees (retrograde rotation)
         orbitRadius: 108200000.0, // km (average distance from Sun)
         rotationPeriod: 5832.5, // hours (243 days, retrograde)
         orbitalPeriod: 224.7, // days
@@ -109,31 +109,6 @@ class Venus extends Planet {
     }
 
 
-    // Override update method to handle Venus's retrograde rotation
-    update(time) {
-        // Rotate the sphere around its axis if rotation is enabled
-        if (this.rotationEnabled && this.rotationSpeed > 0) {
-            // Venus rotates in the opposite direction (retrograde rotation)
-            // due to its axial tilt of ~177.3 degrees (nearly upside down)
-            this.sphere.rotation.y += this.rotationSpeed;
-
-            // Update camera position if marker view is active
-            if (this.planetMarker && this.planetMarker.cameraView) {
-                this.planetMarker.updateCameraPosition();
-            }
-        }
-
-        // Orbit around the Sun if orbit is enabled
-        if (this.orbitEnabled && this.orbitSpeed > 0) {
-            const previousOrbitAngle = this.orbitGroup.rotation.y;
-            this.orbitGroup.rotation.y += this.orbitSpeed;
-            const deltaAngle = this.orbitGroup.rotation.y - previousOrbitAngle;
-            this.group.rotation.y -= deltaAngle;
-
-            // Update camera position if marker view is active
-            if (this.planetMarker && this.planetMarker.cameraView) {
-                this.planetMarker.updateCameraPosition();
-            }
-        }
-    }
+    // No need for a custom update method - Venus's retrograde rotation is handled by its axial tilt
+    // The parent Planet class's update method will be used instead
 }

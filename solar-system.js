@@ -38,19 +38,19 @@ class SolarSystem {
 
         // Store camera settings for different views
         this.cameraSettings = {
-            'topView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
-            'sideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
-            'sunSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: this.uiConfig.defaultElevationValue },
-            'mercurySideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: this.uiConfig.defaultElevationValue },
-            'venusSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: this.uiConfig.defaultElevationValue },
-            'earthSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: this.uiConfig.defaultElevationValue },
-            'marsSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: this.uiConfig.defaultElevationValue },
-            'jupiterSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: this.uiConfig.defaultElevationValue },
-            'saturnSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: this.uiConfig.defaultElevationValue },
-            'uranusSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: this.uiConfig.defaultElevationValue },
-            'neptuneSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: this.uiConfig.defaultElevationValue },
-            'budapest': { horizontalAngle: Math.PI, verticalAngle: 0.0, elevation: 0.01 },
-            'kiruna': { horizontalAngle: 0, verticalAngle: 0.0, elevation: 0.01 }
+            'topView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01, longitude: 0 },
+            'sideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01, longitude: 0 },
+            'sunSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: this.uiConfig.defaultElevationValue, longitude: 0 },
+            'mercurySideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: this.uiConfig.defaultElevationValue, longitude: 0 },
+            'venusSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: this.uiConfig.defaultElevationValue, longitude: 0 },
+            'earthSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: this.uiConfig.defaultElevationValue, longitude: 0 },
+            'marsSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: this.uiConfig.defaultElevationValue, longitude: 0 },
+            'jupiterSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: this.uiConfig.defaultElevationValue, longitude: 0 },
+            'saturnSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: this.uiConfig.defaultElevationValue, longitude: 0 },
+            'uranusSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: this.uiConfig.defaultElevationValue, longitude: 0 },
+            'neptuneSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: this.uiConfig.defaultElevationValue, longitude: 0 },
+            'budapest': { horizontalAngle: Math.PI, verticalAngle: 0.0, elevation: 0.01, longitude: 0 },
+            'kiruna': { horizontalAngle: 0, verticalAngle: 0.0, elevation: 0.01, longitude: 0 }
         };
 
         // Current active view
@@ -1735,7 +1735,7 @@ class SolarSystem {
         elevationInput.min = '0.001';
         elevationInput.max = '0.05';
         elevationInput.step = '0.001';
-        elevationInput.value = this.uiConfig.defaultElevationValue.toString();
+        elevationInput.value = this.uiConfig.defaultElevationValue.toString(); // 0.025 is middle
         elevationInput.style.width = '100%';
         cameraControlsContainer.appendChild(elevationInput);
 
@@ -1809,6 +1809,7 @@ class SolarSystem {
                 const minElevation = 0.001;
                 const maxElevation = 0.05;
                 const normalizedValue = (elevation - minElevation) / (maxElevation - minElevation);
+                // When elevation is at default (0.025), latitude should be exactly 0 (equator)
                 const latitude = (normalizedValue * Math.PI) - (Math.PI / 2);
 
                 // Find the active planet
@@ -1849,7 +1850,7 @@ class SolarSystem {
         horizontalTraverseInput.min = '-3.14'; // -PI
         horizontalTraverseInput.max = '3.14';  // PI
         horizontalTraverseInput.step = '0.01';
-        horizontalTraverseInput.value = '0'; // Default to middle position
+        horizontalTraverseInput.value = '0'; // Default to middle position (0 is middle of -PI to PI)
         horizontalTraverseInput.style.width = '100%';
         horizontalTraverseInput.disabled = elevationInput.disabled; // Match elevation input state
         horizontalTraverseInput.style.opacity = elevationInput.disabled ? '0.5' : '1';
@@ -1888,6 +1889,11 @@ class SolarSystem {
         // Add event listener for horizontal traverse
         horizontalTraverseInput.addEventListener('input', (e) => {
             const longitude = parseFloat(e.target.value);
+            
+            // Save the current setting for the active view
+            if (this.activeView && this.cameraSettings[this.activeView]) {
+                this.cameraSettings[this.activeView].longitude = longitude;
+            }
             
             // For planet side views, move the marker along the sphere's equator
             if (this.activeView && this.activeView.includes('SideView')) {
@@ -1953,6 +1959,16 @@ class SolarSystem {
                         planetToggle.checked = e.target.checked;
                     }
                 });
+            }
+            
+            // Also apply to the Sun
+            if (this.sun) {
+                this.sun.rotationEnabled = e.target.checked;
+                // Update Sun's own control if it exists
+                const sunToggle = document.getElementById('sun-rotation-toggle');
+                if (sunToggle) {
+                    sunToggle.checked = e.target.checked;
+                }
             }
         });
 
@@ -2029,6 +2045,32 @@ class SolarSystem {
                         }
                     }
                 });
+                
+                // Also apply to the Sun
+                if (this.sun) {
+                    if (value === 0) {
+                        this.sun.rotationSpeed = 0;
+                    } else if (value <= 50) {
+                        const normalizedValue = value / 50;
+                        const baseSpeed = (2 * Math.PI) / (this.sun.rotationPeriod * 60);
+                        this.sun.rotationSpeed = baseSpeed * normalizedValue;
+                    } else {
+                        const normalizedValue = (value - 50) / 50;
+                        const periodDiff = this.sun.rotationPeriod - this.sun.maxRotationPeriod;
+                        const adjustedPeriod = this.sun.rotationPeriod - (periodDiff * normalizedValue);
+                        this.sun.rotationSpeed = (2 * Math.PI) / (adjustedPeriod * 60);
+                    }
+                    
+                    // Enable rotation if slider is not at 0
+                    if (value > 0) {
+                        this.sun.rotationEnabled = true;
+                        // Update Sun's own control if it exists
+                        const sunToggle = document.getElementById('sun-rotation-toggle');
+                        if (sunToggle) {
+                            sunToggle.checked = true;
+                        }
+                    }
+                }
 
                 // Dispatch event for individual planet controls to update
                 document.dispatchEvent(new CustomEvent('globalRotationSliderChange', {
@@ -2051,6 +2093,12 @@ class SolarSystem {
                     const baseSpeed = (2 * Math.PI) / (planet.rotationPeriod * 60);
                     planet.rotationSpeed = baseSpeed;
                 });
+                
+                // Also apply to the Sun
+                if (this.sun) {
+                    const baseSpeed = (2 * Math.PI) / (this.sun.rotationPeriod * 60);
+                    this.sun.rotationSpeed = baseSpeed;
+                }
 
                 // Dispatch event for individual planet controls to update
                 document.dispatchEvent(new CustomEvent('globalRotationSliderChange', {
@@ -2385,6 +2433,11 @@ class SolarSystem {
         if (this.elevationInput) {
             this.elevationInput.value = settings.elevation;
         }
+        
+        // Update horizontal traverse slider
+        if (this.horizontalTraverseInput && isPlanetSideView) {
+            this.horizontalTraverseInput.value = settings.longitude || '0';
+        }
 
         // Apply settings to location camera if active
         if (this.locationCamera && this.locationCamera.isActive) {
@@ -2392,6 +2445,21 @@ class SolarSystem {
             this.locationCamera.cameraVerticalAngle = settings.verticalAngle;
             this.locationCamera.cameraElevation = settings.elevation;
             this.locationCamera.updateView();
+        }
+        
+        // Apply horizontal traverse position for planet side views
+        if (isPlanetSideView) {
+            const planetName = this.activeView.replace('SideView', '');
+            const planet = this[planetName.toLowerCase()];
+            
+            if (planet && planet.planetMarker) {
+                // Force latitude to 0 (equator) for default side view position
+                const latitude = 0;
+                
+                // Apply saved longitude
+                const longitude = settings.longitude || 0;
+                planet.planetMarker.updateMarkerPosition(latitude, longitude);
+            }
         }
     }
 
@@ -2423,17 +2491,17 @@ class SolarSystem {
             }
         }
 
-        // Update horizontal traverse slider state to match elevation input
+        // Update horizontal traverse slider state - only enabled for planet views, not local views
         if (this.horizontalTraverseInput) {
-            const elevationEnabled = enabled && (viewType === 'local' || viewType === 'planet');
-            this.horizontalTraverseInput.disabled = !elevationEnabled;
-            this.horizontalTraverseInput.style.opacity = elevationEnabled ? '1' : '0.5';
+            const traverseEnabled = enabled && viewType === 'planet';
+            this.horizontalTraverseInput.disabled = !traverseEnabled;
+            this.horizontalTraverseInput.style.opacity = traverseEnabled ? '1' : '0.5';
 
             // Also update the reset icon state
             const resetIcon = this.horizontalTraverseInput.nextElementSibling;
             if (resetIcon && resetIcon.tagName === 'IMG') {
-                resetIcon.style.opacity = elevationEnabled ? '1' : '0.5';
-                resetIcon.style.cursor = elevationEnabled ? 'pointer' : 'default';
+                resetIcon.style.opacity = traverseEnabled ? '1' : '0.5';
+                resetIcon.style.cursor = traverseEnabled ? 'pointer' : 'default';
             }
         }
     }

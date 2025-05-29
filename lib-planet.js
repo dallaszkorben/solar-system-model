@@ -69,6 +69,12 @@ class Planet {
         this.orbitLine = null;
         this.orbitGroup = new THREE.Group(); // Parent group for orbital motion
 
+        // Solar Radial Line properties
+        this.solarRadialLineEnabled = false; // Disabled by default
+        this.solarRadialLine = null;
+        this.solarRadialLineDiameter = 5000; // Default diameter in km (increased for visibility)
+        this.solarRadialLineColor = 0xff0000; // Default color: red (more visible)
+
         // Day/Night effect properties
         this.dayNightEnabled = true; // Enabled by default
 
@@ -269,16 +275,13 @@ class Planet {
         slider.style.flexGrow = '1';
         if (id) slider.id = id;
 
-        const resetBtn = document.createElement('button');
-        resetBtn.textContent = 'Reset';
-        resetBtn.style.padding = '2px 8px';
-        resetBtn.style.fontSize = '12px';
-        resetBtn.style.backgroundColor = '#555';
-        resetBtn.style.color = 'white';
-        resetBtn.style.border = '1px solid #777';
-        resetBtn.style.borderRadius = '3px';
-        resetBtn.style.cursor = 'pointer';
-        resetBtn.style.flexShrink = '0';
+        // Create reset icon
+        const resetIcon = document.createElement('img');
+        resetIcon.src = 'icons/reset.png';
+        resetIcon.style.width = '24px';
+        resetIcon.style.height = '24px';
+        resetIcon.style.cursor = 'pointer';
+        resetIcon.style.flexShrink = '0';
 
         // Listen for input events (user interaction)
         slider.addEventListener('input', (e) => {
@@ -286,13 +289,14 @@ class Planet {
             onChange(value);
         });
 
-        resetBtn.addEventListener('click', () => {
+        resetIcon.addEventListener('click', () => {
             slider.value = '50';
-            handleSliderChange();
+            const event = new Event('input', { bubbles: true });
+            slider.dispatchEvent(event);
         });
 
         controlsContainer.appendChild(slider);
-        controlsContainer.appendChild(resetBtn);
+        controlsContainer.appendChild(resetIcon);
         container.appendChild(controlsContainer);
         this.consoleContent.appendChild(container);
     }
@@ -389,6 +393,11 @@ class Planet {
                 y: camera.position.y,
                 z: camera.position.z
             };
+        }
+
+        // Ensure marker is positioned at the equator (orbit plane)
+        if (this.planetMarker) {
+            this.planetMarker.updateMarkerPosition(0, 0); // latitude 0 = equator, longitude 0 = front
         }
 
         // Enable camera view mode on the marker and immediately position the camera
@@ -502,6 +511,80 @@ class Planet {
         }
     }
 
+    /**
+     * Toggle the solar radial line visibility
+     * @param {boolean} enabled - Whether the solar radial line should be visible
+     */
+    toggleSolarRadialLine(enabled) {
+        if (enabled) {
+            // Create the solar radial line if it doesn't exist
+            if (!this.solarRadialLine) {
+                this.createSolarRadialLine();
+            }
+
+            // Make the line visible
+            if (this.solarRadialLine) {
+                this.solarRadialLine.visible = true;
+            }
+        } else {
+            // Hide the line if it exists
+            if (this.solarRadialLine) {
+                this.solarRadialLine.visible = false;
+            }
+        }
+    }
+
+    /**
+     * Create a line between the sun and the planet
+     */
+    createSolarRadialLine() {
+        // Create a line geometry instead of cylinder for better visibility
+        const points = [];
+        points.push(new THREE.Vector3(0, 0, 0)); // Sun position
+        
+        // Get planet position in world coordinates
+        const planetPos = new THREE.Vector3();
+        this.sphere.getWorldPosition(planetPos);
+        points.push(planetPos);
+        
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+        
+        // Create material for the line with increased width and bright color
+        const material = new THREE.LineBasicMaterial({
+            color: this.solarRadialLineColor,
+            linewidth: 3
+        });
+        
+        // Create the line
+        this.solarRadialLine = new THREE.Line(geometry, material);
+        
+        // Add to the scene
+        scene.add(this.solarRadialLine);
+        this.solarRadialLine.visible = true; // Make visible immediately
+    }
+
+    /**
+     * Update the solar radial line position to connect sun and planet
+     */
+    updateSolarRadialLine() {
+        if (!this.solarRadialLine) return;
+
+        // Get planet position in world coordinates
+        const planetPos = new THREE.Vector3();
+        this.sphere.getWorldPosition(planetPos);
+
+        // Sun is at origin (0,0,0)
+        const sunPos = new THREE.Vector3(0, 0, 0);
+
+        // Update the line geometry with new points
+        const points = [sunPos, planetPos];
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+        
+        // Update the line geometry
+        this.solarRadialLine.geometry.dispose();
+        this.solarRadialLine.geometry = geometry;
+    }
+
     update(time) {
         // Rotate the sphere around its axis if rotation is enabled
         if (this.rotationEnabled && this.rotationSpeed > 0) {
@@ -525,6 +608,11 @@ class Planet {
             if (this.planetMarker && this.planetMarker.cameraView) {
                 this.planetMarker.updateCameraPosition();
             }
+        }
+
+        // Update solar radial line if enabled
+        if (this.solarRadialLineEnabled && this.solarRadialLine) {
+            this.updateSolarRadialLine();
         }
     }
 
@@ -569,12 +657,12 @@ class Planet {
         title.textContent = `${planetName} Controls`;
         title.style.margin = '0';
         header.appendChild(title);
-        
+
         // Create icons container for collapse and close
         const iconsContainer = document.createElement('div');
         iconsContainer.style.display = 'flex';
         iconsContainer.style.alignItems = 'center';
-        
+
         // Add collapse/expand icon
         const collapseIcon = document.createElement('div');
         collapseIcon.innerHTML = '&#9650;'; // Up arrow (collapse)
@@ -588,7 +676,7 @@ class Planet {
         collapseIcon.style.userSelect = 'none';
         collapseIcon.title = 'Collapse/Expand';
         iconsContainer.appendChild(collapseIcon);
-        
+
         // Add close icon
         const closeIcon = document.createElement('div');
         closeIcon.innerHTML = '&#10006;'; // X symbol
@@ -602,12 +690,12 @@ class Planet {
         closeIcon.style.userSelect = 'none';
         closeIcon.style.marginLeft = '8px';
         closeIcon.title = 'Close';
-        
+
         // Add click handler to hide the panel
         closeIcon.addEventListener('click', (e) => {
             e.stopPropagation(); // Prevent dragging
             this.hide();
-            
+
             // Find the toggle for this planet in the Solar System Controls
             const planetName = this.constructor.name.toLowerCase();
             const toggle = document.getElementById(`${planetName}-controls-toggle`);
@@ -615,9 +703,9 @@ class Planet {
                 toggle.checked = false;
             }
         });
-        
+
         iconsContainer.appendChild(closeIcon);
-        
+
         // Add icons container to header
         header.appendChild(iconsContainer);
 
@@ -634,18 +722,18 @@ class Planet {
 
         // Store content container for adding controls
         this.consoleContent = content;
-        
+
         // Add collapse/expand functionality
         collapseIcon.addEventListener('click', (e) => {
             e.stopPropagation(); // Prevent dragging when clicking the icon
-            
+
             // Get current position before changing display
             const currentTop = this.consolePane.offsetTop;
             const currentLeft = this.consolePane.offsetLeft;
-            
+
             // Get animation duration from SolarSystem if available, or use default
             const animationDuration = window.solarSystem?.uiConfig?.panelAnimationDuration || 1.0;
-            
+
             if (content.style.display === 'none') {
                 // Expand
                 content.style.display = 'block';
@@ -653,20 +741,20 @@ class Planet {
                 content.style.overflow = 'hidden';
                 content.style.transition = `height ${animationDuration}s ease`;
                 this.consolePane.style.transition = `height ${animationDuration}s ease`;
-                
+
                 // Trigger reflow to ensure transition works
                 content.offsetHeight;
-                
+
                 // Get the natural height
                 const contentHeight = content.scrollHeight;
-                
+
                 // Animate expansion
                 content.style.height = contentHeight + 'px';
                 this.consolePane.style.height = (header.offsetHeight + contentHeight) + 'px';
                 collapseIcon.innerHTML = '&#9650;'; // Up arrow (collapse)
                 this.consolePane.style.borderBottomLeftRadius = '5px';
                 this.consolePane.style.borderBottomRightRadius = '5px';
-                
+
                 // Reset height to auto after animation
                 setTimeout(() => {
                     content.style.height = 'auto';
@@ -679,23 +767,23 @@ class Planet {
                 // Get current content height before collapsing
                 const contentHeight = content.offsetHeight;
                 const headerHeight = header.offsetHeight;
-                
+
                 content.style.height = contentHeight + 'px';
                 content.style.overflow = 'hidden';
                 content.style.transition = `height ${animationDuration}s ease`;
                 this.consolePane.style.height = (headerHeight + contentHeight) + 'px';
                 this.consolePane.style.transition = `height ${animationDuration}s ease`;
-                
+
                 // Trigger reflow to ensure transition works
                 content.offsetHeight;
-                
+
                 // Animate collapse
                 content.style.height = '0';
                 this.consolePane.style.height = `${headerHeight}px`;
                 collapseIcon.innerHTML = '&#9660;'; // Down arrow (expand)
                 this.consolePane.style.borderBottomLeftRadius = '0';
                 this.consolePane.style.borderBottomRightRadius = '0';
-                
+
                 // Hide content after animation completes
                 setTimeout(() => {
                     content.style.display = 'none';
@@ -703,7 +791,7 @@ class Planet {
                     this.consolePane.style.transition = '';
                 }, animationDuration * 1000);
             }
-            
+
             // Restore position after changing display
             this.consolePane.style.top = `${currentTop}px`;
             this.consolePane.style.left = `${currentLeft}px`;
@@ -736,6 +824,12 @@ class Planet {
         this.addToggle('Day/Night Effect: ', `${planetName}-day-night-toggle`, this.dayNightEnabled, (e) => {
             this.dayNightEnabled = e.target.checked;
             this.toggleDayNightEffect(this.dayNightEnabled);
+        });
+
+        // Add solar radial line toggle
+        this.addToggle('Solar Radial Line: ', `${planetName}-solar-radial-line-toggle`, this.solarRadialLineEnabled, (e) => {
+            this.solarRadialLineEnabled = e.target.checked;
+            this.toggleSolarRadialLine(this.solarRadialLineEnabled);
         });
 
         // Add side marker view toggle
