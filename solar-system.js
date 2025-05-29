@@ -1777,8 +1777,12 @@ class SolarSystem {
                 const planet = this[planetName.toLowerCase()];
 
                 if (planet && planet.planetMarker) {
-                    // Update marker position with the new latitude
-                    planet.planetMarker.updateMarkerPosition(latitude);
+                    // Get current longitude from horizontal traverse slider
+                    const longitude = this.horizontalTraverseInput ? 
+                        parseFloat(this.horizontalTraverseInput.value) : 0;
+                        
+                    // Update marker position with the new latitude and current longitude
+                    planet.planetMarker.updateMarkerPosition(latitude, longitude);
                 }
             }
         });
@@ -1812,8 +1816,12 @@ class SolarSystem {
                 const planet = this[planetName.toLowerCase()];
 
                 if (planet && planet.planetMarker) {
-                    // Update marker position with the new latitude
-                    planet.planetMarker.updateMarkerPosition(latitude);
+                    // Get current longitude from horizontal traverse slider
+                    const longitude = this.horizontalTraverseInput ? 
+                        parseFloat(this.horizontalTraverseInput.value) : 0;
+                    
+                    // Update marker position with the new latitude and current longitude
+                    planet.planetMarker.updateMarkerPosition(latitude, longitude);
                 }
             }
         });
@@ -1838,8 +1846,8 @@ class SolarSystem {
 
         const horizontalTraverseInput = document.createElement('input');
         horizontalTraverseInput.type = 'range';
-        horizontalTraverseInput.min = '-1';
-        horizontalTraverseInput.max = '1';
+        horizontalTraverseInput.min = '-3.14'; // -PI
+        horizontalTraverseInput.max = '3.14';  // PI
         horizontalTraverseInput.step = '0.01';
         horizontalTraverseInput.value = '0'; // Default to middle position
         horizontalTraverseInput.style.width = '100%';
@@ -1860,7 +1868,45 @@ class SolarSystem {
         horizontalTraverseResetIcon.addEventListener('click', () => {
             // Reset to middle position
             horizontalTraverseInput.value = '0';
-            // No functionality yet
+            
+            // For planet side views, move the marker along the sphere's equator
+            if (this.activeView && this.activeView.includes('SideView')) {
+                // Find the active planet
+                const planetName = this.activeView.replace('SideView', '');
+                const planet = this[planetName.toLowerCase()];
+
+                if (planet && planet.planetMarker) {
+                    // Use 0 for latitude (equator) to match the default position
+                    const latitude = 0;
+                    
+                    // Update marker position with the reset longitude (0)
+                    planet.planetMarker.updateMarkerPosition(latitude, 0);
+                }
+            }
+        });
+        
+        // Add event listener for horizontal traverse
+        horizontalTraverseInput.addEventListener('input', (e) => {
+            const longitude = parseFloat(e.target.value);
+            
+            // For planet side views, move the marker along the sphere's equator
+            if (this.activeView && this.activeView.includes('SideView')) {
+                // Find the active planet
+                const planetName = this.activeView.replace('SideView', '');
+                const planet = this[planetName.toLowerCase()];
+
+                if (planet && planet.planetMarker) {
+                    // Get current latitude from elevation slider
+                    const minElevation = 0.001;
+                    const maxElevation = 0.05;
+                    const elevation = parseFloat(elevationInput.value);
+                    const normalizedValue = (elevation - minElevation) / (maxElevation - minElevation);
+                    const latitude = (normalizedValue * Math.PI) - (Math.PI / 2);
+                    
+                    // Update marker position with the new longitude
+                    planet.planetMarker.updateMarkerPosition(latitude, longitude);
+                }
+            }
         });
 
         // Store reference to the horizontal traverse slider

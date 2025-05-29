@@ -34,25 +34,28 @@ class PlanetMarker {
 
     /**
      * Update the marker's position based on the marker distance
+     * @param {number} latitude - Latitude angle in radians (vertical position)
+     * @param {number} longitude - Longitude angle in radians (horizontal position)
      */
-    updateMarkerPosition(latitude = 0) {
+    updateMarkerPosition(latitude = 0, longitude = 0) {
         if (!this.marker) return;
 
-        // Calculate position on the sphere at the given latitude
+        // Calculate position on the sphere at the given latitude and longitude
         // latitude = 0 is equator, PI/2 is north pole, -PI/2 is south pole
+        // longitude = 0 is at (0,0,r), PI is at (0,0,-r), PI/2 is at (r,0,0), -PI/2 is at (-r,0,0)
         const phi = latitude; // latitude angle in radians
+        const theta = longitude; // longitude angle in radians
         const radius = this.planet.radius * this.markerDistance;
         
         // Calculate position using spherical coordinates
         // x = r * cos(phi) * cos(theta)
         // y = r * sin(phi)
         // z = r * cos(phi) * sin(theta)
-        // For equator (phi = 0), we place marker at (0, 0, r)
-        const x = 0;
+        const x = radius * Math.cos(phi) * Math.sin(theta);
         const y = radius * Math.sin(phi);
-        const z = radius * Math.cos(phi);
+        const z = radius * Math.cos(phi) * Math.cos(theta);
         
-        // Position the marker on the sphere at the specified distance and latitude
+        // Position the marker on the sphere at the specified distance, latitude and longitude
         this.marker.position.set(x, y, z);
         
         // Update camera if in camera view mode
@@ -64,10 +67,12 @@ class PlanetMarker {
     /**
      * Set the marker's distance from the planet center
      * @param {number} distanceFactor - Distance as a factor of the planet's radius
+     * @param {number} latitude - Latitude angle in radians (vertical position)
+     * @param {number} longitude - Longitude angle in radians (horizontal position)
      */
-    setMarkerDistance(distanceFactor, latitude = 0) {
+    setMarkerDistance(distanceFactor, latitude = 0, longitude = 0) {
         this.markerDistance = distanceFactor;
-        this.updateMarkerPosition(latitude);
+        this.updateMarkerPosition(latitude, longitude);
     }
 
     /**
