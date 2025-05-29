@@ -63,6 +63,7 @@ class SolarSystem {
         this.horizontalInput = null;
         this.verticalInput = null;
         this.elevationInput = null;
+        this.horizontalTraverseInput = null;
 
         // Create the solar system
         this.createSun();
@@ -1825,6 +1826,56 @@ class SolarSystem {
 
         // Store reference to the elevation slider
         this.elevationInput = elevationInput;
+        
+        // Add horizontal traverse control with icon
+        const horizontalTraverseLabel = document.createElement('div');
+        horizontalTraverseLabel.style.display = 'flex';
+        horizontalTraverseLabel.style.alignItems = 'center';
+
+        const horizontalTraverseIcon = document.createElement('img');
+        horizontalTraverseIcon.src = 'icons/translate-horizontal.png';
+        horizontalTraverseIcon.style.width = '24px';
+        horizontalTraverseIcon.style.height = '24px';
+        horizontalTraverseIcon.style.marginRight = '5px';
+
+        horizontalTraverseLabel.appendChild(horizontalTraverseIcon);
+        horizontalTraverseLabel.style.alignSelf = 'center';
+        cameraControlsContainer.appendChild(horizontalTraverseLabel);
+
+        const horizontalTraverseInput = document.createElement('input');
+        horizontalTraverseInput.type = 'range';
+        horizontalTraverseInput.min = '-1';
+        horizontalTraverseInput.max = '1';
+        horizontalTraverseInput.step = '0.01';
+        horizontalTraverseInput.value = '0'; // Default to middle position
+        horizontalTraverseInput.style.width = '100%';
+        horizontalTraverseInput.disabled = elevationInput.disabled; // Match elevation input state
+        horizontalTraverseInput.style.opacity = elevationInput.disabled ? '0.5' : '1';
+        cameraControlsContainer.appendChild(horizontalTraverseInput);
+        
+        // Create reset button for horizontal traverse control
+        const horizontalTraverseResetButton = document.createElement('button');
+        horizontalTraverseResetButton.textContent = 'Reset';
+        horizontalTraverseResetButton.style.padding = '2px 8px';
+        horizontalTraverseResetButton.style.fontSize = '12px';
+        horizontalTraverseResetButton.style.backgroundColor = '#555';
+        horizontalTraverseResetButton.style.color = 'white';
+        horizontalTraverseResetButton.style.border = '1px solid #777';
+        horizontalTraverseResetButton.style.borderRadius = '3px';
+        horizontalTraverseResetButton.style.cursor = elevationInput.disabled ? 'default' : 'pointer';
+        horizontalTraverseResetButton.disabled = elevationInput.disabled; // Match elevation input state
+        horizontalTraverseResetButton.style.opacity = elevationInput.disabled ? '0.5' : '1';
+        cameraControlsContainer.appendChild(horizontalTraverseResetButton);
+        
+        // Add reset functionality
+        horizontalTraverseResetButton.addEventListener('click', () => {
+            // Reset to middle position
+            horizontalTraverseInput.value = '0';
+            // No functionality yet
+        });
+        
+        // Store reference to the horizontal traverse slider
+        this.horizontalTraverseInput = horizontalTraverseInput;
 
         // Arrow buttons and instructions have been removed
     }
@@ -2339,6 +2390,21 @@ class SolarSystem {
             
             // Also update the reset button state to match the elevation input
             const resetButton = this.elevationInput.nextElementSibling;
+            if (resetButton && resetButton.tagName === 'BUTTON') {
+                resetButton.disabled = !elevationEnabled;
+                resetButton.style.opacity = elevationEnabled ? '1' : '0.5';
+                resetButton.style.cursor = elevationEnabled ? 'pointer' : 'default';
+            }
+        }
+        
+        // Update horizontal traverse slider state to match elevation input
+        if (this.horizontalTraverseInput) {
+            const elevationEnabled = enabled && (viewType === 'local' || viewType === 'planet');
+            this.horizontalTraverseInput.disabled = !elevationEnabled;
+            this.horizontalTraverseInput.style.opacity = elevationEnabled ? '1' : '0.5';
+            
+            // Also update the reset button state
+            const resetButton = this.horizontalTraverseInput.nextElementSibling;
             if (resetButton && resetButton.tagName === 'BUTTON') {
                 resetButton.disabled = !elevationEnabled;
                 resetButton.style.opacity = elevationEnabled ? '1' : '0.5';
