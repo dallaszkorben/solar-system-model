@@ -12,6 +12,9 @@ class Saturn extends Planet {
         ringInnerRadius: 74500, // km
         ringOuterRadius: 140000, // km
     };
+    
+    // Ring thickness configuration (not part of factual data)
+    static ringThickness = 0.05; // Thickness as a fraction of planet radius
 
     static scaleModelData = {
         diameter: Saturn.factData.diameter/Planet.scaleDownDiameterFactor, // scaled diameter in the model
@@ -87,18 +90,65 @@ class Saturn extends Planet {
         // Calculate ring dimensions relative to planet size
         const innerRadius = this.radius * 1.2;
         const outerRadius = this.radius * 2.3;
+        const thickness = this.radius * Saturn.ringThickness; // Calculate thickness based on planet radius
 
-        // Create a custom ring geometry
-        const segments = 64;
-        const thetaSegments = 64;
-        const phiSegments = 1;
-        const thetaStart = 0;
-        const thetaLength = Math.PI * 2;
+        // Create a group to hold all ring components
+        this.rings = new THREE.Group();
 
+        // Load ring texture
+        const textureLoader = new THREE.TextureLoader();
+        const ringTexture = textureLoader.load('images/saturn-ring-texture.png');
+
+        // Create ring material with transparency
+        const ringMaterial = new THREE.MeshBasicMaterial({
+            map: ringTexture,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.9
+        });
+
+        // Create top ring (flat disc)
+        const topRingGeometry = this.createRingGeometry(innerRadius, outerRadius, 64, 64);
+        const topRing = new THREE.Mesh(topRingGeometry, ringMaterial);
+        topRing.position.y = thickness / 2;
+        this.rings.add(topRing);
+
+        // Create bottom ring (flat disc)
+        const bottomRingGeometry = this.createRingGeometry(innerRadius, outerRadius, 64, 64);
+        const bottomRing = new THREE.Mesh(bottomRingGeometry, ringMaterial);
+        bottomRing.position.y = -thickness / 2;
+        this.rings.add(bottomRing);
+
+        // Create outer edge of ring
+        const outerEdgeGeometry = new THREE.CylinderGeometry(
+            outerRadius, outerRadius, thickness, 64, 1, true
+        );
+        const outerEdge = new THREE.Mesh(outerEdgeGeometry, ringMaterial);
+        // Align with the orbital plane - perpendicular to the radius from sun
+        outerEdge.rotation.y = Math.PI / 2;
+        this.rings.add(outerEdge);
+
+        // Create inner edge of ring
+        const innerEdgeGeometry = new THREE.CylinderGeometry(
+            innerRadius, innerRadius, thickness, 64, 1, true
+        );
+        const innerEdge = new THREE.Mesh(innerEdgeGeometry, ringMaterial);
+        // Align with the orbital plane - perpendicular to the radius from sun
+        innerEdge.rotation.y = Math.PI / 2;
+        this.rings.add(innerEdge);
+
+        // Add rings to the planet group
+        this.group.add(this.rings);
+    }
+
+    // Helper method to create a flat ring geometry
+    createRingGeometry(innerRadius, outerRadius, thetaSegments, phiSegments) {
         // Create vertices for a custom ring
         const vertices = [];
         const indices = [];
         const uvs = [];
+        const thetaStart = 0;
+        const thetaLength = Math.PI * 2;
 
         // Generate vertices and UVs
         for (let i = 0; i <= phiSegments; i++) {
@@ -146,26 +196,7 @@ class Saturn extends Planet {
         ringGeometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
         ringGeometry.setIndex(indices);
 
-        // Load ring texture
-        const textureLoader = new THREE.TextureLoader();
-        const ringTexture = textureLoader.load('images/saturn-ring-texture.png');
-
-        // Create ring material with transparency
-        const ringMaterial = new THREE.MeshBasicMaterial({
-            map: ringTexture,
-            side: THREE.DoubleSide,
-            transparent: true,
-            opacity: 0.9
-        });
-
-        // Create ring mesh
-        this.rings = new THREE.Mesh(ringGeometry, ringMaterial);
-
-        // Rings should be in the x-z plane (equatorial plane)
-        this.rings.rotation.x = 0;
-
-        // Add rings to the planet group
-        this.group.add(this.rings);
+        return ringGeometry;
     }
 
     // Override applyTilt to ensure rings tilt with the planet
