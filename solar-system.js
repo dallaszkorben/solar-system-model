@@ -1568,7 +1568,7 @@ class SolarSystem {
         // Create container for camera controls in three columns
         const cameraControlsContainer = document.createElement('div');
         cameraControlsContainer.style.display = 'grid';
-        cameraControlsContainer.style.gridTemplateColumns = '24px 2fr 60px';
+        cameraControlsContainer.style.gridTemplateColumns = '24px 2fr 24px';
         cameraControlsContainer.style.gap = '10px';
         cameraControlsContainer.style.marginBottom = '15px';
         this.viewConsoleContent.appendChild(cameraControlsContainer);
@@ -1643,7 +1643,7 @@ class SolarSystem {
 
         // Store reference to the horizontal slider
         this.horizontalInput = horizontalInput;
-        
+
         // Empty element in third column for horizontal control
         const horizontalEmptyElement = document.createElement('div');
         cameraControlsContainer.appendChild(horizontalEmptyElement);
@@ -1671,12 +1671,12 @@ class SolarSystem {
         verticalInput.value = this.locationCamera ? this.locationCamera.cameraVerticalAngle.toString() : '0.0'; // Default to middle (0.0)
         verticalInput.style.width = '100%';
         cameraControlsContainer.appendChild(verticalInput);
-        
+
         // Empty element in third column for vertical control
         const verticalEmptyElement = document.createElement('div');
         cameraControlsContainer.appendChild(verticalEmptyElement);
 
-        
+
         verticalInput.addEventListener('input', (e) => {
             const verticalAngle = parseFloat(e.target.value);
 
@@ -1738,33 +1738,27 @@ class SolarSystem {
         elevationInput.value = this.uiConfig.defaultElevationValue.toString();
         elevationInput.style.width = '100%';
         cameraControlsContainer.appendChild(elevationInput);
-        
-        // Create reset button for elevation control
-        const elevationResetButton = document.createElement('button');
-        elevationResetButton.textContent = 'Reset';
-        elevationResetButton.style.padding = '2px 8px';
-        elevationResetButton.style.fontSize = '12px';
-        elevationResetButton.style.backgroundColor = '#555';
-        elevationResetButton.style.color = 'white';
-        elevationResetButton.style.border = '1px solid #777';
-        elevationResetButton.style.borderRadius = '3px';
-        elevationResetButton.style.cursor = elevationInput.disabled ? 'default' : 'pointer';
-        // Set initial state based on elevation input's disabled state
-        elevationResetButton.disabled = elevationInput.disabled;
-        elevationResetButton.style.opacity = elevationInput.disabled ? '0.5' : '1';
-        cameraControlsContainer.appendChild(elevationResetButton);
-        
+
+        // Create reset icon
+        const elevationResetIcon = document.createElement('img');
+        elevationResetIcon.src = 'icons/reset.png';
+        elevationResetIcon.style.width = '24px';
+        elevationResetIcon.style.height = '24px';
+        elevationResetIcon.style.cursor = elevationInput.disabled ? 'default' : 'pointer';
+        elevationResetIcon.style.opacity = elevationInput.disabled ? '0.5' : '1';
+        cameraControlsContainer.appendChild(elevationResetIcon);
+
         // Add reset functionality
-        elevationResetButton.addEventListener('click', () => {
+        elevationResetIcon.addEventListener('click', () => {
             // Reset to middle position
             const defaultValue = this.uiConfig.defaultElevationValue;
             elevationInput.value = defaultValue.toString();
-            
+
             // Save the current setting for the active view
             if (this.activeView && this.cameraSettings[this.activeView]) {
                 this.cameraSettings[this.activeView].elevation = defaultValue;
             }
-            
+
             // For local views, apply to location camera
             if (this.locationCamera && this.locationCamera.isActive) {
                 this.locationCamera.cameraElevation = defaultValue;
@@ -1777,11 +1771,11 @@ class SolarSystem {
                 const maxElevation = 0.05;
                 const normalizedValue = (defaultValue - minElevation) / (maxElevation - minElevation);
                 const latitude = 0; // Force to equator (0) instead of calculating
-                
+
                 // Find the active planet
                 const planetName = this.activeView.replace('SideView', '');
                 const planet = this[planetName.toLowerCase()];
-                
+
                 if (planet && planet.planetMarker) {
                     // Update marker position with the new latitude
                     planet.planetMarker.updateMarkerPosition(latitude);
@@ -1826,7 +1820,7 @@ class SolarSystem {
 
         // Store reference to the elevation slider
         this.elevationInput = elevationInput;
-        
+
         // Add horizontal traverse control with icon
         const horizontalTraverseLabel = document.createElement('div');
         horizontalTraverseLabel.style.display = 'flex';
@@ -1852,28 +1846,23 @@ class SolarSystem {
         horizontalTraverseInput.disabled = elevationInput.disabled; // Match elevation input state
         horizontalTraverseInput.style.opacity = elevationInput.disabled ? '0.5' : '1';
         cameraControlsContainer.appendChild(horizontalTraverseInput);
-        
-        // Create reset button for horizontal traverse control
-        const horizontalTraverseResetButton = document.createElement('button');
-        horizontalTraverseResetButton.textContent = 'Reset';
-        horizontalTraverseResetButton.style.padding = '2px 8px';
-        horizontalTraverseResetButton.style.fontSize = '12px';
-        horizontalTraverseResetButton.style.backgroundColor = '#555';
-        horizontalTraverseResetButton.style.color = 'white';
-        horizontalTraverseResetButton.style.border = '1px solid #777';
-        horizontalTraverseResetButton.style.borderRadius = '3px';
-        horizontalTraverseResetButton.style.cursor = elevationInput.disabled ? 'default' : 'pointer';
-        horizontalTraverseResetButton.disabled = elevationInput.disabled; // Match elevation input state
-        horizontalTraverseResetButton.style.opacity = elevationInput.disabled ? '0.5' : '1';
-        cameraControlsContainer.appendChild(horizontalTraverseResetButton);
-        
+
+        // Create reset icon
+        const horizontalTraverseResetIcon = document.createElement('img');
+        horizontalTraverseResetIcon.src = 'icons/reset.png';
+        horizontalTraverseResetIcon.style.width = '24px';
+        horizontalTraverseResetIcon.style.height = '24px';
+        horizontalTraverseResetIcon.style.cursor = elevationInput.disabled ? 'default' : 'pointer';
+        horizontalTraverseResetIcon.style.opacity = elevationInput.disabled ? '0.5' : '1';
+        cameraControlsContainer.appendChild(horizontalTraverseResetIcon);
+
         // Add reset functionality
-        horizontalTraverseResetButton.addEventListener('click', () => {
+        horizontalTraverseResetIcon.addEventListener('click', () => {
             // Reset to middle position
             horizontalTraverseInput.value = '0';
             // No functionality yet
         });
-        
+
         // Store reference to the horizontal traverse slider
         this.horizontalTraverseInput = horizontalTraverseInput;
 
@@ -1958,17 +1947,13 @@ class SolarSystem {
         rotationSlider.style.flexGrow = '1'; // Take up available space
         rotationSlider.id = 'global-rotation-speed-slider';
 
-        // Create reset button
-        const rotationResetButton = document.createElement('button');
-        rotationResetButton.textContent = 'Reset';
-        rotationResetButton.style.padding = '2px 8px';
-        rotationResetButton.style.fontSize = '12px';
-        rotationResetButton.style.backgroundColor = '#555';
-        rotationResetButton.style.color = 'white';
-        rotationResetButton.style.border = '1px solid #777';
-        rotationResetButton.style.borderRadius = '3px';
-        rotationResetButton.style.cursor = 'pointer';
-        rotationResetButton.style.flexShrink = '0'; // Don't shrink the button
+        // Create reset icon
+        const rotationResetIcon = document.createElement('img');
+        rotationResetIcon.src = 'icons/reset.png';
+        rotationResetIcon.style.width = '24px';
+        rotationResetIcon.style.height = '24px';
+        rotationResetIcon.style.cursor = 'pointer';
+        rotationResetIcon.style.flexShrink = '0'; // Don't shrink the icon
 
         rotationSlider.addEventListener('input', (e) => {
             const value = parseInt(e.target.value);
@@ -2011,8 +1996,8 @@ class SolarSystem {
             }
         });
 
-        // Reset button sets slider to default (50)
-        rotationResetButton.addEventListener('click', () => {
+        // Reset icon sets slider to default (50)
+        rotationResetIcon.addEventListener('click', () => {
             rotationSlider.value = '50';
             // Apply default speed to all planets
             if (this.planets && this.planets.length > 0) {
@@ -2028,9 +2013,9 @@ class SolarSystem {
             }
         });
 
-        // Add slider and button to the container
+        // Add slider and icon to the container
         rotationSliderControlsContainer.appendChild(rotationSlider);
-        rotationSliderControlsContainer.appendChild(rotationResetButton);
+        rotationSliderControlsContainer.appendChild(rotationResetIcon);
         rotationSliderContainer.appendChild(rotationSliderControlsContainer);
 
         this.consoleContent.appendChild(rotationSliderContainer);
@@ -2124,17 +2109,13 @@ class SolarSystem {
         orbitSlider.style.flexGrow = '1'; // Take up available space
         orbitSlider.id = 'global-orbit-speed-slider';
 
-        // Create reset button
-        const orbitResetButton = document.createElement('button');
-        orbitResetButton.textContent = 'Reset';
-        orbitResetButton.style.padding = '2px 8px';
-        orbitResetButton.style.fontSize = '12px';
-        orbitResetButton.style.backgroundColor = '#555';
-        orbitResetButton.style.color = 'white';
-        orbitResetButton.style.border = '1px solid #777';
-        orbitResetButton.style.borderRadius = '3px';
-        orbitResetButton.style.cursor = 'pointer';
-        orbitResetButton.style.flexShrink = '0'; // Don't shrink the button
+        // Create reset icon
+        const orbitResetIcon = document.createElement('img');
+        orbitResetIcon.src = 'icons/reset.png';
+        orbitResetIcon.style.width = '24px';
+        orbitResetIcon.style.height = '24px';
+        orbitResetIcon.style.cursor = 'pointer';
+        orbitResetIcon.style.flexShrink = '0'; // Don't shrink the icon
 
         orbitSlider.addEventListener('input', (e) => {
             const value = parseInt(e.target.value);
@@ -2187,8 +2168,8 @@ class SolarSystem {
             }
         });
 
-        // Reset button sets slider to default (50)
-        orbitResetButton.addEventListener('click', () => {
+        // Reset icon sets slider to default (50)
+        orbitResetIcon.addEventListener('click', () => {
             orbitSlider.value = '50';
             // Apply default speed to all planets
             if (this.planets && this.planets.length > 0) {
@@ -2204,9 +2185,9 @@ class SolarSystem {
             }
         });
 
-        // Add slider and button to the container
+        // Add slider and icon to the container
         orbitSliderControlsContainer.appendChild(orbitSlider);
-        orbitSliderControlsContainer.appendChild(orbitResetButton);
+        orbitSliderControlsContainer.appendChild(orbitResetIcon);
         orbitSliderContainer.appendChild(orbitSliderControlsContainer);
 
         this.consoleContent.appendChild(orbitSliderContainer);
@@ -2387,28 +2368,26 @@ class SolarSystem {
             const elevationEnabled = enabled && (viewType === 'local' || viewType === 'planet');
             this.elevationInput.disabled = !elevationEnabled;
             this.elevationInput.style.opacity = elevationEnabled ? '1' : '0.5';
-            
-            // Also update the reset button state to match the elevation input
-            const resetButton = this.elevationInput.nextElementSibling;
-            if (resetButton && resetButton.tagName === 'BUTTON') {
-                resetButton.disabled = !elevationEnabled;
-                resetButton.style.opacity = elevationEnabled ? '1' : '0.5';
-                resetButton.style.cursor = elevationEnabled ? 'pointer' : 'default';
+
+            // Also update the reset icon state to match the elevation input
+            const resetIcon = this.elevationInput.nextElementSibling;
+            if (resetIcon && resetIcon.tagName === 'IMG') {
+                resetIcon.style.opacity = elevationEnabled ? '1' : '0.5';
+                resetIcon.style.cursor = elevationEnabled ? 'pointer' : 'default';
             }
         }
-        
+
         // Update horizontal traverse slider state to match elevation input
         if (this.horizontalTraverseInput) {
             const elevationEnabled = enabled && (viewType === 'local' || viewType === 'planet');
             this.horizontalTraverseInput.disabled = !elevationEnabled;
             this.horizontalTraverseInput.style.opacity = elevationEnabled ? '1' : '0.5';
-            
-            // Also update the reset button state
-            const resetButton = this.horizontalTraverseInput.nextElementSibling;
-            if (resetButton && resetButton.tagName === 'BUTTON') {
-                resetButton.disabled = !elevationEnabled;
-                resetButton.style.opacity = elevationEnabled ? '1' : '0.5';
-                resetButton.style.cursor = elevationEnabled ? 'pointer' : 'default';
+
+            // Also update the reset icon state
+            const resetIcon = this.horizontalTraverseInput.nextElementSibling;
+            if (resetIcon && resetIcon.tagName === 'IMG') {
+                resetIcon.style.opacity = elevationEnabled ? '1' : '0.5';
+                resetIcon.style.cursor = elevationEnabled ? 'pointer' : 'default';
             }
         }
     }
