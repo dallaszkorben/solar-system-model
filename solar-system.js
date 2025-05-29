@@ -732,13 +732,13 @@ class SolarSystem {
         buttonContainer.appendChild(button);
         container.appendChild(buttonContainer);
     }
-    
+
     addViewRadioButton(label, name, value, clickHandler, container, isChecked = false) {
         const radioContainer = document.createElement('div');
         radioContainer.style.marginBottom = '10px';
         radioContainer.style.display = 'flex';
         radioContainer.style.alignItems = 'center';
-        
+
         const radio = document.createElement('input');
         radio.type = 'radio';
         radio.name = name;
@@ -749,18 +749,18 @@ class SolarSystem {
         radio.addEventListener('change', (e) => {
             if (e.target.checked) {
                 clickHandler();
-                
+
                 // Determine view type
                 const isLocalView = value === 'budapest' || value === 'kiruna';
                 const isPlanetSideView = value.includes('SideView');
-                
+
                 // Set view type for camera controls
                 let viewType = 'global';
                 if (isLocalView) {
                     viewType = 'local';
                 } else if (isPlanetSideView) {
                     viewType = 'planet';
-                    
+
                     // For first-time selection of a planet side view, set elevation to middle
                     if (this.elevationInput && !this.cameraSettings[value].hasBeenVisited) {
                         this.elevationInput.value = this.uiConfig.defaultElevationValue.toString();
@@ -768,22 +768,22 @@ class SolarSystem {
                         this.cameraSettings[value].hasBeenVisited = true;
                     }
                 }
-                
+
                 // Update camera controls based on view type
                 this.setCameraControlsEnabled(true, viewType);
             }
         });
-        
+
         const radioLabel = document.createElement('label');
         radioLabel.htmlFor = `radio-${value}`;
         radioLabel.textContent = label;
         radioLabel.style.flexGrow = '1';
         radioLabel.style.cursor = 'pointer';
-        
+
         radioContainer.appendChild(radio);
         radioContainer.appendChild(radioLabel);
         container.appendChild(radioContainer);
-        
+
         return radio;
     }
 
@@ -932,7 +932,7 @@ class SolarSystem {
         // Set active view and update camera controls
         this.activeView = 'topView';
         this.updateCameraControls();
-        
+
         // Update radio button selection
         const topViewRadio = document.getElementById('radio-topView');
         if (topViewRadio) {
@@ -986,7 +986,7 @@ class SolarSystem {
         // Set active view and update camera controls
         this.activeView = 'sideView';
         this.updateCameraControls();
-        
+
         // Update radio button selection
         const sideViewRadio = document.getElementById('radio-sideView');
         if (sideViewRadio) {
@@ -1041,7 +1041,7 @@ class SolarSystem {
         // Set active view and update camera controls
         this.activeView = 'sunSideView';
         this.updateCameraControls();
-        
+
         // Update radio button selection
         const sunViewRadio = document.getElementById('radio-sunSideView');
         if (sunViewRadio) {
@@ -1090,7 +1090,7 @@ class SolarSystem {
         // Set active view and update camera controls
         this.activeView = 'mercurySideView';
         this.updateCameraControls();
-        
+
         // Update radio button selection
         const mercuryViewRadio = document.getElementById('radio-mercurySideView');
         if (mercuryViewRadio) {
@@ -1139,7 +1139,7 @@ class SolarSystem {
         // Set active view and update camera controls
         this.activeView = 'venusSideView';
         this.updateCameraControls();
-        
+
         // Update radio button selection
         const venusViewRadio = document.getElementById('radio-venusSideView');
         if (venusViewRadio) {
@@ -1188,7 +1188,7 @@ class SolarSystem {
         // Set active view and update camera controls
         this.activeView = 'earthSideView';
         this.updateCameraControls();
-        
+
         // Update radio button selection
         const earthViewRadio = document.getElementById('radio-earthSideView');
         if (earthViewRadio) {
@@ -1237,7 +1237,7 @@ class SolarSystem {
         // Set active view and update camera controls
         this.activeView = 'marsSideView';
         this.updateCameraControls();
-        
+
         // Update radio button selection
         const marsViewRadio = document.getElementById('radio-marsSideView');
         if (marsViewRadio) {
@@ -1286,7 +1286,7 @@ class SolarSystem {
         // Set active view and update camera controls
         this.activeView = 'saturnSideView';
         this.updateCameraControls();
-        
+
         // Update radio button selection
         const saturnViewRadio = document.getElementById('radio-saturnSideView');
         if (saturnViewRadio) {
@@ -1335,7 +1335,7 @@ class SolarSystem {
         // Set active view and update camera controls
         this.activeView = 'jupiterSideView';
         this.updateCameraControls();
-        
+
         // Update radio button selection
         const jupiterViewRadio = document.getElementById('radio-jupiterSideView');
         if (jupiterViewRadio) {
@@ -1384,7 +1384,7 @@ class SolarSystem {
         // Set active view and update camera controls
         this.activeView = 'uranusSideView';
         this.updateCameraControls();
-        
+
         // Update radio button selection
         const uranusViewRadio = document.getElementById('radio-uranusSideView');
         if (uranusViewRadio) {
@@ -1433,7 +1433,7 @@ class SolarSystem {
         // Set active view and update camera controls
         this.activeView = 'neptuneSideView';
         this.updateCameraControls();
-        
+
         // Update radio button selection
         const neptuneViewRadio = document.getElementById('radio-neptuneSideView');
         if (neptuneViewRadio) {
@@ -1545,7 +1545,7 @@ class SolarSystem {
                         // Set active view based on location name
                         this.activeView = marker.options.name.toLowerCase();
                         this.updateCameraControls();
-                        
+
                         // Enable camera controls for local views
                         this.setCameraControlsEnabled(true);
                     }
@@ -1563,20 +1563,11 @@ class SolarSystem {
         controlHeader.style.paddingBottom = '5px';
         controlHeader.style.marginTop = '25px'; // Add extra margin to separate from previous section
         this.viewConsoleContent.appendChild(controlHeader);
-        
-        // Add note about camera controls availability
-        const controlNote = document.createElement('p');
-        controlNote.textContent = 'Camera controls are fully available for Local Views. Elevation control is available for Planet Side Views.';
-        controlNote.style.fontSize = '12px';
-        controlNote.style.fontStyle = 'italic';
-        controlNote.style.margin = '0 0 10px 0';
-        controlNote.style.color = '#aaa';
-        this.viewConsoleContent.appendChild(controlNote);
 
-        // Create container for camera controls in two columns
+        // Create container for camera controls in three columns
         const cameraControlsContainer = document.createElement('div');
         cameraControlsContainer.style.display = 'grid';
-        cameraControlsContainer.style.gridTemplateColumns = '1fr 2fr';
+        cameraControlsContainer.style.gridTemplateColumns = '24px 2fr 60px';
         cameraControlsContainer.style.gap = '10px';
         cameraControlsContainer.style.marginBottom = '15px';
         this.viewConsoleContent.appendChild(cameraControlsContainer);
@@ -1651,6 +1642,10 @@ class SolarSystem {
 
         // Store reference to the horizontal slider
         this.horizontalInput = horizontalInput;
+        
+        // Empty element in third column for horizontal control
+        const horizontalEmptyElement = document.createElement('div');
+        cameraControlsContainer.appendChild(horizontalEmptyElement);
 
         // Add vertical angle control with icon
         const verticalLabel = document.createElement('div');
@@ -1672,9 +1667,15 @@ class SolarSystem {
         verticalInput.min = '-1.47'; // -PI/2 + 0.1
         verticalInput.max = '1.47';  // PI/2 - 0.1
         verticalInput.step = '0.01';
-        verticalInput.value = this.locationCamera ? this.locationCamera.cameraVerticalAngle.toString() : '1.0';
+        verticalInput.value = this.locationCamera ? this.locationCamera.cameraVerticalAngle.toString() : '0.0'; // Default to middle (0.0)
         verticalInput.style.width = '100%';
         cameraControlsContainer.appendChild(verticalInput);
+        
+        // Empty element in third column for vertical control
+        const verticalEmptyElement = document.createElement('div');
+        cameraControlsContainer.appendChild(verticalEmptyElement);
+
+        
         verticalInput.addEventListener('input', (e) => {
             const verticalAngle = parseFloat(e.target.value);
 
@@ -1736,6 +1737,56 @@ class SolarSystem {
         elevationInput.value = this.uiConfig.defaultElevationValue.toString();
         elevationInput.style.width = '100%';
         cameraControlsContainer.appendChild(elevationInput);
+        
+        // Create reset button for elevation control
+        const elevationResetButton = document.createElement('button');
+        elevationResetButton.textContent = 'Reset';
+        elevationResetButton.style.padding = '2px 8px';
+        elevationResetButton.style.fontSize = '12px';
+        elevationResetButton.style.backgroundColor = '#555';
+        elevationResetButton.style.color = 'white';
+        elevationResetButton.style.border = '1px solid #777';
+        elevationResetButton.style.borderRadius = '3px';
+        elevationResetButton.style.cursor = elevationInput.disabled ? 'default' : 'pointer';
+        // Set initial state based on elevation input's disabled state
+        elevationResetButton.disabled = elevationInput.disabled;
+        elevationResetButton.style.opacity = elevationInput.disabled ? '0.5' : '1';
+        cameraControlsContainer.appendChild(elevationResetButton);
+        
+        // Add reset functionality
+        elevationResetButton.addEventListener('click', () => {
+            // Reset to middle position
+            const defaultValue = this.uiConfig.defaultElevationValue;
+            elevationInput.value = defaultValue.toString();
+            
+            // Save the current setting for the active view
+            if (this.activeView && this.cameraSettings[this.activeView]) {
+                this.cameraSettings[this.activeView].elevation = defaultValue;
+            }
+            
+            // For local views, apply to location camera
+            if (this.locationCamera && this.locationCamera.isActive) {
+                this.locationCamera.cameraElevation = defaultValue;
+                this.locationCamera.updateView();
+            }
+            // For planet side views, move the marker along the sphere
+            else if (this.activeView && this.activeView.includes('SideView')) {
+                // Map elevation slider value to latitude
+                const minElevation = 0.001;
+                const maxElevation = 0.05;
+                const normalizedValue = (defaultValue - minElevation) / (maxElevation - minElevation);
+                const latitude = 0; // Force to equator (0) instead of calculating
+                
+                // Find the active planet
+                const planetName = this.activeView.replace('SideView', '');
+                const planet = this[planetName.toLowerCase()];
+                
+                if (planet && planet.planetMarker) {
+                    // Update marker position with the new latitude
+                    planet.planetMarker.updateMarkerPosition(latitude);
+                }
+            }
+        });
 
         elevationInput.addEventListener('input', (e) => {
             const elevation = parseFloat(e.target.value);
@@ -1749,7 +1800,7 @@ class SolarSystem {
             if (this.locationCamera && this.locationCamera.isActive) {
                 this.locationCamera.cameraElevation = elevation;
                 this.locationCamera.updateView();
-            } 
+            }
             // For planet side views, move the marker along the sphere
             else if (this.activeView && this.activeView.includes('SideView')) {
                 // Map elevation slider value (0.001 to 0.05) to latitude (-PI/2 to PI/2)
@@ -1760,11 +1811,11 @@ class SolarSystem {
                 const maxElevation = 0.05;
                 const normalizedValue = (elevation - minElevation) / (maxElevation - minElevation);
                 const latitude = (normalizedValue * Math.PI) - (Math.PI / 2);
-                
+
                 // Find the active planet
                 const planetName = this.activeView.replace('SideView', '');
                 const planet = this[planetName.toLowerCase()];
-                
+
                 if (planet && planet.planetMarker) {
                     // Update marker position with the new latitude
                     planet.planetMarker.updateMarkerPosition(latitude);
@@ -2222,11 +2273,11 @@ class SolarSystem {
         if (!this.activeView || !this.cameraSettings[this.activeView]) return;
 
         const settings = this.cameraSettings[this.activeView];
-        
+
         // Determine view type
         const isLocalView = this.activeView === 'budapest' || this.activeView === 'kiruna' || this.inLocationView;
         const isPlanetSideView = this.activeView.includes('SideView');
-        
+
         // Set view type for camera controls
         let viewType = 'global';
         if (isLocalView) {
@@ -2234,7 +2285,7 @@ class SolarSystem {
         } else if (isPlanetSideView) {
             viewType = 'planet';
         }
-        
+
         // Enable or disable camera controls based on view type
         this.setCameraControlsEnabled(true, viewType);
 
@@ -2265,26 +2316,34 @@ class SolarSystem {
             this.locationCamera.updateView();
         }
     }
-    
+
     setCameraControlsEnabled(enabled, viewType = 'global') {
         // Enable or disable camera control sliders based on view type
         // viewType can be: 'global', 'planet', 'local'
-        
+
         if (this.horizontalInput) {
             this.horizontalInput.disabled = !(enabled && viewType === 'local');
             this.horizontalInput.style.opacity = (enabled && viewType === 'local') ? '1' : '0.5';
         }
-        
+
         if (this.verticalInput) {
             this.verticalInput.disabled = !(enabled && viewType === 'local');
             this.verticalInput.style.opacity = (enabled && viewType === 'local') ? '1' : '0.5';
         }
-        
+
         if (this.elevationInput) {
             // Elevation input is enabled for both local views and planet side views
             const elevationEnabled = enabled && (viewType === 'local' || viewType === 'planet');
             this.elevationInput.disabled = !elevationEnabled;
             this.elevationInput.style.opacity = elevationEnabled ? '1' : '0.5';
+            
+            // Also update the reset button state to match the elevation input
+            const resetButton = this.elevationInput.nextElementSibling;
+            if (resetButton && resetButton.tagName === 'BUTTON') {
+                resetButton.disabled = !elevationEnabled;
+                resetButton.style.opacity = elevationEnabled ? '1' : '0.5';
+                resetButton.style.cursor = elevationEnabled ? 'pointer' : 'default';
+            }
         }
     }
 
