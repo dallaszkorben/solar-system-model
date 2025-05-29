@@ -26,7 +26,8 @@ class SolarSystem {
 
         // UI configuration
         this.uiConfig = {
-            panelAnimationDuration: 0.2 // Animation duration in seconds for panel collapse/expand
+            panelAnimationDuration: 0.2, // Animation duration in seconds for panel collapse/expand
+            defaultElevationValue: 0.025  // Default middle value for elevation slider (range is 0.001 to 0.05)
         };
 
         // Scale model flag
@@ -39,15 +40,15 @@ class SolarSystem {
         this.cameraSettings = {
             'topView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
             'sideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
-            'sunSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
-            'mercurySideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
-            'venusSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
-            'earthSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
-            'marsSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
-            'jupiterSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
-            'saturnSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
-            'uranusSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
-            'neptuneSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: 0.01 },
+            'sunSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: this.uiConfig.defaultElevationValue },
+            'mercurySideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: this.uiConfig.defaultElevationValue },
+            'venusSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: this.uiConfig.defaultElevationValue },
+            'earthSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: this.uiConfig.defaultElevationValue },
+            'marsSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: this.uiConfig.defaultElevationValue },
+            'jupiterSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: this.uiConfig.defaultElevationValue },
+            'saturnSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: this.uiConfig.defaultElevationValue },
+            'uranusSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: this.uiConfig.defaultElevationValue },
+            'neptuneSideView': { horizontalAngle: Math.PI, verticalAngle: 0, elevation: this.uiConfig.defaultElevationValue },
             'budapest': { horizontalAngle: Math.PI, verticalAngle: 0.0, elevation: 0.01 },
             'kiruna': { horizontalAngle: 0, verticalAngle: 0.0, elevation: 0.01 }
         };
@@ -749,13 +750,27 @@ class SolarSystem {
             if (e.target.checked) {
                 clickHandler();
                 
-                // Determine if this is a local view
+                // Determine view type
                 const isLocalView = value === 'budapest' || value === 'kiruna';
+                const isPlanetSideView = value.includes('SideView');
                 
-                // Disable camera controls for non-local views
-                if (!isLocalView) {
-                    this.setCameraControlsEnabled(false);
+                // Set view type for camera controls
+                let viewType = 'global';
+                if (isLocalView) {
+                    viewType = 'local';
+                } else if (isPlanetSideView) {
+                    viewType = 'planet';
+                    
+                    // For first-time selection of a planet side view, set elevation to middle
+                    if (this.elevationInput && !this.cameraSettings[value].hasBeenVisited) {
+                        this.elevationInput.value = this.uiConfig.defaultElevationValue.toString();
+                        this.cameraSettings[value].elevation = this.uiConfig.defaultElevationValue;
+                        this.cameraSettings[value].hasBeenVisited = true;
+                    }
                 }
+                
+                // Update camera controls based on view type
+                this.setCameraControlsEnabled(true, viewType);
             }
         });
         
@@ -1551,7 +1566,7 @@ class SolarSystem {
         
         // Add note about camera controls availability
         const controlNote = document.createElement('p');
-        controlNote.textContent = 'Camera controls are only available for Local Views';
+        controlNote.textContent = 'Camera controls are fully available for Local Views. Elevation control is available for Planet Side Views.';
         controlNote.style.fontSize = '12px';
         controlNote.style.fontStyle = 'italic';
         controlNote.style.margin = '0 0 10px 0';
@@ -1718,7 +1733,7 @@ class SolarSystem {
         elevationInput.min = '0.001';
         elevationInput.max = '0.05';
         elevationInput.step = '0.001';
-        elevationInput.value = '0.01';
+        elevationInput.value = this.uiConfig.defaultElevationValue.toString();
         elevationInput.style.width = '100%';
         cameraControlsContainer.appendChild(elevationInput);
 
@@ -1730,18 +1745,11 @@ class SolarSystem {
                 this.cameraSettings[this.activeView].elevation = elevation;
             }
 
-            // Apply to location camera if active
+            // Only apply changes for local views
+            // For planet side views, the slider is active but doesn't do anything yet
             if (this.locationCamera && this.locationCamera.isActive) {
                 this.locationCamera.cameraElevation = elevation;
                 this.locationCamera.updateView();
-            } else if (camera && this.activeView) {
-                // For global views, adjust camera distance
-                const target = new THREE.Vector3(0, 0, 0);
-                const direction = new THREE.Vector3().subVectors(camera.position, target).normalize();
-                const distance = this.earth ? this.earth.radius * (20 + elevation * 200) : 150000 * elevation * 10;
-                camera.position.copy(direction.multiplyScalar(distance));
-                camera.lookAt(target);
-                if (controls) controls.update();
             }
         });
 
@@ -2196,11 +2204,20 @@ class SolarSystem {
 
         const settings = this.cameraSettings[this.activeView];
         
-        // Determine if this is a local view (location view)
+        // Determine view type
         const isLocalView = this.activeView === 'budapest' || this.activeView === 'kiruna' || this.inLocationView;
+        const isPlanetSideView = this.activeView.includes('SideView');
+        
+        // Set view type for camera controls
+        let viewType = 'global';
+        if (isLocalView) {
+            viewType = 'local';
+        } else if (isPlanetSideView) {
+            viewType = 'planet';
+        }
         
         // Enable or disable camera controls based on view type
-        this.setCameraControlsEnabled(isLocalView);
+        this.setCameraControlsEnabled(true, viewType);
 
         // Update horizontal slider
         if (this.horizontalInput) {
@@ -2230,21 +2247,25 @@ class SolarSystem {
         }
     }
     
-    setCameraControlsEnabled(enabled) {
-        // Enable or disable camera control sliders
+    setCameraControlsEnabled(enabled, viewType = 'global') {
+        // Enable or disable camera control sliders based on view type
+        // viewType can be: 'global', 'planet', 'local'
+        
         if (this.horizontalInput) {
-            this.horizontalInput.disabled = !enabled;
-            this.horizontalInput.style.opacity = enabled ? '1' : '0.5';
+            this.horizontalInput.disabled = !(enabled && viewType === 'local');
+            this.horizontalInput.style.opacity = (enabled && viewType === 'local') ? '1' : '0.5';
         }
         
         if (this.verticalInput) {
-            this.verticalInput.disabled = !enabled;
-            this.verticalInput.style.opacity = enabled ? '1' : '0.5';
+            this.verticalInput.disabled = !(enabled && viewType === 'local');
+            this.verticalInput.style.opacity = (enabled && viewType === 'local') ? '1' : '0.5';
         }
         
         if (this.elevationInput) {
-            this.elevationInput.disabled = !enabled;
-            this.elevationInput.style.opacity = enabled ? '1' : '0.5';
+            // Elevation input is enabled for both local views and planet side views
+            const elevationEnabled = enabled && (viewType === 'local' || viewType === 'planet');
+            this.elevationInput.disabled = !elevationEnabled;
+            this.elevationInput.style.opacity = elevationEnabled ? '1' : '0.5';
         }
     }
 

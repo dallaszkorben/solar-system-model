@@ -81,7 +81,7 @@ function init() {
     }
     
     // Disable camera controls initially since we start with a global view
-    solarSystem.setCameraControlsEnabled(false);
+    solarSystem.setCameraControlsEnabled(true, 'global');
 
     // Handle window resize
     window.addEventListener('resize', onWindowResize);
