@@ -75,7 +75,7 @@ class Earth extends Planet {
         ]);
         this.applyTilt();
         this.createOrbit();
-        
+
         // Create season labels
         const seasons = [
             { name: '', season: 'summer', angle: 0 },       // Aphelion - summer in northern hemisphere
@@ -84,45 +84,45 @@ class Earth extends Planet {
             { name: '', season: 'autumn', angle: Math.PI*3/2 }
         ];
         this.createSeasonLabels(seasons);
-        
+
         // Create console pane
         this.createConsolePane('Earth');
-        
+
         // Add Earth-specific location markers toggle
         this.addLocationMarkersToggle();
     }
-    
+
     // Add Earth-specific location markers toggle
     addLocationMarkersToggle() {
         // Find the visibility section
         const sections = this.consoleContent.querySelectorAll('h4');
         let visibilitySection;
-        
+
         for (const section of sections) {
             if (section.textContent === 'Visibility Controls') {
                 visibilitySection = section;
                 break;
             }
         }
-        
+
         if (visibilitySection) {
             // Find the last toggle in the visibility section
             const lastToggle = visibilitySection.parentNode.querySelector('.switch:last-of-type');
-            
+
             if (lastToggle) {
                 const container = document.createElement('div');
                 container.style.marginBottom = '10px';
                 container.style.display = 'flex';
                 container.style.justifyContent = 'space-between';
                 container.style.alignItems = 'center';
-                
+
                 const labelElem = document.createElement('label');
                 labelElem.textContent = 'Show Location Markers: ';
-                
+
                 // Create switch container
                 const switchLabel = document.createElement('label');
                 switchLabel.className = 'switch';
-                
+
                 const toggle = document.createElement('input');
                 toggle.type = 'checkbox';
                 toggle.checked = true;
@@ -134,18 +134,18 @@ class Earth extends Planet {
                     });
                     document.dispatchEvent(event);
                 });
-                
+
                 // Create slider span
                 const sliderSpan = document.createElement('span');
                 sliderSpan.className = 'slider';
-                
+
                 // Assemble the switch
                 switchLabel.appendChild(toggle);
                 switchLabel.appendChild(sliderSpan);
-                
+
                 container.appendChild(labelElem);
                 container.appendChild(switchLabel);
-                
+
                 // Insert after the last toggle in the visibility section
                 lastToggle.parentNode.after(container);
             }

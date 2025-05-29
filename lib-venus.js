@@ -5,7 +5,7 @@ class Venus extends Planet {
     // Static data for Venus
     static factData = {
         diameter: 12104.0, // km
-        axialTilt: 177.3, // degrees (retrograde rotation)
+        axialTilt: 10.4, // degrees (retrograde rotation)
         orbitRadius: 108200000.0, // km (average distance from Sun)
         rotationPeriod: 5832.5, // hours (243 days, retrograde)
         orbitalPeriod: 224.7, // days
@@ -69,14 +69,14 @@ class Venus extends Planet {
         this.createAxis();
         this.createLatitudeCircles([
             { name: 'Equator', angle: 0, color: 0xff0000 },
-            { name: 'North Tropic', angle: 23.4, color: 0xff8800 },
-            { name: 'South Tropic', angle: -23.4, color: 0xff8800 },
-            { name: 'North Polar', angle: 66.6, color: 0x00aaff },
-            { name: 'South Polar', angle: -66.6, color: 0x00aaff }
+            { name: 'North Tropic', angle: Venus.getTropic(), color: 0xff8800 },
+            { name: 'North Polar', angle: Venus.getPolar(), color: 0x00aaff },
+            { name: 'South Tropic', angle: -Venus.getTropic(), color: 0xff8800 },
+            { name: 'South Polar', angle: -Venus.getPolar(), color: 0x00aaff }
         ]);
         this.applyTilt();
         this.createOrbit();
-        
+
         // Create season labels
         const seasons = [
             { name: '', season: 'perihelion', angle: 0 },
@@ -85,10 +85,10 @@ class Venus extends Planet {
             { name: '', season: 'position 2', angle: Math.PI*3/2 }
         ];
         this.createSeasonLabels(seasons);
-        
+
         // Create console pane with Venus-specific customizations
         this.createConsolePane('Venus');
-        
+
         // Listen for global day/night changes
         document.addEventListener('globalDayNightChange', (e) => {
             const toggle = document.getElementById('venus-day-night-toggle');
@@ -100,6 +100,15 @@ class Venus extends Planet {
         });
     }
 
+    static getTropic(){
+        return Venus.factData.axialTilt;
+    }
+
+    static getPolar(){
+        return 90 - Venus.factData.axialTilt;
+    }
+
+
     // Override update method to handle Venus's retrograde rotation
     update(time) {
         // Rotate the sphere around its axis if rotation is enabled
@@ -107,7 +116,7 @@ class Venus extends Planet {
             // Venus rotates in the opposite direction (retrograde rotation)
             // due to its axial tilt of ~177.3 degrees (nearly upside down)
             this.sphere.rotation.y += this.rotationSpeed;
-            
+
             // Update camera position if marker view is active
             if (this.planetMarker && this.planetMarker.cameraView) {
                 this.planetMarker.updateCameraPosition();
@@ -120,7 +129,7 @@ class Venus extends Planet {
             this.orbitGroup.rotation.y += this.orbitSpeed;
             const deltaAngle = this.orbitGroup.rotation.y - previousOrbitAngle;
             this.group.rotation.y -= deltaAngle;
-            
+
             // Update camera position if marker view is active
             if (this.planetMarker && this.planetMarker.cameraView) {
                 this.planetMarker.updateCameraPosition();
