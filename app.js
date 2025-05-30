@@ -39,32 +39,29 @@ function init() {
     // Create skybox
     const skybox = new Skybox();
     scene.add(skybox.getObject());
-    
+
     // Create solar system
     solarSystem = new SolarSystem();
     scene.add(solarSystem.getObject());
 
     // Create view manager
     viewManager = new ViewManager();
-    
+
     // Make viewManager globally available
     window.viewManager = viewManager;
-    
+
     // Initialize view manager with scene, camera, controls, and location camera
     viewManager.initialize(scene, camera, controls, solarSystem.locationCamera);
 
     // Show solar system controls
     solarSystem.show();
 
-    // Set top view as default
-    viewManager.setTopView();
-    
     // Ensure the Top View radio button is checked by default
     const topViewRadio = document.getElementById('radio-topView');
     if (topViewRadio) {
         topViewRadio.checked = true;
     }
-    
+
     // Disable camera controls initially since we start with a global view
     const viewType = viewManager.getCurrentViewType();
     solarSystem.setCameraControlsEnabled(true, viewType);
@@ -81,7 +78,7 @@ function animate() {
 
     // Update solar system
     solarSystem.update(Date.now());
-    
+
     // Update view manager
     if (viewManager) {
         viewManager.update();

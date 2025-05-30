@@ -22,9 +22,9 @@ class GlobalView extends BaseView {
      */
     activate(type) {
         if (!this.camera || !this.controls) return;
-        
+
         this.setViewType(type);
-        
+
         if (type === 'topView') {
             this.setTopView();
         } else if (type === 'sideView') {
@@ -38,17 +38,17 @@ class GlobalView extends BaseView {
      */
     getCurrentCameraAngles() {
         if (!this.camera) return { horizontalAngle: 0, verticalAngle: 0 };
-        
+
         const target = new THREE.Vector3(0, 0, 0);
         const position = this.camera.position.clone();
-        
+
         // Calculate horizontal angle (around y-axis)
         const horizontalAngle = Math.atan2(position.x, position.z);
-        
+
         // Calculate vertical angle (elevation from xz-plane)
         const horizontalDistance = Math.sqrt(position.x * position.x + position.z * position.z);
         const verticalAngle = Math.atan2(position.y, horizontalDistance);
-        
+
         return { horizontalAngle, verticalAngle };
     }
 
@@ -58,44 +58,31 @@ class GlobalView extends BaseView {
     setTopView() {
         if (!this.camera) return;
 
-        // Find Neptune's orbit radius specifically
-        let neptuneOrbitRadius = 0;
-        
-        if (window.solarSystem && window.solarSystem.neptune) {
-            neptuneOrbitRadius = window.solarSystem.neptune.orbitRadius;
-        } else if (window.solarSystem && window.solarSystem.planets) {
-            // If we can't find Neptune directly, use the largest orbit radius
-            neptuneOrbitRadius = Math.max(...window.solarSystem.planets.map(planet => planet.orbitRadius || 0));
-        } else {
-            // Fallback to a reasonable default if planets aren't available
-            neptuneOrbitRadius = 450000;
-        }
+        // Position camera to the side of the solar system
+        const maxOrbitRadius = 114000; // Default value
+        const distance = maxOrbitRadius;
 
-        // Calculate camera distance based on field of view to ensure Neptune's orbit is visible
-        const orbitDiameter = neptuneOrbitRadius * 2;
-        const aspectRatio = window.innerWidth / window.innerHeight;
-        const vFov = this.camera.fov * Math.PI / 180;
-
-        // Calculate the required distance based on the smaller dimension (width or height)
-        let distance;
-        if (aspectRatio >= 1.0) {
-            // Width is greater than or equal to height, so height is the limiting factor
-            distance = orbitDiameter / (2 * Math.tan(vFov / 2));
-        } else {
-            // Height is greater than width, so width is the limiting factor
-            distance = orbitDiameter / (2 * Math.tan((vFov * aspectRatio) / 2));
-        }
-
-        // Add just 5% margin to ensure the orbit is visible but not too far
-        distance *= 1.05;
-
-        // Set far clipping plane to ensure the camera can see distant objects
-        this.camera.far = distance * 10;
+        // Set far clipping plane to ensure the camera can see distant objects and the skybox
+        this.camera.far = 50000000;
         this.camera.updateProjectionMatrix();
 
-        // Position camera on the negative Y axis for top view
-        this.camera.position.set(0, -distance, 0);
-        this.camera.up.set(0, 0, -1); // Set the up vector to -Z to get the correct orientation
+//        this.camera.matrix.identity();
+
+        // Position camera on the positive Z axis
+        this.camera.position.set(0, 0, distance);
+
+        // Set the up vector to positive Y
+
+        this.camera.up.set(0, 1, 0);
+
+        // Flip the entire solar system group
+        if (window.solarSystem && window.solarSystem.group) {
+            // Rotate 180 degrees around Y axis to flip horizontally
+            window.solarSystem.group.rotation.y = Math.PI;
+            // Reset X rotation that might have been set in top view
+            window.solarSystem.group.rotation.x = -Math.PI/2;
+        }
+
         this.camera.lookAt(0, 0, 0);
 
         if (this.controls) {
@@ -114,11 +101,24 @@ class GlobalView extends BaseView {
         const maxOrbitRadius = 150000; // Default value
         const distance = maxOrbitRadius * 1.5;
 
-        // Set far clipping plane to ensure the camera can see distant objects
-        this.camera.far = distance * 10;
+        // Set far clipping plane to ensure the camera can see distant objects and the skybox
+        this.camera.far = 50000000;
         this.camera.updateProjectionMatrix();
 
+        // Position camera on the positive Z axis
         this.camera.position.set(0, 0, distance);
+
+        // Set the up vector to positive Y
+        this.camera.up.set(0, 1, 0);
+
+        // Flip the entire solar system group
+        if (window.solarSystem && window.solarSystem.group) {
+            // Rotate 180 degrees around Y axis to flip horizontally
+            window.solarSystem.group.rotation.y = Math.PI;
+            // Reset X rotation that might have been set in top view
+            window.solarSystem.group.rotation.x = 0;
+        }
+
         this.camera.lookAt(0, 0, 0);
 
         if (this.controls) {
@@ -133,7 +133,7 @@ class GlobalView extends BaseView {
      */
     handleHorizontalControl(value) {
         if (!this.camera) return;
-        
+
         // For global views, rotate camera around y-axis
         const target = new THREE.Vector3(0, 0, 0);
         const distance = this.camera.position.distanceTo(target);
@@ -157,11 +157,11 @@ class GlobalView extends BaseView {
      */
     handleVerticalControl(value) {
         if (!this.camera) return;
-        
+
         // For global views, adjust camera height
         const target = new THREE.Vector3(0, 0, 0);
         const horizontalDistance = Math.sqrt(
-            this.camera.position.x * this.camera.position.x + 
+            this.camera.position.x * this.camera.position.x +
             this.camera.position.z * this.camera.position.z
         );
         const distance = this.camera.position.distanceTo(target);
@@ -198,17 +198,17 @@ class GlobalView extends BaseView {
         if (control === 'horizontal' || control === 'all') {
             this.handleHorizontalControl(0);
         }
-        
+
         if (control === 'vertical' || control === 'all') {
             this.handleVerticalControl(0);
         }
-        
+
         // Re-activate the current view type to reset completely
         if (control === 'all') {
             this.activate(this.viewType);
         }
     }
-    
+
     /**
      * Update UI controls to reflect current view settings
      * @param {Object} settings - The view settings
@@ -216,14 +216,14 @@ class GlobalView extends BaseView {
      */
     updateUIControls(settings, controls) {
         if (!controls || !controls.horizontalInput || !controls.verticalInput) return;
-        
+
         // Update horizontal slider
         controls.horizontalInput.value = -settings.horizontalAngle || 0;
-        
+
         // Update vertical slider
         controls.verticalInput.value = settings.verticalAngle || 0;
     }
-    
+
     /**
      * Get current view settings
      * @param {Object} controls - The UI control elements
@@ -233,7 +233,7 @@ class GlobalView extends BaseView {
         if (!controls || !controls.horizontalInput || !controls.verticalInput) {
             return { horizontalAngle: 0, verticalAngle: 0, elevation: 0.01 };
         }
-        
+
         return {
             horizontalAngle: -parseFloat(controls.horizontalInput.value),
             verticalAngle: parseFloat(controls.verticalInput.value),

@@ -30,6 +30,10 @@ class PlanetSideView extends BaseView {
         // Set up the marker view
         this.activePlanet.setPlanetMarkerView();
         
+        // Set far clipping plane to ensure the skybox is visible
+        this.camera.far = 50000000;
+        this.camera.updateProjectionMatrix();
+        
         // Initialize position
         this.latitude = 0;
         this.longitude = 0;

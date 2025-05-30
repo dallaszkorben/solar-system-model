@@ -8,180 +8,18 @@ class ViewManager {
         this.scene = null;
         this.camera = null;
         this.controls = null;
-        
+
         // View instances
         this.globalView = new GlobalView();
         this.planetSideView = new PlanetSideView();
         this.localView = new LocalView();
-        
+
         // Current active view
         this.activeView = null;
         this.activeViewType = null;
-        
-        // Camera settings for different views
-        this.viewSettings = {
-            'topView': { 
-                horizontalAngle: 0, 
-                verticalAngle: 0, 
-                elevation: 0.01, 
-                horizontalSliderRange: Math.PI * 2, 
-                verticalSliderRange: Math.PI,
-                horizontalSliderDefault: 0.5,
-                verticalSliderDefault: 0.5,
-                elevationSliderDefault: 0.5,
-                elevationSliderRange: 0.049
-            },
-            'sideView': { 
-                horizontalAngle: 0, 
-                verticalAngle: 0, 
-                elevation: 0.01, 
-                horizontalSliderRange: Math.PI * 2, 
-                verticalSliderRange: Math.PI,
-                horizontalSliderDefault: 0.5,
-                verticalSliderDefault: 0.5,
-                elevationSliderDefault: 0.5,
-                elevationSliderRange: 0.049
-            },
-            'sunSideView': { 
-                horizontalAngle: 0, 
-                verticalAngle: 0, 
-                elevation: 0.025, 
-                longitude: 0, 
-                latitude: 0, 
-                horizontalSliderRange: Math.PI * 2, 
-                verticalSliderRange: Math.PI,
-                horizontalSliderDefault: 0.5,
-                verticalSliderDefault: 0.5,
-                elevationSliderDefault: 0.5,
-                elevationSliderRange: 0.049
-            },
-            'mercurySideView': { 
-                horizontalAngle: 0, 
-                verticalAngle: 0, 
-                elevation: 0.025, 
-                longitude: 0, 
-                latitude: 0, 
-                horizontalSliderRange: Math.PI * 2, 
-                verticalSliderRange: Math.PI,
-                horizontalSliderDefault: 0.5,
-                verticalSliderDefault: 0.5,
-                elevationSliderDefault: 0.5,
-                elevationSliderRange: 0.049
-            },
-            'venusSideView': { 
-                horizontalAngle: 0, 
-                verticalAngle: 0, 
-                elevation: 0.025, 
-                longitude: 0, 
-                latitude: 0, 
-                horizontalSliderRange: Math.PI * 2, 
-                verticalSliderRange: Math.PI,
-                horizontalSliderDefault: 0.5,
-                verticalSliderDefault: 0.5,
-                elevationSliderDefault: 0.5,
-                elevationSliderRange: 0.049
-            },
-            'earthSideView': { 
-                horizontalAngle: 0, 
-                verticalAngle: 0, 
-                elevation: 0.025, 
-                longitude: 0, 
-                latitude: 0, 
-                horizontalSliderRange: Math.PI * 2, 
-                verticalSliderRange: Math.PI,
-                horizontalSliderDefault: 0.5,
-                verticalSliderDefault: 0.5,
-                elevationSliderDefault: 0.5,
-                elevationSliderRange: 0.049
-            },
-            'marsSideView': { 
-                horizontalAngle: 0, 
-                verticalAngle: 0, 
-                elevation: 0.025, 
-                longitude: 0, 
-                latitude: 0, 
-                horizontalSliderRange: Math.PI * 2, 
-                verticalSliderRange: Math.PI,
-                horizontalSliderDefault: 0.5,
-                verticalSliderDefault: 0.5,
-                elevationSliderDefault: 0.5,
-                elevationSliderRange: 0.049
-            },
-            'jupiterSideView': { 
-                horizontalAngle: 0, 
-                verticalAngle: 0, 
-                elevation: 0.025, 
-                longitude: 0, 
-                latitude: 0, 
-                horizontalSliderRange: Math.PI * 2, 
-                verticalSliderRange: Math.PI,
-                horizontalSliderDefault: 0.5,
-                verticalSliderDefault: 0.5,
-                elevationSliderDefault: 0.5,
-                elevationSliderRange: 0.049
-            },
-            'saturnSideView': { 
-                horizontalAngle: 0, 
-                verticalAngle: 0, 
-                elevation: 0.025, 
-                longitude: 0, 
-                latitude: 0, 
-                horizontalSliderRange: Math.PI * 2, 
-                verticalSliderRange: Math.PI,
-                horizontalSliderDefault: 0.5,
-                verticalSliderDefault: 0.5,
-                elevationSliderDefault: 0.5,
-                elevationSliderRange: 0.049
-            },
-            'uranusSideView': { 
-                horizontalAngle: 0, 
-                verticalAngle: 0, 
-                elevation: 0.025, 
-                longitude: 0, 
-                latitude: 0, 
-                horizontalSliderRange: Math.PI * 2, 
-                verticalSliderRange: Math.PI,
-                horizontalSliderDefault: 0.5,
-                verticalSliderDefault: 0.5,
-                elevationSliderDefault: 0.5,
-                elevationSliderRange: 0.049
-            },
-            'neptuneSideView': { 
-                horizontalAngle: 0, 
-                verticalAngle: 0, 
-                elevation: 0.025, 
-                longitude: 0, 
-                latitude: 0, 
-                horizontalSliderRange: Math.PI * 2, 
-                verticalSliderRange: Math.PI,
-                horizontalSliderDefault: 0.5,
-                verticalSliderDefault: 0.5,
-                elevationSliderDefault: 0.5,
-                elevationSliderRange: 0.049
-            },
-            'budapest': { 
-                horizontalAngle: Math.PI, 
-                verticalAngle: 0.0, 
-                elevation: 0.01, 
-                horizontalSliderRange: Math.PI * 2, 
-                verticalSliderRange: Math.PI,
-                horizontalSliderDefault: 0.5,
-                verticalSliderDefault: 0.5,
-                elevationSliderDefault: 0.5,
-                elevationSliderRange: 0.049
-            },
-            'kiruna': { 
-                horizontalAngle: 0, 
-                verticalAngle: 0.0, 
-                elevation: 0.01, 
-                horizontalSliderRange: Math.PI * 2, 
-                verticalSliderRange: Math.PI,
-                horizontalSliderDefault: 0.5,
-                verticalSliderDefault: 0.5,
-                elevationSliderDefault: 0.5,
-                elevationSliderRange: 0.049
-            }
-        };
+
+        // Camera settings for different views - will be initialized from SolarSystem
+        this.viewSettings = {};
     }
 
     /**
@@ -196,21 +34,26 @@ class ViewManager {
         this.camera = camera;
         this.controls = controls;
         
+        // Use SolarSystem's camera settings if available
+        if (window.solarSystem && window.solarSystem.cameraSettings) {
+            this.viewSettings = window.solarSystem.cameraSettings;
+        }
+
         // Initialize all views
         this.globalView.initialize(scene, camera, controls);
         this.planetSideView.initialize(scene, camera, controls);
         this.localView.initialize(scene, camera, controls);
-        
+
         // Set location camera for local view
         this.localView.setLocationCamera(locationCamera);
-        
+
         // Initialize camera controls
         this.initializeCameraControls();
-        
-        // Set top view as default
+
+        // Set top view as default //it is needed-first time
         this.setTopView();
     }
-    
+
     /**
      * Initialize camera controls with UI elements
      */
@@ -218,7 +61,7 @@ class ViewManager {
         // Get UI control elements
         const controls = this.getUIControls();
         if (!controls) return;
-        
+
         // Create camera controls instance
         this.cameraControls = new CameraControls({
             viewSettings: this.viewSettings,
@@ -226,7 +69,7 @@ class ViewManager {
             onVerticalChange: (value) => this.handleVerticalControl(value),
             onElevationChange: (value) => this.handleElevationControl(value)
         });
-        
+
         // Initialize with UI elements
         this.cameraControls.initialize(
             controls.horizontalInput,
@@ -245,7 +88,7 @@ class ViewManager {
     getUIControls() {
         const solarSystem = window.solarSystem;
         if (!solarSystem) return null;
-        
+
         return {
             horizontalInput: solarSystem.horizontalInput,
             verticalInput: solarSystem.verticalInput,
@@ -258,13 +101,13 @@ class ViewManager {
      */
     updateUIControls() {
         if (!this.activeView || !this.activeViewType || !this.viewSettings[this.activeViewType]) return;
-        
+
         const controls = this.getUIControls();
         if (!controls) return;
-        
+
         // Let the active view update its own controls
         this.activeView.updateUIControls(this.viewSettings[this.activeViewType], controls);
-        
+
         // Update camera controls if available
         if (this.cameraControls) {
             // Set active view type and category
@@ -279,20 +122,20 @@ class ViewManager {
     setTopView() {
         // Save current view settings if switching from another view
         this.saveCurrentViewSettings();
-        
+
         // Deactivate current view if any
         this.deactivateCurrentView();
-        
+
         // Activate global view with top view type
         this.globalView.activate('topView');
-        
+
         // Update active view reference
         this.activeView = this.globalView;
         this.activeViewType = 'topView';
-        
+
         // Apply stored settings
         this.applyViewSettings();
-        
+
         // Update UI controls
         this.updateUIControls();
     }
@@ -303,20 +146,20 @@ class ViewManager {
     setSideView() {
         // Save current view settings if switching from another view
         this.saveCurrentViewSettings();
-        
+
         // Deactivate current view if any
         this.deactivateCurrentView();
-        
+
         // Activate global view with side view type
         this.globalView.activate('sideView');
-        
+
         // Update active view reference
         this.activeView = this.globalView;
         this.activeViewType = 'sideView';
-        
+
         // Apply stored settings
         this.applyViewSettings();
-        
+
         // Update UI controls
         this.updateUIControls();
     }
@@ -329,20 +172,20 @@ class ViewManager {
     setPlanetSideView(planetName, planet) {
         // Save current view settings if switching from another view
         this.saveCurrentViewSettings();
-        
+
         // Deactivate current view if any
         this.deactivateCurrentView();
-        
+
         // Activate planet side view
         this.planetSideView.activate(planet);
-        
+
         // Update active view reference
         this.activeView = this.planetSideView;
         this.activeViewType = planetName + 'SideView';
-        
+
         // Apply stored settings
         this.applyViewSettings();
-        
+
         // Update UI controls
         this.updateUIControls();
     }
@@ -354,38 +197,38 @@ class ViewManager {
     setLocalView(location) {
         // Save current view settings if switching from another view
         this.saveCurrentViewSettings();
-        
+
         // Deactivate current view if any
         this.deactivateCurrentView();
-        
+
         // Activate local view
         this.localView.activate(location);
-        
+
         // Update active view reference
         this.activeView = this.localView;
         this.activeViewType = location.options.name.toLowerCase();
-        
+
         // Apply stored settings
         this.applyViewSettings();
-        
+
         // Update UI controls
         this.updateUIControls();
     }
-    
+
     /**
      * Save current view settings before switching views
      */
     saveCurrentViewSettings() {
         if (!this.activeView || !this.activeViewType) return;
-        
+
         const controls = this.getUIControls();
         if (!controls) return;
-        
+
         // Get settings from CameraControls if available
         if (this.cameraControls) {
             const viewCategory = this.getCurrentViewType();
             const cameraSettings = this.cameraControls.getCurrentValues(viewCategory);
-            
+
             // Save the settings
             if (cameraSettings) {
                 this.viewSettings[this.activeViewType] = {
@@ -395,10 +238,10 @@ class ViewManager {
                 return;
             }
         }
-        
+
         // Fallback: Let the active view get its own settings
         const settings = this.activeView.getCurrentSettings(controls);
-        
+
         // Save the settings
         if (settings) {
             this.viewSettings[this.activeViewType] = {
@@ -413,14 +256,14 @@ class ViewManager {
      */
     applyViewSettings() {
         if (!this.activeViewType || !this.viewSettings[this.activeViewType]) return;
-        
+
         const settings = this.viewSettings[this.activeViewType];
-        
+
         if (this.activeView === this.globalView) {
             // Apply horizontal and vertical angles for global view
             this.handleHorizontalControl(-settings.horizontalAngle);
             this.handleVerticalControl(settings.verticalAngle);
-        } 
+        }
         else if (this.activeView === this.planetSideView) {
             // Apply longitude and latitude for planet side view
             this.handleHorizontalControl(settings.longitude || 0);
@@ -459,7 +302,7 @@ class ViewManager {
     handleHorizontalControl(value) {
         if (this.activeView) {
             this.activeView.handleHorizontalControl(value);
-            
+
             // Save the current setting for the active view
             if (this.activeViewType && this.viewSettings[this.activeViewType]) {
                 if (this.activeView === this.planetSideView) {
@@ -478,7 +321,7 @@ class ViewManager {
     handleVerticalControl(value) {
         if (this.activeView) {
             this.activeView.handleVerticalControl(value);
-            
+
             // Save the current setting for the active view
             if (this.activeViewType && this.viewSettings[this.activeViewType]) {
                 if (this.activeView === this.planetSideView) {
@@ -497,7 +340,7 @@ class ViewManager {
     handleElevationControl(value) {
         if (this.activeView) {
             this.activeView.handleElevationControl(value);
-            
+
             // Save the current setting for the active view
             if (this.activeViewType && this.viewSettings[this.activeViewType]) {
                 this.viewSettings[this.activeViewType].elevation = value;
@@ -512,7 +355,7 @@ class ViewManager {
     resetCameraControl(control) {
         if (this.activeView) {
             this.activeView.resetCameraControl(control);
-            
+
             // Reset saved settings
             if (this.activeViewType && this.viewSettings[this.activeViewType]) {
                 if (control === 'horizontal' || control === 'all') {
@@ -522,7 +365,7 @@ class ViewManager {
                         this.viewSettings[this.activeViewType].horizontalAngle = 0;
                     }
                 }
-                
+
                 if (control === 'vertical' || control === 'all') {
                     if (this.activeView === this.planetSideView) {
                         this.viewSettings[this.activeViewType].latitude = 0;
@@ -530,19 +373,19 @@ class ViewManager {
                         this.viewSettings[this.activeViewType].verticalAngle = 0;
                     }
                 }
-                
+
                 if (control === 'elevation' || control === 'all') {
                     if (this.activeView === this.localView) {
                         this.viewSettings[this.activeViewType].elevation = 0.01;
                     }
                 }
             }
-            
+
             // Use CameraControls to reset if available
             if (this.cameraControls) {
                 this.cameraControls.reset(control);
             }
-            
+
             // Update UI controls to reflect reset settings
             this.updateUIControls();
         }
