@@ -58,11 +58,21 @@ class GlobalView extends BaseView {
     setTopView() {
         if (!this.camera) return;
 
-        // Find the largest orbit radius (similar to SolarSystem.setTopView)
-        let maxOrbitRadius = 1500000; // Default value
+        // Find Neptune's orbit radius specifically
+        let neptuneOrbitRadius = 0;
+        
+        if (window.solarSystem && window.solarSystem.neptune) {
+            neptuneOrbitRadius = window.solarSystem.neptune.orbitRadius;
+        } else if (window.solarSystem && window.solarSystem.planets) {
+            // If we can't find Neptune directly, use the largest orbit radius
+            neptuneOrbitRadius = Math.max(...window.solarSystem.planets.map(planet => planet.orbitRadius || 0));
+        } else {
+            // Fallback to a reasonable default if planets aren't available
+            neptuneOrbitRadius = 450000;
+        }
 
-        // Calculate camera distance based on field of view to ensure the entire orbit is visible
-        const orbitDiameter = maxOrbitRadius * 2;
+        // Calculate camera distance based on field of view to ensure Neptune's orbit is visible
+        const orbitDiameter = neptuneOrbitRadius * 2;
         const aspectRatio = window.innerWidth / window.innerHeight;
         const vFov = this.camera.fov * Math.PI / 180;
 
@@ -76,14 +86,16 @@ class GlobalView extends BaseView {
             distance = orbitDiameter / (2 * Math.tan((vFov * aspectRatio) / 2));
         }
 
-        // Add 20% margin to ensure the orbit is fully visible with larger orbit radius
-        distance *= 1.2;
+        // Add just 5% margin to ensure the orbit is visible but not too far
+        distance *= 1.05;
 
         // Set far clipping plane to ensure the camera can see distant objects
         this.camera.far = distance * 10;
         this.camera.updateProjectionMatrix();
 
-        this.camera.position.set(0, distance, 0);
+        // Position camera on the negative Y axis for top view
+        this.camera.position.set(0, -distance, 0);
+        this.camera.up.set(0, 0, -1); // Set the up vector to -Z to get the correct orientation
         this.camera.lookAt(0, 0, 0);
 
         if (this.controls) {

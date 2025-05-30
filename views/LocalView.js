@@ -69,6 +69,11 @@ class LocalView extends BaseView {
         this.horizontalAngle = -value; // Negate value to match expected direction
         this.locationCamera.cameraHorizontalAngle = this.horizontalAngle;
         this.locationCamera.updateView();
+        
+        // Request a render
+        if (window.requestRender) {
+            window.requestRender();
+        }
     }
 
     /**
@@ -81,6 +86,11 @@ class LocalView extends BaseView {
         this.verticalAngle = value;
         this.locationCamera.cameraVerticalAngle = this.verticalAngle;
         this.locationCamera.updateView();
+        
+        // Request a render
+        if (window.requestRender) {
+            window.requestRender();
+        }
     }
 
     /**
@@ -93,6 +103,11 @@ class LocalView extends BaseView {
         this.elevation = value;
         this.locationCamera.cameraElevation = this.elevation;
         this.locationCamera.updateView();
+        
+        // Request a render
+        if (window.requestRender) {
+            window.requestRender();
+        }
     }
 
     /**
