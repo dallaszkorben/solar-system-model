@@ -846,6 +846,13 @@ class SolarSystem {
 
                 // Update camera controls based on view type
                 this.setCameraControlsEnabled(true, viewType);
+                
+                // If using ViewManager, update UI controls to reflect current view settings
+                if (window.viewManager) {
+                    setTimeout(() => {
+                        window.viewManager.updateUIControls();
+                    }, 50);
+                }
             }
         });
 
@@ -1708,20 +1715,20 @@ class SolarSystem {
         horizontalInput.addEventListener('input', (e) => {
             const sliderValue = parseFloat(e.target.value);
 
-            // Use slider value directly as camera angle (negated)
-            let cameraAngle = -sliderValue;
-
-            // Save the current setting for the active view
-            if (this.activeView && this.cameraSettings[this.activeView]) {
-                this.cameraSettings[this.activeView].horizontalAngle = cameraAngle;
-            }
-
             // Use ViewManager if available
             if (window.viewManager) {
                 window.viewManager.handleHorizontalControl(sliderValue);
             } 
             // Legacy fallback
             else {
+                // Use slider value directly as camera angle (negated)
+                let cameraAngle = -sliderValue;
+
+                // Save the current setting for the active view
+                if (this.activeView && this.cameraSettings[this.activeView]) {
+                    this.cameraSettings[this.activeView].horizontalAngle = cameraAngle;
+                }
+                
                 // For Planet Side View, use this slider for traverse-horizontal functionality
                 if (this.activeView && this.activeView.includes('SideView')) {
                     // Find the active planet
@@ -1854,17 +1861,17 @@ class SolarSystem {
         verticalInput.addEventListener('input', (e) => {
             const verticalAngle = parseFloat(e.target.value);
 
-            // Save the current setting for the active view
-            if (this.activeView && this.cameraSettings[this.activeView]) {
-                this.cameraSettings[this.activeView].verticalAngle = verticalAngle;
-            }
-
             // Use ViewManager if available
             if (window.viewManager) {
                 window.viewManager.handleVerticalControl(verticalAngle);
             }
             // Legacy fallback
             else {
+                // Save the current setting for the active view
+                if (this.activeView && this.cameraSettings[this.activeView]) {
+                    this.cameraSettings[this.activeView].verticalAngle = verticalAngle;
+                }
+                
                 // For Planet Side View, use this slider for traverse-vertical functionality
                 if (this.activeView && this.activeView.includes('SideView')) {
                     // Find the active planet
@@ -2026,17 +2033,17 @@ class SolarSystem {
         elevationInput.addEventListener('input', (e) => {
             const elevation = parseFloat(e.target.value);
 
-            // Save the current setting for the active view
-            if (this.activeView && this.cameraSettings[this.activeView]) {
-                this.cameraSettings[this.activeView].elevation = elevation;
-            }
-
             // Use ViewManager if available
             if (window.viewManager) {
                 window.viewManager.handleElevationControl(elevation);
             }
             // Legacy fallback
             else {
+                // Save the current setting for the active view
+                if (this.activeView && this.cameraSettings[this.activeView]) {
+                    this.cameraSettings[this.activeView].elevation = elevation;
+                }
+                
                 // For local views, apply to location camera
                 if (this.locationCamera && this.locationCamera.isActive) {
                     this.locationCamera.cameraElevation = elevation;
