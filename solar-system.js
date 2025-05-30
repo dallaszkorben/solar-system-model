@@ -685,8 +685,21 @@ class SolarSystem {
         this.viewConsoleContent.appendChild(viewRadioGroup);
 
         // Add radio buttons for global views
-        this.addViewRadioButton('Top View', 'view', 'topView', () => this.setTopView(), viewRadioGroup, true);
-        this.addViewRadioButton('Side View', 'view', 'sideView', () => this.setSideView(), viewRadioGroup);
+        this.addViewRadioButton('Top View', 'view', 'topView', () => {
+            if (window.viewManager) {
+                window.viewManager.setTopView();
+            } else {
+                this.setTopView();
+            }
+        }, viewRadioGroup, true);
+        
+        this.addViewRadioButton('Side View', 'view', 'sideView', () => {
+            if (window.viewManager) {
+                window.viewManager.setSideView();
+            } else {
+                this.setSideView();
+            }
+        }, viewRadioGroup);
 
         // Create Planet Side Views section header with extra margin
         const planetSectionHeader = document.createElement('h4');
@@ -703,15 +716,77 @@ class SolarSystem {
         this.viewConsoleContent.appendChild(planetViewRadioGroup);
 
         // Add radio buttons for planet side views
-        this.addViewRadioButton('Sun Side View', 'view', 'sunSideView', () => this.setSunView(), planetViewRadioGroup);
-        this.addViewRadioButton('Mercury Side View', 'view', 'mercurySideView', () => this.setMercuryView(), planetViewRadioGroup);
-        this.addViewRadioButton('Venus Side View', 'view', 'venusSideView', () => this.setVenusView(), planetViewRadioGroup);
-        this.addViewRadioButton('Earth Side View', 'view', 'earthSideView', () => this.setEarthView(), planetViewRadioGroup);
-        this.addViewRadioButton('Mars Side View', 'view', 'marsSideView', () => this.setMarsView(), planetViewRadioGroup);
-        this.addViewRadioButton('Jupiter Side View', 'view', 'jupiterSideView', () => this.setJupiterView(), planetViewRadioGroup);
-        this.addViewRadioButton('Saturn Side View', 'view', 'saturnSideView', () => this.setSaturnView(), planetViewRadioGroup);
-        this.addViewRadioButton('Uranus Side View', 'view', 'uranusSideView', () => this.setUranusView(), planetViewRadioGroup);
-        this.addViewRadioButton('Neptune Side View', 'view', 'neptuneSideView', () => this.setNeptuneView(), planetViewRadioGroup);
+        this.addViewRadioButton('Sun Side View', 'view', 'sunSideView', () => {
+            if (window.viewManager) {
+                window.viewManager.setPlanetSideView('sun', this.sun);
+            } else {
+                this.setSunView();
+            }
+        }, planetViewRadioGroup);
+        
+        this.addViewRadioButton('Mercury Side View', 'view', 'mercurySideView', () => {
+            if (window.viewManager) {
+                window.viewManager.setPlanetSideView('mercury', this.mercury);
+            } else {
+                this.setMercuryView();
+            }
+        }, planetViewRadioGroup);
+        
+        this.addViewRadioButton('Venus Side View', 'view', 'venusSideView', () => {
+            if (window.viewManager) {
+                window.viewManager.setPlanetSideView('venus', this.venus);
+            } else {
+                this.setVenusView();
+            }
+        }, planetViewRadioGroup);
+        
+        this.addViewRadioButton('Earth Side View', 'view', 'earthSideView', () => {
+            if (window.viewManager) {
+                window.viewManager.setPlanetSideView('earth', this.earth);
+            } else {
+                this.setEarthView();
+            }
+        }, planetViewRadioGroup);
+        
+        this.addViewRadioButton('Mars Side View', 'view', 'marsSideView', () => {
+            if (window.viewManager) {
+                window.viewManager.setPlanetSideView('mars', this.mars);
+            } else {
+                this.setMarsView();
+            }
+        }, planetViewRadioGroup);
+        
+        this.addViewRadioButton('Jupiter Side View', 'view', 'jupiterSideView', () => {
+            if (window.viewManager) {
+                window.viewManager.setPlanetSideView('jupiter', this.jupiter);
+            } else {
+                this.setJupiterView();
+            }
+        }, planetViewRadioGroup);
+        
+        this.addViewRadioButton('Saturn Side View', 'view', 'saturnSideView', () => {
+            if (window.viewManager) {
+                window.viewManager.setPlanetSideView('saturn', this.saturn);
+            } else {
+                this.setSaturnView();
+            }
+        }, planetViewRadioGroup);
+        
+        this.addViewRadioButton('Uranus Side View', 'view', 'uranusSideView', () => {
+            if (window.viewManager) {
+                window.viewManager.setPlanetSideView('uranus', this.uranus);
+            } else {
+                this.setUranusView();
+            }
+        }, planetViewRadioGroup);
+        
+        this.addViewRadioButton('Neptune Side View', 'view', 'neptuneSideView', () => {
+            if (window.viewManager) {
+                window.viewManager.setPlanetSideView('neptune', this.neptune);
+            } else {
+                this.setNeptuneView();
+            }
+        }, planetViewRadioGroup);
     }
 
     addViewButton(label, clickHandler, container) {
@@ -1534,7 +1609,23 @@ class SolarSystem {
         if (this.locationMarkers && this.locationMarkers.length > 0) {
             this.locationMarkers.forEach(marker => {
                 this.addViewRadioButton(`View from ${marker.options.name}`, 'view', `${marker.options.name.toLowerCase()}`, () => {
-                    if (this.locationCamera) {
+                    if (window.viewManager) {
+                        // Use the view manager to set local view
+                        window.viewManager.setLocalView(marker);
+                        
+                        // Set flag that we're entering a location view
+                        this.inLocationView = true;
+
+                        // Hide markers when entering location view
+                        this.toggleLocationMarkers(false);
+                        
+                        // Set active view based on location name
+                        this.activeView = marker.options.name.toLowerCase();
+                        
+                        // Enable camera controls for local views
+                        this.setCameraControlsEnabled(true, 'local');
+                    } else if (this.locationCamera) {
+                        // Legacy fallback
                         // Disable any existing marker views on all planets
                         this.planets.forEach(planet => {
                             if (planet.planetMarker && planet.planetMarker.cameraView) {
@@ -1625,46 +1716,53 @@ class SolarSystem {
                 this.cameraSettings[this.activeView].horizontalAngle = cameraAngle;
             }
 
-            // For Planet Side View, use this slider for traverse-horizontal functionality
-            if (this.activeView && this.activeView.includes('SideView')) {
-                // Find the active planet
-                const planetName = this.activeView.replace('SideView', '');
-                const planet = this[planetName.toLowerCase()];
+            // Use ViewManager if available
+            if (window.viewManager) {
+                window.viewManager.handleHorizontalControl(sliderValue);
+            } 
+            // Legacy fallback
+            else {
+                // For Planet Side View, use this slider for traverse-horizontal functionality
+                if (this.activeView && this.activeView.includes('SideView')) {
+                    // Find the active planet
+                    const planetName = this.activeView.replace('SideView', '');
+                    const planet = this[planetName.toLowerCase()];
 
-                if (planet && planet.planetMarker) {
-                    // Always use 0 for latitude (orbit plane)
-                    const latitude = 0;
-                    
-                    // Use the slider value directly as longitude
-                    const longitude = sliderValue;
-                    
-                    // Save the longitude to the view settings
-                    this.cameraSettings[this.activeView].longitude = longitude;
-                    
-                    // Update marker position with the new longitude
-                    planet.planetMarker.updateMarkerPosition(latitude, longitude);
+                    if (planet && planet.planetMarker) {
+                        // Always use 0 for latitude (orbit plane)
+                        const latitude = 0;
+                        
+                        // Use the slider value directly as longitude
+                        const longitude = sliderValue;
+                        
+                        // Save the longitude to the view settings
+                        this.cameraSettings[this.activeView].longitude = longitude;
+                        
+                        // Update marker position with the new longitude
+                        planet.planetMarker.updateMarkerPosition(latitude, longitude);
+                    }
                 }
-            }
-            // Apply to location camera if active
-            else if (this.locationCamera && this.locationCamera.isActive) {
-                this.locationCamera.cameraHorizontalAngle = cameraAngle;
-                this.locationCamera.updateView();
-            } else if (camera && this.activeView) {
-                // For global views, rotate camera around y-axis
-                const target = new THREE.Vector3(0, 0, 0);
-                const distance = camera.position.distanceTo(target);
-                const angle = cameraAngle;
+                // Apply to location camera if active
+                else if (this.locationCamera && this.locationCamera.isActive) {
+                    this.locationCamera.cameraHorizontalAngle = cameraAngle;
+                    this.locationCamera.updateView();
+                } else if (camera && this.activeView) {
+                    // For global views, rotate camera around y-axis
+                    const target = new THREE.Vector3(0, 0, 0);
+                    const distance = camera.position.distanceTo(target);
+                    const angle = cameraAngle;
 
-                // Keep current vertical angle (y position)
-                const y = camera.position.y;
+                    // Keep current vertical angle (y position)
+                    const y = camera.position.y;
 
-                // Calculate new x and z positions
-                camera.position.x = distance * Math.sin(angle);
-                camera.position.z = distance * Math.cos(angle);
-                camera.position.y = y; // Maintain vertical position
+                    // Calculate new x and z positions
+                    camera.position.x = distance * Math.sin(angle);
+                    camera.position.z = distance * Math.cos(angle);
+                    camera.position.y = y; // Maintain vertical position
 
-                camera.lookAt(target);
-                if (controls) controls.update();
+                    camera.lookAt(target);
+                    if (controls) controls.update();
+                }
             }
         });
 
@@ -1684,32 +1782,39 @@ class SolarSystem {
             // Reset to middle position
             horizontalInput.value = '0';
             
-            // For planet side views, move the marker along the sphere's equator
-            if (this.activeView && this.activeView.includes('SideView')) {
-                // Find the active planet
-                const planetName = this.activeView.replace('SideView', '');
-                const planet = this[planetName.toLowerCase()];
-
-                if (planet && planet.planetMarker) {
-                    // Always use 0 for latitude (orbit plane)
-                    const latitude = 0;
-                    
-                    // Save the longitude to the view settings
-                    this.cameraSettings[this.activeView].longitude = 0;
-                    
-                    // Update marker position with the reset longitude (0)
-                    planet.planetMarker.updateMarkerPosition(latitude, 0);
-                }
+            // Use ViewManager if available
+            if (window.viewManager) {
+                window.viewManager.resetCameraControl('horizontal');
             }
-            // For local views, reset the camera angle
-            else if (this.locationCamera && this.locationCamera.isActive) {
-                const defaultAngle = 0;
-                this.locationCamera.cameraHorizontalAngle = defaultAngle;
-                this.locationCamera.updateView();
-                
-                // Save the setting
-                if (this.activeView && this.cameraSettings[this.activeView]) {
-                    this.cameraSettings[this.activeView].horizontalAngle = defaultAngle;
+            // Legacy fallback
+            else {
+                // For planet side views, move the marker along the sphere's equator
+                if (this.activeView && this.activeView.includes('SideView')) {
+                    // Find the active planet
+                    const planetName = this.activeView.replace('SideView', '');
+                    const planet = this[planetName.toLowerCase()];
+
+                    if (planet && planet.planetMarker) {
+                        // Always use 0 for latitude (orbit plane)
+                        const latitude = 0;
+                        
+                        // Save the longitude to the view settings
+                        this.cameraSettings[this.activeView].longitude = 0;
+                        
+                        // Update marker position with the reset longitude (0)
+                        planet.planetMarker.updateMarkerPosition(latitude, 0);
+                    }
+                }
+                // For local views, reset the camera angle
+                else if (this.locationCamera && this.locationCamera.isActive) {
+                    const defaultAngle = 0;
+                    this.locationCamera.cameraHorizontalAngle = defaultAngle;
+                    this.locationCamera.updateView();
+                    
+                    // Save the setting
+                    if (this.activeView && this.cameraSettings[this.activeView]) {
+                        this.cameraSettings[this.activeView].horizontalAngle = defaultAngle;
+                    }
                 }
             }
         });
@@ -1754,48 +1859,55 @@ class SolarSystem {
                 this.cameraSettings[this.activeView].verticalAngle = verticalAngle;
             }
 
-            // For Planet Side View, use this slider for traverse-vertical functionality
-            if (this.activeView && this.activeView.includes('SideView')) {
-                // Find the active planet
-                const planetName = this.activeView.replace('SideView', '');
-                const planet = this[planetName.toLowerCase()];
-
-                if (planet && planet.planetMarker) {
-                    // Map vertical slider value (-1.47 to 1.47) to latitude (-PI/2 to PI/2)
-                    // When at 0, latitude should be exactly 0 (equator)
-                    const latitude = verticalAngle;
-                    
-                    // Get current longitude from horizontal slider
-                    const longitude = parseFloat(this.horizontalInput.value);
-                    
-                    // Update marker position with the new latitude
-                    planet.planetMarker.updateMarkerPosition(latitude, longitude);
-                }
+            // Use ViewManager if available
+            if (window.viewManager) {
+                window.viewManager.handleVerticalControl(verticalAngle);
             }
-            // Apply to location camera if active
-            else if (this.locationCamera && this.locationCamera.isActive) {
-                this.locationCamera.cameraVerticalAngle = verticalAngle;
-                this.locationCamera.updateView();
-            } else if (camera && this.activeView) {
-                // For global views, adjust camera height
-                const target = new THREE.Vector3(0, 0, 0);
-                const horizontalDistance = Math.sqrt(camera.position.x * camera.position.x + camera.position.z * camera.position.z);
-                const distance = camera.position.distanceTo(target);
+            // Legacy fallback
+            else {
+                // For Planet Side View, use this slider for traverse-vertical functionality
+                if (this.activeView && this.activeView.includes('SideView')) {
+                    // Find the active planet
+                    const planetName = this.activeView.replace('SideView', '');
+                    const planet = this[planetName.toLowerCase()];
 
-                // Calculate new y position based on vertical angle
-                // Constrain vertical angle to avoid flipping
-                const constrainedAngle = Math.max(-Math.PI/2 + 0.1, Math.min(Math.PI/2 - 0.1, verticalAngle));
-                camera.position.y = distance * Math.sin(constrainedAngle);
+                    if (planet && planet.planetMarker) {
+                        // Map vertical slider value (-1.47 to 1.47) to latitude (-PI/2 to PI/2)
+                        // When at 0, latitude should be exactly 0 (equator)
+                        const latitude = verticalAngle;
+                        
+                        // Get current longitude from horizontal slider
+                        const longitude = parseFloat(this.horizontalInput.value);
+                        
+                        // Update marker position with the new latitude
+                        planet.planetMarker.updateMarkerPosition(latitude, longitude);
+                    }
+                }
+                // Apply to location camera if active
+                else if (this.locationCamera && this.locationCamera.isActive) {
+                    this.locationCamera.cameraVerticalAngle = verticalAngle;
+                    this.locationCamera.updateView();
+                } else if (camera && this.activeView) {
+                    // For global views, adjust camera height
+                    const target = new THREE.Vector3(0, 0, 0);
+                    const horizontalDistance = Math.sqrt(camera.position.x * camera.position.x + camera.position.z * camera.position.z);
+                    const distance = camera.position.distanceTo(target);
 
-                // Adjust horizontal distance to maintain overall distance
-                const newHorizontalDistance = distance * Math.cos(constrainedAngle);
-                const ratio = newHorizontalDistance / horizontalDistance;
+                    // Calculate new y position based on vertical angle
+                    // Constrain vertical angle to avoid flipping
+                    const constrainedAngle = Math.max(-Math.PI/2 + 0.1, Math.min(Math.PI/2 - 0.1, verticalAngle));
+                    camera.position.y = distance * Math.sin(constrainedAngle);
 
-                camera.position.x *= ratio;
-                camera.position.z *= ratio;
+                    // Adjust horizontal distance to maintain overall distance
+                    const newHorizontalDistance = distance * Math.cos(constrainedAngle);
+                    const ratio = newHorizontalDistance / horizontalDistance;
 
-                camera.lookAt(target);
-                if (controls) controls.update();
+                    camera.position.x *= ratio;
+                    camera.position.z *= ratio;
+
+                    camera.lookAt(target);
+                    if (controls) controls.update();
+                }
             }
         });
 
@@ -1804,37 +1916,44 @@ class SolarSystem {
             // Reset to middle position (0)
             verticalInput.value = '0';
             
-            // For planet side views, move the marker to the equator
-            if (this.activeView && this.activeView.includes('SideView')) {
-                // Find the active planet
-                const planetName = this.activeView.replace('SideView', '');
-                const planet = this[planetName.toLowerCase()];
+            // Use ViewManager if available
+            if (window.viewManager) {
+                window.viewManager.resetCameraControl('vertical');
+            }
+            // Legacy fallback
+            else {
+                // For planet side views, move the marker to the equator
+                if (this.activeView && this.activeView.includes('SideView')) {
+                    // Find the active planet
+                    const planetName = this.activeView.replace('SideView', '');
+                    const planet = this[planetName.toLowerCase()];
 
-                if (planet && planet.planetMarker) {
-                    // Reset to latitude 0 (equator)
-                    const latitude = 0;
-                    
-                    // Get current longitude from horizontal slider
-                    const longitude = parseFloat(this.horizontalInput.value);
+                    if (planet && planet.planetMarker) {
+                        // Reset to latitude 0 (equator)
+                        const latitude = 0;
+                        
+                        // Get current longitude from horizontal slider
+                        const longitude = parseFloat(this.horizontalInput.value);
+                        
+                        // Save the setting
+                        if (this.activeView && this.cameraSettings[this.activeView]) {
+                            this.cameraSettings[this.activeView].verticalAngle = 0;
+                        }
+                        
+                        // Update marker position with the reset latitude (0)
+                        planet.planetMarker.updateMarkerPosition(latitude, longitude);
+                    }
+                }
+                // For local views, reset the camera vertical angle
+                else if (this.locationCamera && this.locationCamera.isActive) {
+                    const defaultAngle = 0;
+                    this.locationCamera.cameraVerticalAngle = defaultAngle;
+                    this.locationCamera.updateView();
                     
                     // Save the setting
                     if (this.activeView && this.cameraSettings[this.activeView]) {
-                        this.cameraSettings[this.activeView].verticalAngle = 0;
+                        this.cameraSettings[this.activeView].verticalAngle = defaultAngle;
                     }
-                    
-                    // Update marker position with the reset latitude (0)
-                    planet.planetMarker.updateMarkerPosition(latitude, longitude);
-                }
-            }
-            // For local views, reset the camera vertical angle
-            else if (this.locationCamera && this.locationCamera.isActive) {
-                const defaultAngle = 0;
-                this.locationCamera.cameraVerticalAngle = defaultAngle;
-                this.locationCamera.updateView();
-                
-                // Save the setting
-                if (this.activeView && this.cameraSettings[this.activeView]) {
-                    this.cameraSettings[this.activeView].verticalAngle = defaultAngle;
                 }
             }
         });
@@ -1880,17 +1999,26 @@ class SolarSystem {
         elevationResetIcon.addEventListener('click', () => {
             // Reset functionality is now in the rotate-horizontal slider for Planet Side View
             
-            // For local views, still handle elevation reset
-            if (this.locationCamera && this.locationCamera.isActive) {
+            // Use ViewManager if available
+            if (window.viewManager) {
                 const defaultValue = this.uiConfig.defaultElevationValue;
                 elevationInput.value = defaultValue.toString();
-                
-                this.locationCamera.cameraElevation = defaultValue;
-                this.locationCamera.updateView();
-                
-                // Save the setting
-                if (this.activeView && this.cameraSettings[this.activeView]) {
-                    this.cameraSettings[this.activeView].elevation = defaultValue;
+                window.viewManager.resetCameraControl('elevation');
+            }
+            // Legacy fallback
+            else {
+                // For local views, still handle elevation reset
+                if (this.locationCamera && this.locationCamera.isActive) {
+                    const defaultValue = this.uiConfig.defaultElevationValue;
+                    elevationInput.value = defaultValue.toString();
+                    
+                    this.locationCamera.cameraElevation = defaultValue;
+                    this.locationCamera.updateView();
+                    
+                    // Save the setting
+                    if (this.activeView && this.cameraSettings[this.activeView]) {
+                        this.cameraSettings[this.activeView].elevation = defaultValue;
+                    }
                 }
             }
         });
@@ -1903,12 +2031,19 @@ class SolarSystem {
                 this.cameraSettings[this.activeView].elevation = elevation;
             }
 
-            // For local views, apply to location camera
-            if (this.locationCamera && this.locationCamera.isActive) {
-                this.locationCamera.cameraElevation = elevation;
-                this.locationCamera.updateView();
+            // Use ViewManager if available
+            if (window.viewManager) {
+                window.viewManager.handleElevationControl(elevation);
             }
-            // Planet Side View functionality moved to rotate-horizontal slider
+            // Legacy fallback
+            else {
+                // For local views, apply to location camera
+                if (this.locationCamera && this.locationCamera.isActive) {
+                    this.locationCamera.cameraElevation = elevation;
+                    this.locationCamera.updateView();
+                }
+                // Planet Side View functionality moved to rotate-horizontal slider
+            }
         });
 
         // Store reference to the elevation slider
@@ -2476,6 +2611,11 @@ class SolarSystem {
     setCameraControlsEnabled(enabled, viewType = 'global') {
         // Enable or disable camera control sliders based on view type
         // viewType can be: 'global', 'planet', 'local'
+        
+        // If ViewManager is available, get the current view type from it
+        if (window.viewManager && viewType === undefined) {
+            viewType = window.viewManager.getCurrentViewType();
+        }
 
         if (this.horizontalInput) {
             // Enable horizontal input for both local views and planet side views
