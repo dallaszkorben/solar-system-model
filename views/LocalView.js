@@ -122,4 +122,53 @@ class LocalView extends BaseView {
             this.locationCamera.updateView();
         }
     }
+    
+    /**
+     * Update UI controls to reflect current view settings
+     * @param {Object} settings - The view settings
+     * @param {Object} controls - The UI control elements
+     */
+    updateUIControls(settings, controls) {
+        if (!controls) return;
+        
+        // Update horizontal slider
+        if (controls.horizontalInput) {
+            controls.horizontalInput.value = -settings.horizontalAngle || 0;
+        }
+        
+        // Update vertical slider
+        if (controls.verticalInput) {
+            controls.verticalInput.value = settings.verticalAngle || 0;
+        }
+        
+        // Update elevation slider
+        if (controls.elevationInput) {
+            controls.elevationInput.value = settings.elevation || 0.01;
+        }
+    }
+    
+    /**
+     * Get current view settings
+     * @param {Object} controls - The UI control elements
+     * @returns {Object} The current view settings
+     */
+    getCurrentSettings(controls) {
+        if (!this.locationCamera || !this.locationCamera.isActive) {
+            return { horizontalAngle: 0, verticalAngle: 0, elevation: 0.01 };
+        }
+        
+        if (!controls || !controls.horizontalInput || !controls.verticalInput || !controls.elevationInput) {
+            return {
+                horizontalAngle: this.locationCamera.cameraHorizontalAngle,
+                verticalAngle: this.locationCamera.cameraVerticalAngle,
+                elevation: this.locationCamera.cameraElevation
+            };
+        }
+        
+        return {
+            horizontalAngle: -parseFloat(controls.horizontalInput.value),
+            verticalAngle: parseFloat(controls.verticalInput.value),
+            elevation: parseFloat(controls.elevationInput.value)
+        };
+    }
 }

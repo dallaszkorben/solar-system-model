@@ -74,4 +74,23 @@ class BaseView {
     resetCameraControl(control) {
         // To be implemented by subclasses
     }
+    
+    /**
+     * Update UI controls to reflect current view settings
+     * @param {Object} settings - The view settings
+     * @param {Object} controls - The UI control elements
+     */
+    updateUIControls(settings, controls) {
+        // To be implemented by subclasses
+    }
+    
+    /**
+     * Get current view settings
+     * @param {Object} controls - The UI control elements
+     * @returns {Object} The current view settings
+     */
+    getCurrentSettings(controls) {
+        // To be implemented by subclasses
+        return {};
+    }
 }

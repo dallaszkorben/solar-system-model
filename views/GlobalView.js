@@ -33,6 +33,26 @@ class GlobalView extends BaseView {
     }
 
     /**
+     * Get the current camera angles
+     * @returns {Object} Object containing horizontalAngle and verticalAngle
+     */
+    getCurrentCameraAngles() {
+        if (!this.camera) return { horizontalAngle: 0, verticalAngle: 0 };
+        
+        const target = new THREE.Vector3(0, 0, 0);
+        const position = this.camera.position.clone();
+        
+        // Calculate horizontal angle (around y-axis)
+        const horizontalAngle = Math.atan2(position.x, position.z);
+        
+        // Calculate vertical angle (elevation from xz-plane)
+        const horizontalDistance = Math.sqrt(position.x * position.x + position.z * position.z);
+        const verticalAngle = Math.atan2(position.y, horizontalDistance);
+        
+        return { horizontalAngle, verticalAngle };
+    }
+
+    /**
      * Set top-down view of the solar system
      */
     setTopView() {
@@ -175,5 +195,37 @@ class GlobalView extends BaseView {
         if (control === 'all') {
             this.activate(this.viewType);
         }
+    }
+    
+    /**
+     * Update UI controls to reflect current view settings
+     * @param {Object} settings - The view settings
+     * @param {Object} controls - The UI control elements
+     */
+    updateUIControls(settings, controls) {
+        if (!controls || !controls.horizontalInput || !controls.verticalInput) return;
+        
+        // Update horizontal slider
+        controls.horizontalInput.value = -settings.horizontalAngle || 0;
+        
+        // Update vertical slider
+        controls.verticalInput.value = settings.verticalAngle || 0;
+    }
+    
+    /**
+     * Get current view settings
+     * @param {Object} controls - The UI control elements
+     * @returns {Object} The current view settings
+     */
+    getCurrentSettings(controls) {
+        if (!controls || !controls.horizontalInput || !controls.verticalInput) {
+            return { horizontalAngle: 0, verticalAngle: 0, elevation: 0.01 };
+        }
+        
+        return {
+            horizontalAngle: -parseFloat(controls.horizontalInput.value),
+            verticalAngle: parseFloat(controls.verticalInput.value),
+            elevation: 0.01
+        };
     }
 }

@@ -61,6 +61,20 @@ class PlanetSideView extends BaseView {
         
         this.activePlanet.planetMarker.updateMarkerPosition(this.latitude, this.longitude);
     }
+    
+    /**
+     * Get the current marker position
+     * @returns {Object} Object containing latitude and longitude
+     */
+    getMarkerPosition() {
+        if (!this.activePlanet || !this.activePlanet.planetMarker) {
+            return { latitude: this.latitude, longitude: this.longitude };
+        }
+        
+        // In a real implementation, we would get the actual position from the marker
+        // For now, we'll return the stored values
+        return { latitude: this.latitude, longitude: this.longitude };
+    }
 
     /**
      * Handle horizontal camera control slider (longitude)
@@ -109,5 +123,37 @@ class PlanetSideView extends BaseView {
         if (control === 'horizontal' || control === 'vertical' || control === 'all') {
             this.updateMarkerPosition();
         }
+    }
+    
+    /**
+     * Update UI controls to reflect current view settings
+     * @param {Object} settings - The view settings
+     * @param {Object} controls - The UI control elements
+     */
+    updateUIControls(settings, controls) {
+        if (!controls || !controls.horizontalInput || !controls.verticalInput) return;
+        
+        // Update horizontal slider (longitude)
+        controls.horizontalInput.value = settings.longitude || 0;
+        
+        // Update vertical slider (latitude)
+        controls.verticalInput.value = settings.latitude || 0;
+    }
+    
+    /**
+     * Get current view settings
+     * @param {Object} controls - The UI control elements
+     * @returns {Object} The current view settings
+     */
+    getCurrentSettings(controls) {
+        if (!controls || !controls.horizontalInput || !controls.verticalInput) {
+            return { longitude: this.longitude, latitude: this.latitude, elevation: 0.025 };
+        }
+        
+        return {
+            longitude: parseFloat(controls.horizontalInput.value),
+            latitude: parseFloat(controls.verticalInput.value),
+            elevation: 0.025
+        };
     }
 }

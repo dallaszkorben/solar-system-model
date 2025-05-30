@@ -61,40 +61,31 @@ class ViewManager {
     }
 
     /**
+     * Get UI control elements
+     * @returns {Object} Object containing UI control elements
+     */
+    getUIControls() {
+        const solarSystem = window.solarSystem;
+        if (!solarSystem) return null;
+        
+        return {
+            horizontalInput: solarSystem.horizontalInput,
+            verticalInput: solarSystem.verticalInput,
+            elevationInput: solarSystem.elevationInput
+        };
+    }
+
+    /**
      * Update UI controls based on current view settings
      */
     updateUIControls() {
-        if (!this.activeViewType || !this.viewSettings[this.activeViewType]) return;
+        if (!this.activeView || !this.activeViewType || !this.viewSettings[this.activeViewType]) return;
         
-        const settings = this.viewSettings[this.activeViewType];
+        const controls = this.getUIControls();
+        if (!controls) return;
         
-        // Get references to the sliders from SolarSystem
-        const solarSystem = window.solarSystem;
-        if (!solarSystem) return;
-        
-        const horizontalInput = solarSystem.horizontalInput;
-        const verticalInput = solarSystem.verticalInput;
-        const elevationInput = solarSystem.elevationInput;
-        
-        if (horizontalInput) {
-            if (this.activeView === this.planetSideView) {
-                horizontalInput.value = settings.longitude || 0;
-            } else {
-                horizontalInput.value = -settings.horizontalAngle || 0;
-            }
-        }
-        
-        if (verticalInput) {
-            if (this.activeView === this.planetSideView) {
-                verticalInput.value = settings.latitude || 0;
-            } else {
-                verticalInput.value = settings.verticalAngle || 0;
-            }
-        }
-        
-        if (elevationInput && this.activeView === this.localView) {
-            elevationInput.value = settings.elevation || 0.01;
-        }
+        // Let the active view update its own controls
+        this.activeView.updateUIControls(this.viewSettings[this.activeViewType], controls);
     }
 
     /**
@@ -202,40 +193,18 @@ class ViewManager {
     saveCurrentViewSettings() {
         if (!this.activeView || !this.activeViewType) return;
         
-        // Get references to the sliders from SolarSystem
-        const solarSystem = window.solarSystem;
-        if (!solarSystem) return;
+        const controls = this.getUIControls();
+        if (!controls) return;
         
-        const horizontalInput = solarSystem.horizontalInput;
-        const verticalInput = solarSystem.verticalInput;
-        const elevationInput = solarSystem.elevationInput;
+        // Let the active view get its own settings
+        const settings = this.activeView.getCurrentSettings(controls);
         
-        if (this.activeView === this.globalView) {
-            if (horizontalInput) {
-                this.viewSettings[this.activeViewType].horizontalAngle = -parseFloat(horizontalInput.value);
-            }
-            if (verticalInput) {
-                this.viewSettings[this.activeViewType].verticalAngle = parseFloat(verticalInput.value);
-            }
-        }
-        else if (this.activeView === this.planetSideView) {
-            if (horizontalInput) {
-                this.viewSettings[this.activeViewType].longitude = parseFloat(horizontalInput.value);
-            }
-            if (verticalInput) {
-                this.viewSettings[this.activeViewType].latitude = parseFloat(verticalInput.value);
-            }
-        }
-        else if (this.activeView === this.localView) {
-            if (horizontalInput) {
-                this.viewSettings[this.activeViewType].horizontalAngle = -parseFloat(horizontalInput.value);
-            }
-            if (verticalInput) {
-                this.viewSettings[this.activeViewType].verticalAngle = parseFloat(verticalInput.value);
-            }
-            if (elevationInput) {
-                this.viewSettings[this.activeViewType].elevation = parseFloat(elevationInput.value);
-            }
+        // Save the settings
+        if (settings) {
+            this.viewSettings[this.activeViewType] = {
+                ...this.viewSettings[this.activeViewType],
+                ...settings
+            };
         }
     }
 
