@@ -26,6 +26,7 @@ class Planet {
     }
 
     constructor(factData, noScaleModeData, sizeScaleModeData, distanceScaleModeData) {
+
         // Store reference data
         this.factData = factData;
         this.noScaleModeData = noScaleModeData;
@@ -37,7 +38,7 @@ class Planet {
         this.radius = this.diameter / 2;
         this.axialTilt = factData.axialTilt; // degrees
         this.group = new THREE.Group();
-        
+
         // Rotation properties
         this.rotationEnabled = false; // Disabled by default
         this.rotationPeriod = noScaleModeData.rotationPeriod; // Time to complete one rotation in seconds
@@ -54,7 +55,7 @@ class Planet {
         this.orbitSpeed = noScaleModeData.orbitSpeed(); // Initial orbit speed
         this.maxOrbitSpeed = noScaleModeData.maxOrbitSpeed(); // Maximum orbit speed
         this.orbitGroup = new THREE.Group(); // Parent group for orbital motion
-        
+
         // Add the group to the orbit group
         this.orbitGroup.add(this.group);
     }

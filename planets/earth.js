@@ -2,6 +2,7 @@
  * Earth model creator
  */
 class Earth extends Planet {
+
     // Static data for Earth
     static factData = {
         diameter: 12742.0, // km
