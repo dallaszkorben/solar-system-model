@@ -10,8 +10,8 @@ class Sky extends Planet {
             orbitRadius: 0 // No orbit
         };
         
-        // Non-scale model data
-        const nonScaleModelData = {
+        // No-scale mode data
+        const noScaleModeData = {
             diameter: 40000000, // Large diameter to encompass the solar system
             rotationPeriod: 240, // Slow rotation (4 hours per rotation)
             maxRotationPeriod: 60, // Maximum speed (1 hour per rotation)
@@ -24,11 +24,14 @@ class Sky extends Planet {
             maxOrbitSpeed: function() { return 0; } // No orbit
         };
         
-        // Scale model data (same as non-scale for sky)
-        const scaleModelData = { ...nonScaleModelData };
+        // Size scale mode data (same as no-scale for sky)
+        const sizeScaleModeData = { ...noScaleModeData };
+        
+        // Distance scale mode data (same as no-scale for sky)
+        const distanceScaleModeData = { ...noScaleModeData };
         
         // Call parent constructor
-        super(factData, nonScaleModelData, scaleModelData);
+        super(factData, noScaleModeData, sizeScaleModeData, distanceScaleModeData);
         
         // Create the sky sphere with updated texture path
         this.createSphere('images/starry-sky-texture.jpg');

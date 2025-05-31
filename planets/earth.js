@@ -11,7 +11,7 @@ class Earth extends Planet {
         orbitalPeriod: 365.25, // days
     };
 
-    static scaleModelData = {
+    static sizeScaleModeData = {
         diameter: Earth.factData.diameter/Planet.scaleDownDiameterFactor, // scaled diameter in the model
         orbitRadius: Earth.factData.orbitRadius/Planet.scaleDownOrbitFactor + Planet.shiftOrbit, //Earth.orbitRadius / 2000, // scaled orbit radius
         get rotationPeriod() {
@@ -36,7 +36,32 @@ class Earth extends Planet {
         maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
     };
 
-    static nonScaleModelData = {
+    static distanceScaleModeData = {
+        diameter: Earth.factData.diameter/Planet.scaleDownDiameterFactor, // scaled diameter in the model
+        orbitRadius: Earth.factData.orbitRadius/Planet.scaleDownOrbitFactor + Planet.shiftOrbit, //Earth.orbitRadius / 2000, // scaled orbit radius
+        get rotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Earth.factData.rotationPeriod, Earth.factData.orbitalPeriod);
+            return 10 * relativePeriods.rotation;
+        },
+        get maxRotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Earth.factData.rotationPeriod, Earth.factData.orbitalPeriod);
+            return 1 * relativePeriods.rotation;
+        },
+        get orbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Earth.factData.rotationPeriod, Earth.factData.orbitalPeriod);
+            return 600 * relativePeriods.orbit;
+        },
+        get maxOrbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Earth.factData.rotationPeriod, Earth.factData.orbitalPeriod);
+            return 60 * relativePeriods.orbit;
+        },
+        rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
+        maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
+        orbitSpeed: function() { return (2 * Math.PI) / (this.orbitalPeriod * 60); },
+        maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
+    };
+
+    static noScaleModeData = {
         diameter: Earth.factData.diameter, // visually appealing diameter
         orbitRadius: 74800, // visually appealing orbit radius
         get rotationPeriod() {
@@ -62,7 +87,7 @@ class Earth extends Planet {
     };
 
     constructor() {
-        super(Earth.factData, Earth.nonScaleModelData, Earth.scaleModelData);
+        super(Earth.factData, Earth.noScaleModeData, Earth.sizeScaleModeData, Earth.distanceScaleModeData);
 
         this.createSphere('images/Earth-texture.jpg');
         this.createAxis();
