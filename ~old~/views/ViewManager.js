@@ -33,10 +33,12 @@ class ViewManager {
         this.scene = scene;
         this.camera = camera;
         this.controls = controls;
-        
-        // Use SolarSystem's camera settings if available
+
+        // Create a deep copy of SolarSystem's camera settings if available
         if (window.solarSystem && window.solarSystem.cameraSettings) {
-            this.viewSettings = window.solarSystem.cameraSettings;
+            this.viewSettings = JSON.parse(JSON.stringify(window.solarSystem.cameraSettings));
+        } else {
+            this.viewSettings = {};
         }
 
         // Initialize all views
@@ -47,11 +49,8 @@ class ViewManager {
         // Set location camera for local view
         this.localView.setLocationCamera(locationCamera);
 
-        // Initialize camera controls
-        this.initializeCameraControls();
-
         // Set top view as default //it is needed-first time
-        this.setTopView();
+        this.setGlobalView('topView');
     }
 
     /**
@@ -117,45 +116,27 @@ class ViewManager {
     }
 
     /**
-     * Set top view
+     * Set global view
+     * @param {string} viewType - The view type ('topView' or 'sideView')
      */
-    setTopView() {
+    setGlobalView(viewType) {
+        // Initialize camera controls if not already initialized
+        if (!this.cameraControls) {
+            this.initializeCameraControls();
+        }
+
         // Save current view settings if switching from another view
         this.saveCurrentViewSettings();
 
         // Deactivate current view if any
         this.deactivateCurrentView();
 
-        // Activate global view with top view type
-        this.globalView.activate('topView');
+        // Activate global view with specified view type
+        this.globalView.activate(viewType);
 
         // Update active view reference
         this.activeView = this.globalView;
-        this.activeViewType = 'topView';
-
-        // Apply stored settings
-        this.applyViewSettings();
-
-        // Update UI controls
-        this.updateUIControls();
-    }
-
-    /**
-     * Set side view
-     */
-    setSideView() {
-        // Save current view settings if switching from another view
-        this.saveCurrentViewSettings();
-
-        // Deactivate current view if any
-        this.deactivateCurrentView();
-
-        // Activate global view with side view type
-        this.globalView.activate('sideView');
-
-        // Update active view reference
-        this.activeView = this.globalView;
-        this.activeViewType = 'sideView';
+        this.activeViewType = viewType;
 
         // Apply stored settings
         this.applyViewSettings();
@@ -170,6 +151,11 @@ class ViewManager {
      * @param {Object} planet - The planet object
      */
     setPlanetSideView(planetName, planet) {
+        // Initialize camera controls if not already initialized
+        if (!this.cameraControls) {
+            this.initializeCameraControls();
+        }
+
         // Save current view settings if switching from another view
         this.saveCurrentViewSettings();
 
@@ -195,6 +181,11 @@ class ViewManager {
      * @param {LocationMarker} location - The location marker
      */
     setLocalView(location) {
+        // Initialize camera controls if not already initialized
+        if (!this.cameraControls) {
+            this.initializeCameraControls();
+        }
+
         // Save current view settings if switching from another view
         this.saveCurrentViewSettings();
 
@@ -303,7 +294,7 @@ class ViewManager {
         if (this.activeView) {
             this.activeView.handleHorizontalControl(value);
 
-            // Save the current setting for the active view
+            // Save the current setting for the active view in our local viewSettings copy
             if (this.activeViewType && this.viewSettings[this.activeViewType]) {
                 if (this.activeView === this.planetSideView) {
                     this.viewSettings[this.activeViewType].longitude = value;
@@ -345,49 +336,6 @@ class ViewManager {
             if (this.activeViewType && this.viewSettings[this.activeViewType]) {
                 this.viewSettings[this.activeViewType].elevation = value;
             }
-        }
-    }
-
-    /**
-     * Reset camera controls to default values
-     * @param {string} control - The control to reset ('horizontal', 'vertical', 'elevation', or 'all')
-     */
-    resetCameraControl(control) {
-        if (this.activeView) {
-            this.activeView.resetCameraControl(control);
-
-            // Reset saved settings
-            if (this.activeViewType && this.viewSettings[this.activeViewType]) {
-                if (control === 'horizontal' || control === 'all') {
-                    if (this.activeView === this.planetSideView) {
-                        this.viewSettings[this.activeViewType].longitude = 0;
-                    } else {
-                        this.viewSettings[this.activeViewType].horizontalAngle = 0;
-                    }
-                }
-
-                if (control === 'vertical' || control === 'all') {
-                    if (this.activeView === this.planetSideView) {
-                        this.viewSettings[this.activeViewType].latitude = 0;
-                    } else {
-                        this.viewSettings[this.activeViewType].verticalAngle = 0;
-                    }
-                }
-
-                if (control === 'elevation' || control === 'all') {
-                    if (this.activeView === this.localView) {
-                        this.viewSettings[this.activeViewType].elevation = 0.01;
-                    }
-                }
-            }
-
-            // Use CameraControls to reset if available
-            if (this.cameraControls) {
-                this.cameraControls.reset(control);
-            }
-
-            // Update UI controls to reflect reset settings
-            this.updateUIControls();
         }
     }
 

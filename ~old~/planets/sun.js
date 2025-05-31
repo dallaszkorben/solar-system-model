@@ -1,0 +1,375 @@
+/**
+ * Sun model creator
+ */
+class Sun extends Planet {
+
+    // Static data for Sun
+    static factData = {
+        diameter: 1391400.0,        // km
+        rotationPeriod: 28 * 24,    // converted to hours (28 days)
+        axialTilt: 7.25,            // degrees
+        orbitRadius: 0,             // Sun doesn't orbit anything
+        orbitalPeriod: 0,           // Sun doesn't orbit anything
+    };
+
+    static scaleModelData = {
+        diameter: Sun.factData.diameter/Planet.scaleDownDiameterFactor/100,    // scaled diameter
+        orbitRadius: 0,                     // Sun doesn't orbit anything
+        get rotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Sun.factData.rotationPeriod, 1); // Use 1 as orbital period since Sun doesn't orbit
+            return 10 * relativePeriods.rotation;
+        },
+        get maxRotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Sun.factData.rotationPeriod, 1);
+            return 1 * relativePeriods.rotation;
+        },
+        orbitalPeriod: 0, // Sun doesn't orbit anything
+        maxOrbitalPeriod: 0, // Sun doesn't orbit anything
+        rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
+        maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
+        orbitSpeed: function() { return 0; }, // Sun doesn't orbit
+        maxOrbitSpeed: function() { return 0; }, // Sun doesn't orbit
+    };
+
+    static nonScaleModelData = {
+        diameter: Sun.factData.diameter/30.0, // visually appealing diameter
+        orbitRadius: 0,                     // Sun doesn't orbit anything
+        get rotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Sun.factData.rotationPeriod, 1);
+            return 28 * relativePeriods.rotation;
+        },
+        get maxRotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Sun.factData.rotationPeriod, 1);
+            return 2.8 * relativePeriods.rotation;
+        },
+        orbitalPeriod: 0, // Sun doesn't orbit anything
+        maxOrbitalPeriod: 0, // Sun doesn't orbit anything
+        rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
+        maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
+        orbitSpeed: function() { return 0; }, // Sun doesn't orbit
+        maxOrbitSpeed: function() { return 0; }, // Sun doesn't orbit
+    };
+
+    constructor() {
+//        super(Sun.nonScaleModelData.diameter, Sun.factData, Sun.nonScaleModelData, Sun.scaleModelData);
+        super(Sun.factData, Sun.nonScaleModelData, Sun.scaleModelData);
+
+        // Override orbit properties since Sun doesn't orbit
+        this.orbitEnabled = false;
+        this.orbitSpeed = 0;
+
+        this.createSphere('images/Sun-texture.jpg');
+        this.createAxis(0xff8800); // Orange color for Sun's axis
+        this.applyTilt();
+        this.createConsolePane();
+
+        // Add a point light at the center of the sun
+        this.addSunLight();
+    }
+
+    createSphere(texturePath) {
+        const geometry = new THREE.SphereGeometry(this.radius, 64, 32);
+        const textureLoader = new THREE.TextureLoader();
+        const texture = textureLoader.load(texturePath);
+
+        // Create material with the texture and emissive properties
+        const material = new THREE.MeshBasicMaterial({
+            map: texture,
+            emissive: 0xffaa00,
+            emissiveIntensity: 0.3,
+            shininess: 5
+        });
+
+        this.sphere = new THREE.Mesh(geometry, material);
+        this.group.add(this.sphere);
+    }
+
+    addSunLight() {
+        // Add a point light at the center of the sun with increased intensity and no distance falloff
+        const sunLight = new THREE.PointLight(0xffffff, 2.0, 0, 1);
+        sunLight.castShadow = true;
+        this.group.add(sunLight);
+    }
+
+    createConsolePane() {
+        // Create console pane
+        this.consolePane = document.createElement('div');
+        this.consolePane.className = 'console-pane';
+        this.consolePane.style.position = 'absolute';
+        this.consolePane.style.bottom = '20px';
+        this.consolePane.style.right = '20px';
+        this.consolePane.style.backgroundColor = 'rgba(80, 80, 80, 0.8)';
+        this.consolePane.style.color = 'white';
+        this.consolePane.style.padding = '0';
+        this.consolePane.style.borderRadius = '5px';
+        this.consolePane.style.fontFamily = 'Arial, sans-serif';
+        this.consolePane.style.display = 'none';
+        this.consolePane.style.width = '250px';
+        this.consolePane.style.boxShadow = '0 4px 8px rgba(0,0,0,0.5)';
+
+        // Create header for dragging
+        const header = document.createElement('div');
+        header.style.backgroundColor = 'rgba(100, 100, 100, 0.9)';
+        header.style.padding = '10px 15px';
+        header.style.borderTopLeftRadius = '5px';
+        header.style.borderTopRightRadius = '5px';
+        header.style.cursor = 'move';
+        header.style.borderBottom = '1px solid #666';
+        header.style.display = 'flex';
+        header.style.justifyContent = 'space-between';
+        header.style.alignItems = 'center';
+
+        // Add title to header
+        const title = document.createElement('h3');
+        title.textContent = 'Sun Controls';
+        title.style.margin = '0';
+        header.appendChild(title);
+        
+        // Create icons container for collapse and close
+        const iconsContainer = document.createElement('div');
+        iconsContainer.style.display = 'flex';
+        iconsContainer.style.alignItems = 'center';
+        
+        // Add collapse/expand icon
+        const collapseIcon = document.createElement('div');
+        collapseIcon.innerHTML = '&#9650;'; // Up arrow (collapse)
+        collapseIcon.style.cursor = 'pointer';
+        collapseIcon.style.fontSize = '16px';
+        collapseIcon.style.width = '20px';
+        collapseIcon.style.height = '20px';
+        collapseIcon.style.display = 'flex';
+        collapseIcon.style.justifyContent = 'center';
+        collapseIcon.style.alignItems = 'center';
+        collapseIcon.style.userSelect = 'none';
+        collapseIcon.title = 'Collapse/Expand';
+        iconsContainer.appendChild(collapseIcon);
+        
+        // Add close icon
+        const closeIcon = document.createElement('div');
+        closeIcon.innerHTML = '&#10006;'; // X symbol
+        closeIcon.style.cursor = 'pointer';
+        closeIcon.style.fontSize = '16px';
+        closeIcon.style.width = '20px';
+        closeIcon.style.height = '20px';
+        closeIcon.style.display = 'flex';
+        closeIcon.style.justifyContent = 'center';
+        closeIcon.style.alignItems = 'center';
+        closeIcon.style.userSelect = 'none';
+        closeIcon.style.marginLeft = '8px';
+        closeIcon.title = 'Close';
+        
+        // Add click handler to hide the panel
+        closeIcon.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent dragging
+            this.hide();
+            
+            // Find the toggle for sun in the Solar System Controls
+            const toggle = document.getElementById('sun-controls-toggle');
+            if (toggle) {
+                toggle.checked = false;
+            }
+        });
+        
+        iconsContainer.appendChild(closeIcon);
+        
+        // Add icons container to header
+        header.appendChild(iconsContainer);
+
+        // Add the header to the console pane
+        this.consolePane.appendChild(header);
+
+        // Create content container with padding
+        const content = document.createElement('div');
+        content.style.padding = '15px';
+        this.consolePane.appendChild(content);
+
+        // Make the console pane draggable
+        this.makeDraggable(this.consolePane, header);
+
+        // Store content container for adding controls
+        this.consoleContent = content;
+        
+        // Add collapse/expand functionality
+        collapseIcon.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent dragging when clicking the icon
+            
+            // Get current position before changing display
+            const currentTop = this.consolePane.offsetTop;
+            const currentLeft = this.consolePane.offsetLeft;
+            
+            // Get animation duration from SolarSystem if available, or use default
+            const animationDuration = window.solarSystem?.uiConfig?.panelAnimationDuration || 1.0;
+            
+            if (content.style.display === 'none') {
+                // Expand
+                content.style.display = 'block';
+                content.style.height = '0';
+                content.style.overflow = 'hidden';
+                content.style.transition = `height ${animationDuration}s ease`;
+                this.consolePane.style.transition = `height ${animationDuration}s ease`;
+                
+                // Trigger reflow to ensure transition works
+                content.offsetHeight;
+                
+                // Get the natural height
+                const contentHeight = content.scrollHeight;
+                
+                // Animate expansion
+                content.style.height = contentHeight + 'px';
+                this.consolePane.style.height = (header.offsetHeight + contentHeight) + 'px';
+                collapseIcon.innerHTML = '&#9650;'; // Up arrow (collapse)
+                this.consolePane.style.borderBottomLeftRadius = '5px';
+                this.consolePane.style.borderBottomRightRadius = '5px';
+                
+                // Reset height to auto after animation
+                setTimeout(() => {
+                    content.style.height = 'auto';
+                    content.style.overflow = 'visible';
+                    content.style.transition = '';
+                    this.consolePane.style.height = 'auto';
+                    this.consolePane.style.transition = '';
+                }, animationDuration * 1000);
+            } else {
+                // Get current content height before collapsing
+                const contentHeight = content.offsetHeight;
+                const headerHeight = header.offsetHeight;
+                
+                content.style.height = contentHeight + 'px';
+                content.style.overflow = 'hidden';
+                content.style.transition = `height ${animationDuration}s ease`;
+                this.consolePane.style.height = (headerHeight + contentHeight) + 'px';
+                this.consolePane.style.transition = `height ${animationDuration}s ease`;
+                
+                // Trigger reflow to ensure transition works
+                content.offsetHeight;
+                
+                // Animate collapse
+                content.style.height = '0';
+                this.consolePane.style.height = `${headerHeight}px`;
+                collapseIcon.innerHTML = '&#9660;'; // Down arrow (expand)
+                this.consolePane.style.borderBottomLeftRadius = '0';
+                this.consolePane.style.borderBottomRightRadius = '0';
+                
+                // Hide content after animation completes
+                setTimeout(() => {
+                    content.style.display = 'none';
+                    content.style.transition = '';
+                    this.consolePane.style.transition = '';
+                }, animationDuration * 1000);
+            }
+            
+            // Restore position after changing display
+            this.consolePane.style.top = `${currentTop}px`;
+            this.consolePane.style.left = `${currentLeft}px`;
+        });
+
+        // Create rotation section
+        this.createRotationSection();
+
+        // Add to document
+        document.body.appendChild(this.consolePane);
+    }
+
+    createRotationSection() {
+        // Create section header
+        const sectionHeader = document.createElement('h4');
+        sectionHeader.textContent = 'Rotation Controls';
+        sectionHeader.style.margin = '0 0 10px 0';
+        sectionHeader.style.borderBottom = '1px solid #555';
+        sectionHeader.style.paddingBottom = '5px';
+        this.consoleContent.appendChild(sectionHeader);
+
+        // Listen for global rotation slider changes
+        document.addEventListener('globalRotationSliderChange', (e) => {
+            const slider = document.getElementById('sun-rotation-speed-slider');
+            if (slider) {
+                slider.value = e.detail.value;
+                // Trigger the input event to update the rotation speed
+                const event = new Event('input', { bubbles: true });
+                slider.dispatchEvent(event);
+            }
+        });
+
+        // Add axis toggle
+        this.addToggle('Show Axis: ', 'sun-axis-toggle', true, (e) => {
+            if (this.axis) {
+                this.axis.visible = e.target.checked;
+            }
+        });
+
+        // Add marker toggle
+        this.addToggle('Show Marker: ', 'sun-marker-toggle', false, (e) => {
+            // Create marker if it doesn't exist
+            if (!this.marker && e.target.checked) {
+                this.createMarker();
+            }
+            
+            // Set marker visibility
+            this.setMarkerVisible(e.target.checked);
+        });
+
+        // Add side marker view toggle
+        this.addToggle('Side Marker View: ', 'sun-side-marker-view-toggle', false, (e) => {
+            if (e.target.checked) {
+                // Create marker if it doesn't exist
+                if (!this.marker) {
+                    this.createMarker();
+                }
+                
+                // Make marker visible
+                this.setMarkerVisible(true);
+                
+                // Enable rotation so the marker rotates with the sun
+                this.rotationEnabled = true;
+                document.getElementById('sun-rotation-toggle').checked = true;
+                
+                // Set up the marker view
+                this.setPlanetMarkerView();
+            } else {
+                // Disable camera view mode
+                if (this.planetMarker) {
+                    this.planetMarker.setCameraView(false);
+                }
+                
+                // Hide marker
+                this.setMarkerVisible(false);
+                
+                // Restore original view
+                this.toggleCloseUpView(false, false);
+            }
+        });
+
+        // Add side marker distance slider
+        this.createMarkerDistanceSlider('sun');
+
+        // Add rotation toggle
+        this.addToggle('Enable Rotation: ', 'sun-rotation-toggle', this.rotationEnabled, (e) => {
+            this.rotationEnabled = e.target.checked;
+        });
+
+        // Add rotation speed slider
+        this.addSlider('Rotation Speed: ', 'sun-rotation-speed-slider', 50, (value) => {
+            if (value === 0) {
+                this.rotationSpeed = 0;
+            } else if (value <= 50) {
+                const normalizedValue = value / 50;
+                const baseSpeed = (2 * Math.PI) / (this.rotationPeriod * 60);
+                this.rotationSpeed = baseSpeed * normalizedValue;
+            } else {
+                const normalizedValue = (value - 50) / 50;
+                const periodDiff = this.rotationPeriod - this.maxRotationPeriod;
+                const adjustedPeriod = this.rotationPeriod - (periodDiff * normalizedValue);
+                this.rotationSpeed = (2 * Math.PI) / (adjustedPeriod * 60);
+            }
+
+            if (value > 0 && !this.rotationEnabled) {
+                this.rotationEnabled = true;
+                document.getElementById('sun-rotation-toggle').checked = true;
+            }
+        });
+    }
+
+    getObject() {
+        return this.group; // Sun doesn't orbit, so return the group directly
+    }
+}
