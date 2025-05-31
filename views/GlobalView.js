@@ -58,32 +58,33 @@ class GlobalView extends BaseView {
     setTopView() {
         if (!this.camera) return;
 
-        // Position camera to the side of the solar system
-        const maxOrbitRadius = 114000; // Default value
-        const distance = maxOrbitRadius;
+        // Calculate optimal distance based on field of view and orbit radius
+        const outerMostPlanet = window.solarSystem['neptune'];
+        const modelData = window.solarSystem.useScaleModel ? outerMostPlanet.scaleModelData : outerMostPlanet.nonScaleModelData;
+        const maxOrbitRadius = modelData.orbitRadius;
+        // Calculate distance based on camera field of view
+        const fov = this.camera.fov * (Math.PI / 180); // Convert to radians
+        const distance = 0.75 * maxOrbitRadius / Math.tan(fov / 2);
 
         // Set far clipping plane to ensure the camera can see distant objects and the skybox
         this.camera.far = 50000000;
         this.camera.updateProjectionMatrix();
 
-//        this.camera.matrix.identity();
-
         // Position camera on the positive Z axis
         this.camera.position.set(0, 0, distance);
 
         // Set the up vector to positive Y
-
-        this.camera.up.set(0, 1, 0);
+        this.camera.up.set(0, 0, 1);
 
         // Flip the entire solar system group
         if (window.solarSystem && window.solarSystem.group) {
             // Rotate 180 degrees around Y axis to flip horizontally
             window.solarSystem.group.rotation.y = Math.PI;
             // Reset X rotation that might have been set in top view
-            window.solarSystem.group.rotation.x = -Math.PI/2;
+            window.solarSystem.group.rotation.x = 0;
         }
 
-        this.camera.lookAt(0, 0, 0);
+//        this.camera.lookAt(0, 0, 0);
 
         if (this.controls) {
             this.controls.target.set(0, 0, 0);
@@ -97,9 +98,13 @@ class GlobalView extends BaseView {
     setSideView() {
         if (!this.camera) return;
 
-        // Position camera to the side of the solar system
-        const maxOrbitRadius = 150000; // Default value
-        const distance = maxOrbitRadius * 1.5;
+        // Calculate optimal distance based on field of view and orbit radius
+        const outerMostPlanet = window.solarSystem['neptune'];
+        const modelData = window.solarSystem.useScaleModel ? outerMostPlanet.scaleModelData : outerMostPlanet.nonScaleModelData;
+        const maxOrbitRadius = modelData.orbitRadius;
+        // Calculate distance based on camera field of view
+        const fov = this.camera.fov * (Math.PI / 180); // Convert to radians
+        const distance = 0.7 * maxOrbitRadius / Math.tan(fov / 2);
 
         // Set far clipping plane to ensure the camera can see distant objects and the skybox
         this.camera.far = 50000000;
@@ -111,13 +116,13 @@ class GlobalView extends BaseView {
         // Set the up vector to positive Y
         this.camera.up.set(0, 1, 0);
 
-        // Flip the entire solar system group
-        if (window.solarSystem && window.solarSystem.group) {
-            // Rotate 180 degrees around Y axis to flip horizontally
-            window.solarSystem.group.rotation.y = Math.PI;
-            // Reset X rotation that might have been set in top view
-            window.solarSystem.group.rotation.x = 0;
-        }
+        //        // Flip the entire solar system group
+//        if (window.solarSystem && window.solarSystem.group) {
+//            // Rotate 180 degrees around Y axis to flip horizontally
+//            window.solarSystem.group.rotation.z = Math.PI;
+//            // Reset X rotation that might have been set in top view
+//            window.solarSystem.group.rotation.x = 0;
+//        }
 
         this.camera.lookAt(0, 0, 0);
 

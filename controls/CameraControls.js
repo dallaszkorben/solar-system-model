@@ -16,14 +16,14 @@ class CameraControls {
         this.onHorizontalChange = options.onHorizontalChange || (() => {});
         this.onVerticalChange = options.onVerticalChange || (() => {});
         this.onElevationChange = options.onElevationChange || (() => {});
-        
+
         this.horizontalSlider = null;
         this.verticalSlider = null;
         this.elevationSlider = null;
-        
+
         this.activeViewType = null;
     }
-    
+
     /**
      * Initialize the camera controls with UI elements
      * @param {HTMLElement} horizontalInput - Horizontal slider element
@@ -39,32 +39,32 @@ class CameraControls {
             type: 'horizontal',
             element: horizontalInput,
             resetIcon: horizontalResetIcon,
-            defaultSettings: this.viewSettings['topView'] || { horizontalAngle: 0, horizontalSliderRange: Math.PI * 2 },
+            defaultSettings: { horizontalAngle: 0 },
             onChange: (value) => this.onHorizontalChange(value),
             onReset: () => this.onHorizontalChange(0)
         });
-        
+
         // Create vertical slider
         this.verticalSlider = new CameraControlSlider({
             type: 'vertical',
             element: verticalInput,
             resetIcon: verticalResetIcon,
-            defaultSettings: this.viewSettings['topView'] || { verticalAngle: 0, verticalSliderRange: Math.PI },
+            defaultSettings: { verticalAngle: 0 },
             onChange: (value) => this.onVerticalChange(value),
             onReset: () => this.onVerticalChange(0)
         });
-        
+
         // Create elevation slider
         this.elevationSlider = new CameraControlSlider({
             type: 'elevation',
             element: elevationInput,
             resetIcon: elevationResetIcon,
-            defaultSettings: this.viewSettings['topView'] || { elevation: 0.01 },
+            defaultSettings: { elevation: 0.01 },
             onChange: (value) => this.onElevationChange(value),
             onReset: () => this.onElevationChange(0.01)
         });
     }
-    
+
     /**
      * Set the active view type and update sliders accordingly
      * @param {string} viewType - The active view type
@@ -72,29 +72,20 @@ class CameraControls {
      */
     setActiveView(viewType, viewCategory) {
         this.activeViewType = viewType;
-        
+
         // Get settings for this view
         const settings = this.viewSettings[viewType] || {};
-        
+
         // Update slider defaults
         this.updateSliderDefaults(settings);
-        
+
         // Enable/disable sliders based on view category
         this.setEnabledSliders(viewCategory);
-        
-        // Update slider ranges based on new settings
-        if (this.horizontalSlider) {
-            this.horizontalSlider.calculateRanges();
-        }
-        
-        if (this.verticalSlider) {
-            this.verticalSlider.calculateRanges();
-        }
-        
+
         // Update slider values
         this.updateSliderValues(settings, viewCategory);
     }
-    
+
     /**
      * Update slider default values
      * @param {Object} settings - The view settings
@@ -103,16 +94,16 @@ class CameraControls {
         if (this.horizontalSlider) {
             this.horizontalSlider.defaultSettings = settings;
         }
-        
+
         if (this.verticalSlider) {
             this.verticalSlider.defaultSettings = settings;
         }
-        
+
         if (this.elevationSlider) {
             this.elevationSlider.defaultSettings = settings;
         }
     }
-    
+
     /**
      * Enable or disable sliders based on view category
      * @param {string} viewCategory - The view category ('global', 'planet', 'local')
@@ -121,20 +112,20 @@ class CameraControls {
         const horizontalEnabled = viewCategory === 'local' || viewCategory === 'planet';
         const verticalEnabled = viewCategory === 'local' || viewCategory === 'planet';
         const elevationEnabled = viewCategory === 'local';
-        
+
         if (this.horizontalSlider) {
             this.horizontalSlider.setEnabled(horizontalEnabled);
         }
-        
+
         if (this.verticalSlider) {
             this.verticalSlider.setEnabled(verticalEnabled);
         }
-        
+
         if (this.elevationSlider) {
             this.elevationSlider.setEnabled(elevationEnabled);
         }
     }
-    
+
     /**
      * Update slider values based on view settings
      * @param {Object} settings - The view settings
@@ -145,10 +136,10 @@ class CameraControls {
             if (viewCategory === 'planet') {
                 this.horizontalSlider.setValue(settings.longitude || 0);
             } else {
-                this.horizontalSlider.setValue(settings.horizontalAngle || 0);
+                this.horizontalSlider.setValue(-settings.horizontalAngle || 0);
             }
         }
-        
+
         if (this.verticalSlider) {
             if (viewCategory === 'planet') {
                 this.verticalSlider.setValue(settings.latitude || 0);
@@ -156,12 +147,12 @@ class CameraControls {
                 this.verticalSlider.setValue(settings.verticalAngle || 0);
             }
         }
-        
+
         if (this.elevationSlider && viewCategory === 'local') {
             this.elevationSlider.setValue(settings.elevation || 0.01);
         }
     }
-    
+
     /**
      * Get current slider values
      * @param {string} viewCategory - The view category ('global', 'planet', 'local')
@@ -169,7 +160,7 @@ class CameraControls {
      */
     getCurrentValues(viewCategory) {
         const values = {};
-        
+
         if (this.horizontalSlider) {
             if (viewCategory === 'planet') {
                 values.longitude = this.horizontalSlider.getValue();
@@ -177,7 +168,7 @@ class CameraControls {
                 values.horizontalAngle = -this.horizontalSlider.getValue();
             }
         }
-        
+
         if (this.verticalSlider) {
             if (viewCategory === 'planet') {
                 values.latitude = this.verticalSlider.getValue();
@@ -185,14 +176,14 @@ class CameraControls {
                 values.verticalAngle = this.verticalSlider.getValue();
             }
         }
-        
+
         if (this.elevationSlider && viewCategory === 'local') {
             values.elevation = this.elevationSlider.getValue();
         }
-        
+
         return values;
     }
-    
+
     /**
      * Reset all sliders to their default values
      */
@@ -200,16 +191,16 @@ class CameraControls {
         if (this.horizontalSlider) {
             this.horizontalSlider.reset();
         }
-        
+
         if (this.verticalSlider) {
             this.verticalSlider.reset();
         }
-        
+
         if (this.elevationSlider) {
             this.elevationSlider.reset();
         }
     }
-    
+
     /**
      * Reset a specific slider
      * @param {string} type - The slider type ('horizontal', 'vertical', 'elevation')
