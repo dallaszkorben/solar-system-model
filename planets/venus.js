@@ -49,12 +49,13 @@ class Venus extends Planet {
             return 0.1 * relativePeriods.rotation;
         },
         get orbitalPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Venus.factData.rotationPeriod, Venus.factData.orbitalPeriod);
-            return 50 * relativePeriods.orbit;
+            // Venus orbits in 224.7 days vs Earth's 365.25 days (ratio ~0.615)
+            // So Venus should take 0.615x the time to orbit compared to Earth
+            return 60 * (Venus.factData.orbitalPeriod / Planet.earthData.orbitalPeriod);
         },
         get maxOrbitalPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Venus.factData.rotationPeriod, Venus.factData.orbitalPeriod);
-            return 5 * relativePeriods.orbit;
+            // Maintain the same ratio for max speed
+            return 6 * (Venus.factData.orbitalPeriod / Planet.earthData.orbitalPeriod);
         },
         rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
         maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
@@ -63,9 +64,9 @@ class Venus extends Planet {
     };
 
     constructor() {
-        super(Venus.factData, Venus.nonScaleModelData, Venus.scaleModelData);
+        super(Venus.factData, Venus.nonScaleModelData, Venus.scaleModelData, Venus.scaleModelData);
 
-        this.createSphere('images/Venus-texture.jpg');
+        this.createSphere('textures/Venus-texture.jpg');
         this.createAxis();
         this.createLatitudeCircles([
             { name: 'Equator', angle: 0, color: 0xff0000 },
@@ -86,9 +87,8 @@ class Venus extends Planet {
         ];
         this.createSeasonLabels(seasons);
 
-        // Create console pane with Venus-specific customizations
-        this.createConsolePane('Venus');
-
+        // Removed console pane creation for now
+        
         // Listen for global day/night changes
         document.addEventListener('globalDayNightChange', (e) => {
             const toggle = document.getElementById('venus-day-night-toggle');

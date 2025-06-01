@@ -90,7 +90,7 @@ class Earth extends Planet {
     constructor() {
         super(Earth.factData, Earth.noScaleModeData, Earth.sizeScaleModeData, Earth.distanceScaleModeData);
 
-        this.createSphere('images/Earth-texture.jpg');
+        this.createSphere('textures/Earth-texture.jpg');
         this.createAxis();
         this.createLatitudeCircles([
             { name: 'Equator', angle: 0, color: 0xff0000 },
@@ -110,13 +110,10 @@ class Earth extends Planet {
             { name: '', season: 'autumn', angle: Math.PI*3/2 }
         ];
         this.createSeasonLabels(seasons);
-
-        // Create console pane
-        this.createConsolePane('Earth');
-
-        // Add Earth-specific location markers toggle
-        this.addLocationMarkersToggle();
     }
+    
+    // This method has been moved to the Planet base class
+    // makeDraggableElement is now inherited from Planet
 
     // Add Earth-specific location markers toggle
     addLocationMarkersToggle() {

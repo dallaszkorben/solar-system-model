@@ -48,12 +48,13 @@ class Jupiter extends Planet {
             return 0.1 * relativePeriods.rotation;
         },
         get orbitalPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Jupiter.factData.rotationPeriod, Jupiter.factData.orbitalPeriod);
-            return 120 * relativePeriods.orbit;
+            // Jupiter orbits in 4332.59 days vs Earth's 365.25 days (ratio ~11.86)
+            // So Jupiter should take 11.86x longer to orbit than Earth
+            return 60 * (Jupiter.factData.orbitalPeriod / Planet.earthData.orbitalPeriod);
         },
         get maxOrbitalPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Jupiter.factData.rotationPeriod, Jupiter.factData.orbitalPeriod);
-            return 12 * relativePeriods.orbit;
+            // Maintain the same ratio for max speed
+            return 6 * (Jupiter.factData.orbitalPeriod / Planet.earthData.orbitalPeriod);
         },
         rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
         maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
@@ -62,9 +63,9 @@ class Jupiter extends Planet {
     };
 
     constructor() {
-        super(Jupiter.factData, Jupiter.nonScaleModelData, Jupiter.scaleModelData);
+        super(Jupiter.factData, Jupiter.nonScaleModelData, Jupiter.scaleModelData, Jupiter.scaleModelData);
 
-        this.createSphere('images/Jupiter-texture.jpg');
+        this.createSphere('textures/Jupiter-texture.jpg');
         this.createAxis(0xffaa00); // Orange color for Jupiter's axis
         this.createLatitudeCircles([
             { name: 'Equator', angle: 0, color: 0xff0000 },
@@ -73,6 +74,5 @@ class Jupiter extends Planet {
         ]);
         this.applyTilt();
         this.createOrbit();
-        this.createConsolePane('Jupiter');
     }
 }

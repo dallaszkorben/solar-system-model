@@ -7,6 +7,11 @@ class Planet {
     static scaleDownOrbitFactor = 1000;
     static shiftOrbit = 0;
 
+    static maxOrbitFactor = 10.0;
+    static maxRotationFactor = 10.0;
+
+    static orbitOpacity = 0.3;
+
     // Earth reference data for relative calculations
     static earthData = {
         rotationPeriod: 23.93, // hours
@@ -45,6 +50,8 @@ class Planet {
         this.maxRotationPeriod = noScaleModeData.maxRotationPeriod; // Time at maximum speed
         this.rotationSpeed = noScaleModeData.rotationSpeed(); // Initial rotation speed
         this.maxRotationSpeed = noScaleModeData.maxRotationSpeed(); // Maximum rotation speed
+        this.defaultRotationSpeed = noScaleModeData.rotationSpeed(); // Store default rotation speed
+        this.globalRotationSpeedFactor = 1.0; // Default factor (50% on slider)
 
         // Orbit properties
         this.actualOrbitRadius = factData.orbitRadius; // Real distance in km
@@ -54,30 +61,90 @@ class Planet {
         this.orbitEnabled = false; // Disabled by default
         this.orbitSpeed = noScaleModeData.orbitSpeed(); // Initial orbit speed
         this.maxOrbitSpeed = noScaleModeData.maxOrbitSpeed(); // Maximum orbit speed
+        this.defaultOrbitSpeed = noScaleModeData.orbitSpeed(); // Store default orbit speed
+        this.globalOrbitSpeedFactor = 1.0; // Default factor (50% on slider)
         this.orbitGroup = new THREE.Group(); // Parent group for orbital motion
+
+        // Visibility property
+        this.visible = true; // Visible by default
+        this.orbitOpacity = Planet.orbitOpacity; // Default orbit line opacity
+        this.dayNightEffectEnabled = true; // Default to enabled
 
         // Add the group to the orbit group
         this.orbitGroup.add(this.group);
     }
 
     createSphere(texturePath) {
-        const geometry = new THREE.SphereGeometry(this.radius, 64, 32);
-        const textureLoader = new THREE.TextureLoader();
-        const texture = textureLoader.load(texturePath);
+        try {
+            console.log(`Creating sphere with texture: ${texturePath}`);
+            const geometry = new THREE.SphereGeometry(this.radius, 64, 32);
+            const textureLoader = new THREE.TextureLoader();
 
-        const material = new THREE.MeshStandardMaterial({
-            map: texture,
-            roughness: 1.0,
-            metalness: 0.0
-        });
+            // Add error handling for texture loading
+            const texture = textureLoader.load(
+                texturePath,
+                // onLoad callback
+                function(loadedTexture) {
+                    console.log(`Texture loaded successfully: ${texturePath}`);
+                },
+                // onProgress callback (not supported by most browsers)
+                undefined,
+                // onError callback
+                function(err) {
+                    console.error(`Error loading texture: ${texturePath}`, err);
+                    // Create a fallback colored material
+                    if (this.sphere && this.sphere.material) {
+                        const fallbackColor = 0x888888; // Gray fallback color
+                        this.sphere.material.map = null;
+                        this.sphere.material.color.set(fallbackColor);
+                        this.sphere.material.needsUpdate = true;
+                    }
+                }.bind(this) // Bind this to access sphere in the callback
+            );
 
-        this.sphere = new THREE.Mesh(geometry, material);
-        this.group.add(this.sphere);
+            // Create both material types for day/night effect
+            const standardMaterial = new THREE.MeshStandardMaterial({
+                map: texture,
+                roughness: 1.0,
+                metalness: 0.0
+            });
+            
+            const basicMaterial = new THREE.MeshBasicMaterial({
+                map: texture
+            });
 
-        this.standardMaterial = material;
-        this.basicMaterial = new THREE.MeshBasicMaterial({
-            map: texture
-        });
+            // Use the appropriate material based on day/night effect setting
+            const material = this.dayNightEffectEnabled ? standardMaterial : basicMaterial;
+
+            this.sphere = new THREE.Mesh(geometry, material);
+            this.group.add(this.sphere);
+
+            // Store both materials for later switching
+            this.standardMaterial = standardMaterial;
+            this.basicMaterial = basicMaterial;
+
+            console.log(`Sphere created for texture: ${texturePath}`);
+        } catch (error) {
+            console.error(`Error creating sphere with texture ${texturePath}:`, error);
+
+            // Create a fallback sphere with a solid color if texture loading fails
+            try {
+                const geometry = new THREE.SphereGeometry(this.radius, 64, 32);
+                const standardMaterial = new THREE.MeshStandardMaterial({ color: 0x888888 }); // Gray fallback color
+                const basicMaterial = new THREE.MeshBasicMaterial({ color: 0x888888 }); // Gray fallback color
+                
+                // Use the appropriate material based on day/night effect setting
+                const material = this.dayNightEffectEnabled ? standardMaterial : basicMaterial;
+                
+                this.sphere = new THREE.Mesh(geometry, material);
+                this.group.add(this.sphere);
+                this.standardMaterial = standardMaterial;
+                this.basicMaterial = basicMaterial;
+                console.log(`Created fallback sphere for ${texturePath}`);
+            } catch (fallbackError) {
+                console.error('Failed to create fallback sphere:', fallbackError);
+            }
+        }
     }
 
     createAxis(color = 0xff0000) {
@@ -139,7 +206,7 @@ class Planet {
         const orbitMaterial = new THREE.LineBasicMaterial({
             color: 0xffffff,
             transparent: true,
-            opacity: 1.0,
+            opacity: this.orbitOpacity, // Use the orbit opacity property
             depthTest: true,
             depthWrite: false
         });
@@ -154,6 +221,89 @@ class Planet {
     applyTilt() {
         this.group.rotation.z = THREE.MathUtils.degToRad(this.axialTilt);
     }
+
+    /**
+     * Updates the planet's rotation based on time
+     * @param {number} now - Current timestamp
+     */
+    update(now) {
+        // Handle rotation if enabled
+        if (this.rotationEnabled && this.rotationSpeed > 0) {
+            // Apply rotation based on current rotation speed
+            this.sphere.rotation.y += this.rotationSpeed;
+        }
+
+        // Handle orbit if enabled
+        if (this.orbitEnabled && this.orbitSpeed > 0) {
+            // Apply orbit based on current orbit speed
+            this.orbitGroup.rotation.y += this.orbitSpeed;
+        }
+    }
+
+    /**
+     * Sets the rotation enabled state
+     * @param {boolean} enabled - Whether rotation should be enabled
+     */
+    setRotationEnabled(enabled) {
+        this.rotationEnabled = enabled;
+    }
+
+    /**
+     * Sets the global rotation speed factor (0-10)
+     * @param {number} factor - Factor to multiply the default rotation speed by
+     */
+    setGlobalRotationSpeedFactor(factor) {
+        this.globalRotationSpeedFactor = factor;
+
+        // Update the rotation speed based on the current scale mode and factor
+        if (factor === 0) {
+            // If factor is 0, stop rotation
+            this.rotationSpeed = 0;
+        } else {
+            // Otherwise, calculate new rotation speed based on default and factor
+            this.rotationSpeed = this.defaultRotationSpeed * factor;
+        }
+
+        // If factor is greater than 0, ensure rotation is enabled
+        if (factor > 0) {
+            this.rotationEnabled = true;
+        }
+    }
+
+    /**
+     * Sets the orbit enabled state
+     * @param {boolean} enabled - Whether orbit should be enabled
+     */
+    setOrbitEnabled(enabled) {
+        this.orbitEnabled = enabled;
+    }
+
+    /**
+     * Sets the global orbit speed factor (0-10)
+     * @param {number} factor - Factor to multiply the default orbit speed by
+     */
+    setGlobalOrbitSpeedFactor(factor) {
+        this.globalOrbitSpeedFactor = factor;
+
+        // Update the orbit speed based on the current scale mode and factor
+        if (factor === 0) {
+            // If factor is 0, stop orbit
+            this.orbitSpeed = 0;
+        } else {
+            // Otherwise, calculate new orbit speed based on default and factor
+            this.orbitSpeed = this.defaultOrbitSpeed * factor;
+        }
+
+        // If factor is greater than 0, ensure orbit is enabled
+        if (factor > 0) {
+            this.orbitEnabled = true;
+        }
+    }
+
+    /**
+     * Sets the visibility of the planet
+     * @param {boolean} visible - Whether the planet should be visible
+     */
 
     createSeasonLabels(seasons) {
         if (!seasons || !seasons.length) return;
@@ -209,7 +359,148 @@ class Planet {
         }
     }
 
+    /**
+     * Show the planet by making all its components visible
+     */
+    show() {
+        this.visible = true;
+        if (this.sphere) {
+            this.sphere.visible = true;
+        }
+        if (this.axis) {
+            this.axis.visible = true;
+        }
+        if (this.latitudeCircles) {
+            this.latitudeCircles.visible = this.latitudeCircles.wasVisible || false;
+        }
+        if (this.orbitLine) {
+            this.orbitLine.visible = true;
+        }
+        if (this.seasonLabels) {
+            this.seasonLabels.visible = this.seasonLabels.wasVisible || false;
+        }
+        // Show rings if this planet has them
+        if (this.rings) {
+            this.rings.visible = true;
+            this.ringsVisible = true;
+        }
+    }
+
+    /**
+     * Hide the planet by making all its components invisible
+     */
+    hide() {
+        this.visible = false;
+        if (this.sphere) {
+            this.sphere.visible = false;
+        }
+        if (this.axis) {
+            this.axis.visible = false;
+        }
+        if (this.latitudeCircles) {
+            // Store current visibility state before hiding
+            this.latitudeCircles.wasVisible = this.latitudeCircles.visible;
+            this.latitudeCircles.visible = false;
+        }
+        if (this.orbitLine) {
+            this.orbitLine.visible = false;
+        }
+        if (this.seasonLabels) {
+            // Store current visibility state before hiding
+            this.seasonLabels.wasVisible = this.seasonLabels.visible;
+            this.seasonLabels.visible = false;
+        }
+        // Hide rings if this planet has them
+        if (this.rings) {
+            this.rings.visible = false;
+            this.ringsVisible = false;
+        }
+    }
+
+    /**
+     * Set the visibility of the planet
+     * @param {boolean} isVisible - Whether the planet should be visible
+     */
+    setVisibility(isVisible) {
+        if (isVisible) {
+            this.show();
+        } else {
+            this.hide();
+        }
+    }
+    
+    /**
+     * Sets whether the day/night effect is enabled for this planet
+     * @param {boolean} enabled - Whether day/night effect should be enabled
+     */
+    setDayNightEffectEnabled(enabled) {
+        this.dayNightEffectEnabled = enabled;
+        
+        // If the planet has a material that supports day/night effect
+        if (this.sphere && this.sphere.material) {
+            if (enabled) {
+                // Switch to standard material with lighting
+                if (this.standardMaterial) {
+                    this.sphere.material = this.standardMaterial;
+                }
+            } else {
+                // Switch to basic material without lighting
+                if (this.basicMaterial) {
+                    this.sphere.material = this.basicMaterial;
+                }
+            }
+            this.sphere.material.needsUpdate = true;
+        }
+    }
+    
+    /**
+     * Toggle day/night effect (for backward compatibility)
+     * @param {boolean} enabled - Whether day/night effect should be enabled
+     */
+    toggleDayNightEffect(enabled) {
+        this.setDayNightEffectEnabled(enabled);
+    }
+
     getObject() {
         return this.orbitGroup;
+    }
+
+    // Helper method to make elements draggable - moved from individual planet classes
+    makeDraggableElement(element, handle) {
+        if (!element || !handle) return;
+
+        let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+
+        handle.onmousedown = dragMouseDown;
+
+        function dragMouseDown(e) {
+            e = e || window.event;
+            e.preventDefault();
+            // Get the mouse cursor position at startup
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+            document.onmouseup = closeDragElement;
+            // Call a function whenever the cursor moves
+            document.onmousemove = elementDrag;
+        }
+
+        function elementDrag(e) {
+            e = e || window.event;
+            e.preventDefault();
+            // Calculate the new cursor position
+            pos1 = pos3 - e.clientX;
+            pos2 = pos4 - e.clientY;
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+            // Set the element's new position
+            element.style.top = (element.offsetTop - pos2) + "px";
+            element.style.left = (element.offsetLeft - pos1) + "px";
+        }
+
+        function closeDragElement() {
+            // Stop moving when mouse button is released
+            document.onmouseup = null;
+            document.onmousemove = null;
+        }
     }
 }

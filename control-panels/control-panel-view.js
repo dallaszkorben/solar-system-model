@@ -5,24 +5,24 @@ class ViewControlPanel extends ControlPanel {
     constructor(solarSystem) {
         super('View Controls', { top: '20px', left: '340px' });
         this.solarSystem = solarSystem;
-        
+
         // Store references to radio buttons
         this.viewRadios = {};
-        
+
         // Create view objects
         this.globalView = new GlobalView(solarSystem);
         this.planetSideView = new PlanetSideView(solarSystem);
         this.localView = new LocalView(solarSystem);
-        
+
         // Track current active view
         this.activeView = null;
-        
+
         // Create view sections
         this.createGlobalViewsSection();
         this.createPlanetSideViewsSection();
         this.createLocalViewsSection();
     }
-    
+
     createGlobalViewsSection() {
         // Create Global Views section header
         const globalSectionHeader = document.createElement('h4');
@@ -42,7 +42,7 @@ class ViewControlPanel extends ControlPanel {
         this.addViewRadioButton('Top View', 'view', 'topView', viewRadioGroup);
         this.addViewRadioButton('Side View', 'view', 'sideView', viewRadioGroup);
     }
-    
+
     createPlanetSideViewsSection() {
         // Create Planet Side Views section header with extra margin
         const planetSectionHeader = document.createElement('h4');
@@ -69,7 +69,7 @@ class ViewControlPanel extends ControlPanel {
         this.addViewRadioButton('Uranus Side View', 'view', 'uranusSideView', planetViewRadioGroup);
         this.addViewRadioButton('Neptune Side View', 'view', 'neptuneSideView', planetViewRadioGroup);
     }
-    
+
     createLocalViewsSection() {
         // Create section header
         const locationHeader = document.createElement('h4');
@@ -89,7 +89,7 @@ class ViewControlPanel extends ControlPanel {
         this.addViewRadioButton('View from Budapest', 'view', 'budapest', locationViewRadioGroup);
         this.addViewRadioButton('View from Kiruna', 'view', 'kiruna', locationViewRadioGroup);
     }
-    
+
     addViewRadioButton(label, name, value, container) {
         const radioContainer = document.createElement('div');
         radioContainer.style.marginBottom = '10px';
@@ -102,7 +102,7 @@ class ViewControlPanel extends ControlPanel {
         radio.value = value;
         radio.id = `radio-${value}`;
         radio.style.marginRight = '10px';
-        
+
         // Add event listener to handle view changes
         radio.addEventListener('change', (e) => {
             if (e.target.checked) {
@@ -119,13 +119,13 @@ class ViewControlPanel extends ControlPanel {
         radioContainer.appendChild(radio);
         radioContainer.appendChild(radioLabel);
         container.appendChild(radioContainer);
-        
+
         // Store reference to the radio button
         this.viewRadios[value] = radio;
 
         return radio;
     }
-    
+
     // Method to set the active view
     setView(viewName) {
         if (this.viewRadios[viewName]) {
@@ -135,44 +135,14 @@ class ViewControlPanel extends ControlPanel {
             console.warn(`View "${viewName}" not found`);
         }
     }
-    
-    // Handle view change based on the selected view
+
     handleViewChange(viewName) {
         console.log(`Changing view to: ${viewName}`);
-        
-        // Deactivate current view if any
-        if (this.activeView) {
-            this.activeView.deactivate();
-        }
-        
-        // Determine which view type to activate
-        if (viewName === 'topView' || viewName === 'sideView') {
-            // Global view
-            this.globalView.setViewType(viewName);
-            this.activeView = this.globalView;
-        } else if (viewName.includes('SideView')) {
-            // Planet side view
-            const planetName = viewName.replace('SideView', '').toLowerCase();
-            const planet = this.solarSystem[planetName]; // Get planet from solar system
-            if (planet) {
-                this.planetSideView.setPlanet(planetName, planet);
-                this.activeView = this.planetSideView;
-            } else {
-                console.warn(`Planet "${planetName}" not found`);
-                return;
-            }
-        } else if (viewName === 'budapest' || viewName === 'kiruna') {
-            // Local view
-            // This is a placeholder - actual implementation would depend on how locations are defined
-            const location = { name: viewName }; // Placeholder location object
-            this.localView.setLocation(viewName, location);
-            this.activeView = this.localView;
-        } else {
-            console.warn(`Unknown view type: ${viewName}`);
-            return;
-        }
-        
-        // Activate the new view
+
+        this.globalView.setViewType(viewName);
+        this.activeView = this.globalView;  //TODO: ??? do I need it?
         this.activeView.activate();
     }
+
+
 }

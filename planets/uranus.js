@@ -12,7 +12,7 @@ class Uranus extends Planet {
         ringInnerRadius: 38000, // km
         ringOuterRadius: 98000, // km
     };
-    
+
     // Ring thickness configuration (not part of factual data)
     static ringThickness = 0.05; // Thickness as a fraction of planet radius
 
@@ -53,12 +53,13 @@ class Uranus extends Planet {
             return 0.1 * relativePeriods.rotation;
         },
         get orbitalPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Uranus.factData.rotationPeriod, Uranus.factData.orbitalPeriod);
-            return 240 * relativePeriods.orbit;
+            // Uranus orbits in 30688.5 days vs Earth's 365.25 days (ratio ~84.02)
+            // So Uranus should take 84.02x longer to orbit than Earth
+            return 60 * (Uranus.factData.orbitalPeriod / Planet.earthData.orbitalPeriod);
         },
         get maxOrbitalPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Uranus.factData.rotationPeriod, Uranus.factData.orbitalPeriod);
-            return 24 * relativePeriods.orbit;
+            // Maintain the same ratio for max speed
+            return 6 * (Uranus.factData.orbitalPeriod / Planet.earthData.orbitalPeriod);
         },
         rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
         maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
@@ -67,13 +68,13 @@ class Uranus extends Planet {
     };
 
     constructor() {
-        super(Uranus.factData, Uranus.nonScaleModelData, Uranus.scaleModelData);
+        super(Uranus.factData, Uranus.nonScaleModelData, Uranus.scaleModelData, Uranus.scaleModelData);
 
         // Ring visibility property
         this.ringsVisible = true;
         this.rings = null;
 
-        this.createSphere('images/Uranus-texture.jpg');
+        this.createSphere('textures/Uranus-texture.jpg');
         this.createAxis(0x00ffcc); // Cyan-green color for Uranus's axis
         this.createLatitudeCircles([
             { name: 'Equator', angle: 0, color: 0xff0000 },
@@ -83,7 +84,6 @@ class Uranus extends Planet {
         this.createRings();
         this.applyTilt();
         this.createOrbit();
-        this.createConsolePane('Uranus');
     }
 
     createRings() {
@@ -97,7 +97,7 @@ class Uranus extends Planet {
 
         // Load ring texture
         const textureLoader = new THREE.TextureLoader();
-        const ringTexture = textureLoader.load('images/uranus-ring-texture.png');
+        const ringTexture = textureLoader.load('textures/uranus-ring-texture.png');
 
         // Create ring material with transparency
         const ringMaterial = new THREE.MeshBasicMaterial({
@@ -211,68 +211,6 @@ class Uranus extends Planet {
         if (this.rings) {
             this.rings.visible = visible;
             this.ringsVisible = visible;
-        }
-    }
-
-    // Override createConsolePane to add ring toggle
-    createConsolePane(planetName) {
-        super.createConsolePane(planetName);
-        this.addRingToggle();
-    }
-
-    // Add ring toggle to visibility section
-    addRingToggle() {
-        // Find the visibility section
-        const sections = this.consoleContent.querySelectorAll('h4');
-        let visibilitySection;
-
-        for (const section of sections) {
-            if (section.textContent === 'Visibility Controls') {
-                visibilitySection = section;
-                break;
-            }
-        }
-
-        if (visibilitySection) {
-            // Find the last toggle in the visibility section
-            const lastToggle = visibilitySection.parentNode.querySelector('.switch:last-of-type');
-
-            if (lastToggle) {
-                const container = document.createElement('div');
-                container.style.marginBottom = '10px';
-                container.style.display = 'flex';
-                container.style.justifyContent = 'space-between';
-                container.style.alignItems = 'center';
-
-                const labelElem = document.createElement('label');
-                labelElem.textContent = 'Show Rings: ';
-
-                // Create switch container
-                const switchLabel = document.createElement('label');
-                switchLabel.className = 'switch';
-
-                const toggle = document.createElement('input');
-                toggle.type = 'checkbox';
-                toggle.checked = this.ringsVisible;
-                toggle.id = 'uranus-rings-toggle';
-                toggle.addEventListener('change', (e) => {
-                    this.toggleRings(e.target.checked);
-                });
-
-                // Create slider span
-                const sliderSpan = document.createElement('span');
-                sliderSpan.className = 'slider';
-
-                // Assemble the switch
-                switchLabel.appendChild(toggle);
-                switchLabel.appendChild(sliderSpan);
-
-                container.appendChild(labelElem);
-                container.appendChild(switchLabel);
-
-                // Insert after the last toggle in the visibility section
-                lastToggle.parentNode.after(container);
-            }
         }
     }
 }

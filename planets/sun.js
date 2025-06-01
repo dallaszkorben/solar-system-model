@@ -52,36 +52,81 @@ class Sun extends Planet {
 
     constructor() {
 //        super(Sun.nonScaleModelData.diameter, Sun.factData, Sun.nonScaleModelData, Sun.scaleModelData);
-        super(Sun.factData, Sun.nonScaleModelData, Sun.scaleModelData);
+        super(Sun.factData, Sun.nonScaleModelData, Sun.scaleModelData, Sun.scaleModelData);
 
         // Override orbit properties since Sun doesn't orbit
         this.orbitEnabled = false;
         this.orbitSpeed = 0;
 
-        this.createSphere('images/Sun-texture.jpg');
+        this.createSphere('textures/Sun-texture.jpg');
         this.createAxis(0xff8800); // Orange color for Sun's axis
         this.applyTilt();
-        this.createConsolePane();
 
         // Add a point light at the center of the sun
         this.addSunLight();
     }
 
+    // This method has been moved to the Planet base class
+    // makeDraggableElement is now inherited from Planet
+
     createSphere(texturePath) {
-        const geometry = new THREE.SphereGeometry(this.radius, 64, 32);
-        const textureLoader = new THREE.TextureLoader();
-        const texture = textureLoader.load(texturePath);
+        try {
+            console.log(`Creating sun sphere with texture: ${texturePath}`);
+            const geometry = new THREE.SphereGeometry(this.radius, 64, 32);
+            const textureLoader = new THREE.TextureLoader();
 
-        // Create material with the texture and emissive properties
-        const material = new THREE.MeshBasicMaterial({
-            map: texture,
-            emissive: 0xffaa00,
-            emissiveIntensity: 0.3,
-            shininess: 5
-        });
+            // Add error handling for texture loading
+            const texture = textureLoader.load(
+                texturePath,
+                // onLoad callback
+                function(loadedTexture) {
+                    console.log(`Sun texture loaded successfully: ${texturePath}`);
+                },
+                // onProgress callback (not supported by most browsers)
+                undefined,
+                // onError callback
+                function(err) {
+                    console.error(`Error loading sun texture: ${texturePath}`, err);
+                    // Create a fallback colored material
+                    if (this.sphere && this.sphere.material) {
+                        const fallbackColor = 0xffcc00; // Yellow fallback color for sun
+                        this.sphere.material.map = null;
+                        this.sphere.material.color.set(fallbackColor);
+                        this.sphere.material.needsUpdate = true;
+                    }
+                }.bind(this) // Bind this to access sphere in the callback
+            );
 
-        this.sphere = new THREE.Mesh(geometry, material);
-        this.group.add(this.sphere);
+            // Create material with the texture and emissive properties
+            const material = new THREE.MeshBasicMaterial({
+                map: texture,
+                emissive: 0xffaa00,
+                emissiveIntensity: 0.3,
+                shininess: 5
+            });
+
+            this.sphere = new THREE.Mesh(geometry, material);
+            this.group.add(this.sphere);
+
+            console.log('Sun sphere created successfully');
+        } catch (error) {
+            console.error(`Error creating sun sphere with texture ${texturePath}:`, error);
+
+            // Create a fallback sphere with a solid color if texture loading fails
+            try {
+                const geometry = new THREE.SphereGeometry(this.radius, 64, 32);
+                const material = new THREE.MeshBasicMaterial({
+                    color: 0xffcc00,  // Yellow fallback color for sun
+                    emissive: 0xffaa00,
+                    emissiveIntensity: 0.3
+                });
+                this.sphere = new THREE.Mesh(geometry, material);
+                this.group.add(this.sphere);
+                console.log('Created fallback sun sphere');
+            } catch (fallbackError) {
+                console.error('Failed to create fallback sun sphere:', fallbackError);
+            }
+        }
     }
 
     addSunLight() {
@@ -124,12 +169,12 @@ class Sun extends Planet {
         title.textContent = 'Sun Controls';
         title.style.margin = '0';
         header.appendChild(title);
-        
+
         // Create icons container for collapse and close
         const iconsContainer = document.createElement('div');
         iconsContainer.style.display = 'flex';
         iconsContainer.style.alignItems = 'center';
-        
+
         // Add collapse/expand icon
         const collapseIcon = document.createElement('div');
         collapseIcon.innerHTML = '&#9650;'; // Up arrow (collapse)
@@ -143,7 +188,7 @@ class Sun extends Planet {
         collapseIcon.style.userSelect = 'none';
         collapseIcon.title = 'Collapse/Expand';
         iconsContainer.appendChild(collapseIcon);
-        
+
         // Add close icon
         const closeIcon = document.createElement('div');
         closeIcon.innerHTML = '&#10006;'; // X symbol
@@ -157,21 +202,21 @@ class Sun extends Planet {
         closeIcon.style.userSelect = 'none';
         closeIcon.style.marginLeft = '8px';
         closeIcon.title = 'Close';
-        
+
         // Add click handler to hide the panel
         closeIcon.addEventListener('click', (e) => {
             e.stopPropagation(); // Prevent dragging
             this.hide();
-            
+
             // Find the toggle for sun in the Solar System Controls
             const toggle = document.getElementById('sun-controls-toggle');
             if (toggle) {
                 toggle.checked = false;
             }
         });
-        
+
         iconsContainer.appendChild(closeIcon);
-        
+
         // Add icons container to header
         header.appendChild(iconsContainer);
 
@@ -183,23 +228,23 @@ class Sun extends Planet {
         content.style.padding = '15px';
         this.consolePane.appendChild(content);
 
-        // Make the console pane draggable
-        this.makeDraggable(this.consolePane, header);
+        // Make the console pane draggable using the method from Planet base class
+        this.makeDraggableElement(this.consolePane, header);
 
         // Store content container for adding controls
         this.consoleContent = content;
-        
+
         // Add collapse/expand functionality
         collapseIcon.addEventListener('click', (e) => {
             e.stopPropagation(); // Prevent dragging when clicking the icon
-            
+
             // Get current position before changing display
             const currentTop = this.consolePane.offsetTop;
             const currentLeft = this.consolePane.offsetLeft;
-            
+
             // Get animation duration from SolarSystem if available, or use default
             const animationDuration = window.solarSystem?.uiConfig?.panelAnimationDuration || 1.0;
-            
+
             if (content.style.display === 'none') {
                 // Expand
                 content.style.display = 'block';
@@ -207,20 +252,20 @@ class Sun extends Planet {
                 content.style.overflow = 'hidden';
                 content.style.transition = `height ${animationDuration}s ease`;
                 this.consolePane.style.transition = `height ${animationDuration}s ease`;
-                
+
                 // Trigger reflow to ensure transition works
                 content.offsetHeight;
-                
+
                 // Get the natural height
                 const contentHeight = content.scrollHeight;
-                
+
                 // Animate expansion
                 content.style.height = contentHeight + 'px';
                 this.consolePane.style.height = (header.offsetHeight + contentHeight) + 'px';
                 collapseIcon.innerHTML = '&#9650;'; // Up arrow (collapse)
                 this.consolePane.style.borderBottomLeftRadius = '5px';
                 this.consolePane.style.borderBottomRightRadius = '5px';
-                
+
                 // Reset height to auto after animation
                 setTimeout(() => {
                     content.style.height = 'auto';
@@ -233,23 +278,23 @@ class Sun extends Planet {
                 // Get current content height before collapsing
                 const contentHeight = content.offsetHeight;
                 const headerHeight = header.offsetHeight;
-                
+
                 content.style.height = contentHeight + 'px';
                 content.style.overflow = 'hidden';
                 content.style.transition = `height ${animationDuration}s ease`;
                 this.consolePane.style.height = (headerHeight + contentHeight) + 'px';
                 this.consolePane.style.transition = `height ${animationDuration}s ease`;
-                
+
                 // Trigger reflow to ensure transition works
                 content.offsetHeight;
-                
+
                 // Animate collapse
                 content.style.height = '0';
                 this.consolePane.style.height = `${headerHeight}px`;
                 collapseIcon.innerHTML = '&#9660;'; // Down arrow (expand)
                 this.consolePane.style.borderBottomLeftRadius = '0';
                 this.consolePane.style.borderBottomRightRadius = '0';
-                
+
                 // Hide content after animation completes
                 setTimeout(() => {
                     content.style.display = 'none';
@@ -257,7 +302,7 @@ class Sun extends Planet {
                     this.consolePane.style.transition = '';
                 }, animationDuration * 1000);
             }
-            
+
             // Restore position after changing display
             this.consolePane.style.top = `${currentTop}px`;
             this.consolePane.style.left = `${currentLeft}px`;
@@ -268,105 +313,6 @@ class Sun extends Planet {
 
         // Add to document
         document.body.appendChild(this.consolePane);
-    }
-
-    createRotationSection() {
-        // Create section header
-        const sectionHeader = document.createElement('h4');
-        sectionHeader.textContent = 'Rotation Controls';
-        sectionHeader.style.margin = '0 0 10px 0';
-        sectionHeader.style.borderBottom = '1px solid #555';
-        sectionHeader.style.paddingBottom = '5px';
-        this.consoleContent.appendChild(sectionHeader);
-
-        // Listen for global rotation slider changes
-        document.addEventListener('globalRotationSliderChange', (e) => {
-            const slider = document.getElementById('sun-rotation-speed-slider');
-            if (slider) {
-                slider.value = e.detail.value;
-                // Trigger the input event to update the rotation speed
-                const event = new Event('input', { bubbles: true });
-                slider.dispatchEvent(event);
-            }
-        });
-
-        // Add axis toggle
-        this.addToggle('Show Axis: ', 'sun-axis-toggle', true, (e) => {
-            if (this.axis) {
-                this.axis.visible = e.target.checked;
-            }
-        });
-
-        // Add marker toggle
-        this.addToggle('Show Marker: ', 'sun-marker-toggle', false, (e) => {
-            // Create marker if it doesn't exist
-            if (!this.marker && e.target.checked) {
-                this.createMarker();
-            }
-            
-            // Set marker visibility
-            this.setMarkerVisible(e.target.checked);
-        });
-
-        // Add side marker view toggle
-        this.addToggle('Side Marker View: ', 'sun-side-marker-view-toggle', false, (e) => {
-            if (e.target.checked) {
-                // Create marker if it doesn't exist
-                if (!this.marker) {
-                    this.createMarker();
-                }
-                
-                // Make marker visible
-                this.setMarkerVisible(true);
-                
-                // Enable rotation so the marker rotates with the sun
-                this.rotationEnabled = true;
-                document.getElementById('sun-rotation-toggle').checked = true;
-                
-                // Set up the marker view
-                this.setPlanetMarkerView();
-            } else {
-                // Disable camera view mode
-                if (this.planetMarker) {
-                    this.planetMarker.setCameraView(false);
-                }
-                
-                // Hide marker
-                this.setMarkerVisible(false);
-                
-                // Restore original view
-                this.toggleCloseUpView(false, false);
-            }
-        });
-
-        // Add side marker distance slider
-        this.createMarkerDistanceSlider('sun');
-
-        // Add rotation toggle
-        this.addToggle('Enable Rotation: ', 'sun-rotation-toggle', this.rotationEnabled, (e) => {
-            this.rotationEnabled = e.target.checked;
-        });
-
-        // Add rotation speed slider
-        this.addSlider('Rotation Speed: ', 'sun-rotation-speed-slider', 50, (value) => {
-            if (value === 0) {
-                this.rotationSpeed = 0;
-            } else if (value <= 50) {
-                const normalizedValue = value / 50;
-                const baseSpeed = (2 * Math.PI) / (this.rotationPeriod * 60);
-                this.rotationSpeed = baseSpeed * normalizedValue;
-            } else {
-                const normalizedValue = (value - 50) / 50;
-                const periodDiff = this.rotationPeriod - this.maxRotationPeriod;
-                const adjustedPeriod = this.rotationPeriod - (periodDiff * normalizedValue);
-                this.rotationSpeed = (2 * Math.PI) / (adjustedPeriod * 60);
-            }
-
-            if (value > 0 && !this.rotationEnabled) {
-                this.rotationEnabled = true;
-                document.getElementById('sun-rotation-toggle').checked = true;
-            }
-        });
     }
 
     getObject() {

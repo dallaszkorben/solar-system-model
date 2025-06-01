@@ -121,6 +121,15 @@ class SolarSystemControlPanel extends ControlPanel {
         const toggle1 = document.createElement('input');
         toggle1.type = 'checkbox';
         toggle1.checked = true; // Default ON
+        toggle1.id = `${label.toLowerCase()}-visibility-toggle`;
+
+        // Add event listener for visibility toggle
+        toggle1.addEventListener('change', () => {
+            const planetName = label.toLowerCase();
+            if (this.solarSystem && this.solarSystem.planets && this.solarSystem.planets[planetName]) {
+                this.solarSystem.planets[planetName].setVisibility(toggle1.checked);
+            }
+        });
 
         // Create slider span for first switch
         const sliderSpan1 = document.createElement('span');
@@ -183,6 +192,13 @@ class SolarSystemControlPanel extends ControlPanel {
         rotationToggle.checked = false;
         rotationToggle.id = 'global-rotation-toggle';
 
+        // Add event listener for rotation toggle
+        rotationToggle.addEventListener('change', () => {
+            if (this.solarSystem) {
+                this.solarSystem.setAllRotationEnabled(rotationToggle.checked);
+            }
+        });
+
         // Create slider span
         const rotationSliderSpan = document.createElement('span');
         rotationSliderSpan.className = 'slider';
@@ -209,10 +225,35 @@ class SolarSystemControlPanel extends ControlPanel {
         const rotationSlider = document.createElement('input');
         rotationSlider.type = 'range';
         rotationSlider.min = '0';
-        rotationSlider.max = '100';
-        rotationSlider.value = '50'; // Default to middle position
+        rotationSlider.max = Planet.maxRotationFactor;
+        rotationSlider.step = '0.1';
+        rotationSlider.value = '1.0'; //default
         rotationSlider.style.width = '100%';
         rotationSlider.id = 'global-rotation-speed-slider';
+
+        // Add event listener for rotation speed slider
+        rotationSlider.addEventListener('input', () => {
+            if (this.solarSystem) {
+
+                console.log(rotationSlider.value);
+
+                // Use slider value directly as the speed factor
+                const speedFactor = parseFloat(rotationSlider.value);
+
+                // Update rotation speed for all planets
+                this.solarSystem.setGlobalRotationSpeed(speedFactor);
+
+                // If slider is moved from 0, enable the rotation toggle
+                if (speedFactor > 0 && !rotationToggle.checked) {
+                    rotationToggle.checked = true;
+                }
+
+                // If slider is set to 0, disable rotation but don't change the toggle
+                if (speedFactor === 0) {
+                    this.solarSystem.setAllRotationEnabled(false);
+                }
+            }
+        });
 
         rotationSliderContainer.appendChild(rotationSlider);
         this.consoleContent.appendChild(rotationSliderContainer);
@@ -246,6 +287,13 @@ class SolarSystemControlPanel extends ControlPanel {
         orbitToggle.checked = false;
         orbitToggle.id = 'global-orbit-toggle';
 
+        // Add event listener for orbit toggle
+        orbitToggle.addEventListener('change', () => {
+            if (this.solarSystem) {
+                this.solarSystem.setAllOrbitEnabled(orbitToggle.checked);
+            }
+        });
+
         // Create slider span
         const orbitSliderSpan = document.createElement('span');
         orbitSliderSpan.className = 'slider';
@@ -272,16 +320,125 @@ class SolarSystemControlPanel extends ControlPanel {
         const orbitSlider = document.createElement('input');
         orbitSlider.type = 'range';
         orbitSlider.min = '0';
-        orbitSlider.max = '100';
-        orbitSlider.value = '50'; // Default to middle position
+        orbitSlider.max = Planet.maxOrbitFactor;
+        orbitSlider.value = '1.0';
+        orbitSlider.step = '0.1';
         orbitSlider.style.width = '100%';
         orbitSlider.id = 'global-orbit-speed-slider';
+
+        // Add event listener for orbit speed slider
+        orbitSlider.addEventListener('input', () => {
+            if (this.solarSystem) {
+                // Use slider value directly as the speed factor
+                const speedFactor = parseFloat(orbitSlider.value);
+
+                // Update orbit speed for all planets
+                this.solarSystem.setGlobalOrbitSpeed(speedFactor);
+
+                // If slider is moved from 0, enable the orbit toggle
+                if (speedFactor > 0 && !orbitToggle.checked) {
+                    orbitToggle.checked = true;
+                }
+
+                // If slider is set to 0, disable orbit but don't change the toggle
+                if (speedFactor === 0) {
+                    this.solarSystem.setAllOrbitEnabled(false);
+                }
+            }
+        });
 
         orbitSliderContainer.appendChild(orbitSlider);
         this.consoleContent.appendChild(orbitSliderContainer);
     }
 
     createGeneralControlSection() {
+        // Create a separate section for Orbit Visibility
+        const orbitVisibilityHeader = document.createElement('h4');
+        orbitVisibilityHeader.textContent = 'Orbit Visibility';
+        orbitVisibilityHeader.style.margin = '15px 0 10px 0';
+        orbitVisibilityHeader.style.borderBottom = '1px solid #555';
+        orbitVisibilityHeader.style.paddingBottom = '5px';
+        this.consoleContent.appendChild(orbitVisibilityHeader);
+
+        // Add orbit visibility toggle
+        const orbitVisibilityToggleContainer = document.createElement('div');
+        orbitVisibilityToggleContainer.style.marginBottom = '10px';
+        orbitVisibilityToggleContainer.style.display = 'flex';
+        orbitVisibilityToggleContainer.style.justifyContent = 'space-between';
+        orbitVisibilityToggleContainer.style.alignItems = 'center';
+
+        const orbitVisibilityToggleLabel = document.createElement('label');
+        orbitVisibilityToggleLabel.textContent = 'Show Orbit Lines: ';
+
+        // Create switch container
+        const orbitVisibilitySwitchLabel = document.createElement('label');
+        orbitVisibilitySwitchLabel.className = 'switch';
+
+        const orbitVisibilityToggle = document.createElement('input');
+        orbitVisibilityToggle.type = 'checkbox';
+        orbitVisibilityToggle.checked = true; // Default ON
+        orbitVisibilityToggle.id = 'global-orbit-visibility-toggle';
+
+        // Add event listener for orbit visibility toggle
+        orbitVisibilityToggle.addEventListener('change', () => {
+            if (this.solarSystem) {
+                this.solarSystem.setAllOrbitLinesVisible(orbitVisibilityToggle.checked);
+            }
+        });
+
+        // Create slider span
+        const orbitVisibilitySliderSpan = document.createElement('span');
+        orbitVisibilitySliderSpan.className = 'slider';
+
+        // Assemble the switch
+        orbitVisibilitySwitchLabel.appendChild(orbitVisibilityToggle);
+        orbitVisibilitySwitchLabel.appendChild(orbitVisibilitySliderSpan);
+
+        orbitVisibilityToggleContainer.appendChild(orbitVisibilityToggleLabel);
+        orbitVisibilityToggleContainer.appendChild(orbitVisibilitySwitchLabel);
+        this.consoleContent.appendChild(orbitVisibilityToggleContainer);
+
+        // Add orbit opacity slider
+        const orbitOpacityContainer = document.createElement('div');
+        orbitOpacityContainer.style.marginBottom = '15px';
+
+        const orbitOpacityLabel = document.createElement('label');
+        orbitOpacityLabel.textContent = 'Orbit Line Opacity: ';
+        orbitOpacityLabel.style.display = 'block';
+        orbitOpacityLabel.style.marginBottom = '5px';
+        orbitOpacityContainer.appendChild(orbitOpacityLabel);
+
+        const orbitOpacitySlider = document.createElement('input');
+        orbitOpacitySlider.type = 'range';
+        orbitOpacitySlider.min = '0';
+        orbitOpacitySlider.max = '1';
+        orbitOpacitySlider.step = '0.01';
+        orbitOpacitySlider.value = Planet.orbitOpacity; // Default to 50% opacity
+        orbitOpacitySlider.style.width = '100%';
+        orbitOpacitySlider.id = 'orbit-opacity-slider';
+
+        // Add event listener for orbit opacity slider
+        orbitOpacitySlider.addEventListener('input', () => {
+            if (this.solarSystem) {
+                const opacity = parseFloat(orbitOpacitySlider.value);
+                this.solarSystem.setOrbitLinesOpacity(opacity);
+
+                // If slider is moved from 0, enable the visibility toggle
+                if (opacity > 0 && !orbitVisibilityToggle.checked) {
+                    orbitVisibilityToggle.checked = true;
+                    this.solarSystem.setAllOrbitLinesVisible(true);
+                }
+
+                // If slider is set to 0, make orbits invisible but don't change the toggle
+                if (opacity === 0) {
+                    this.solarSystem.setAllOrbitLinesVisible(false);
+                }
+            }
+        });
+
+        orbitOpacityContainer.appendChild(orbitOpacitySlider);
+        this.consoleContent.appendChild(orbitOpacityContainer);
+
         // Create a separate section for General Control
         const generalHeader = document.createElement('h4');
         generalHeader.textContent = 'General Control';
@@ -289,26 +446,6 @@ class SolarSystemControlPanel extends ControlPanel {
         generalHeader.style.borderBottom = '1px solid #555';
         generalHeader.style.paddingBottom = '5px';
         this.consoleContent.appendChild(generalHeader);
-
-        // Add orbit visibility slider
-        const orbitVisibilityContainer = document.createElement('div');
-        orbitVisibilityContainer.style.marginBottom = '15px';
-
-        const orbitVisibilityLabel = document.createElement('label');
-        orbitVisibilityLabel.textContent = 'Orbit Visibility: ';
-        orbitVisibilityLabel.style.display = 'block';
-        orbitVisibilityLabel.style.marginBottom = '5px';
-
-        const orbitVisibilitySlider = document.createElement('input');
-        orbitVisibilitySlider.type = 'range';
-        orbitVisibilitySlider.min = '0';
-        orbitVisibilitySlider.max = '100';
-        orbitVisibilitySlider.value = '50'; // Default to 50% visibility
-        orbitVisibilitySlider.style.width = '100%';
-
-        orbitVisibilityContainer.appendChild(orbitVisibilityLabel);
-        orbitVisibilityContainer.appendChild(orbitVisibilitySlider);
-        this.consoleContent.appendChild(orbitVisibilityContainer);
 
         // Add Day/Night Effect toggle
         const dayNightContainer = document.createElement('div');
@@ -329,6 +466,13 @@ class SolarSystemControlPanel extends ControlPanel {
         dayNightToggle.type = 'checkbox';
         dayNightToggle.checked = true; // Default ON
         dayNightToggle.id = 'global-day-night-toggle';
+
+        // Add event listener for day/night toggle
+        dayNightToggle.addEventListener('change', () => {
+            if (this.solarSystem) {
+                this.solarSystem.setAllDayNightEffectEnabled(dayNightToggle.checked);
+            }
+        });
 
         // Create slider span
         const dayNightSliderSpan = document.createElement('span');

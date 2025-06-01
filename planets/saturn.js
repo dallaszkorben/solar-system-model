@@ -12,7 +12,7 @@ class Saturn extends Planet {
         ringInnerRadius: 74500, // km
         ringOuterRadius: 140000, // km
     };
-    
+
     // Ring thickness configuration (not part of factual data)
     static ringThickness = 0.05; // Thickness as a fraction of planet radius
 
@@ -53,12 +53,13 @@ class Saturn extends Planet {
             return 0.1 * relativePeriods.rotation;
         },
         get orbitalPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Saturn.factData.rotationPeriod, Saturn.factData.orbitalPeriod);
-            return 180 * relativePeriods.orbit;
+            // Saturn orbits in 10759.22 days vs Earth's 365.25 days (ratio ~29.46)
+            // So Saturn should take 29.46x longer to orbit than Earth
+            return 60 * (Saturn.factData.orbitalPeriod / Planet.earthData.orbitalPeriod);
         },
         get maxOrbitalPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Saturn.factData.rotationPeriod, Saturn.factData.orbitalPeriod);
-            return 18 * relativePeriods.orbit;
+            // Maintain the same ratio for max speed
+            return 6 * (Saturn.factData.orbitalPeriod / Planet.earthData.orbitalPeriod);
         },
         rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
         maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
@@ -67,13 +68,13 @@ class Saturn extends Planet {
     };
 
     constructor() {
-        super(Saturn.factData, Saturn.nonScaleModelData, Saturn.scaleModelData);
+        super(Saturn.factData, Saturn.nonScaleModelData, Saturn.scaleModelData, Saturn.scaleModelData);
 
         // Ring visibility property
         this.ringsVisible = true;
         this.rings = null;
 
-        this.createSphere('images/Saturn-texture.jpg');
+        this.createSphere('textures/Saturn-texture.jpg');
         this.createAxis(0xffcc00); // Yellow-orange color for Saturn's axis
         this.createLatitudeCircles([
             { name: 'Equator', angle: 0, color: 0xff0000 },
@@ -83,7 +84,6 @@ class Saturn extends Planet {
         this.createRings();
         this.applyTilt();
         this.createOrbit();
-        this.createConsolePane('Saturn');
     }
 
     createRings() {
@@ -97,7 +97,7 @@ class Saturn extends Planet {
 
         // Load ring texture
         const textureLoader = new THREE.TextureLoader();
-        const ringTexture = textureLoader.load('images/saturn-ring-texture.png');
+        const ringTexture = textureLoader.load('textures/saturn-ring-texture.png');
 
         // Create ring material with transparency
         const ringMaterial = new THREE.MeshBasicMaterial({
@@ -211,68 +211,6 @@ class Saturn extends Planet {
         if (this.rings) {
             this.rings.visible = visible;
             this.ringsVisible = visible;
-        }
-    }
-
-    // Override createConsolePane to add ring toggle
-    createConsolePane(planetName) {
-        super.createConsolePane(planetName);
-        this.addRingToggle();
-    }
-
-    // Add ring toggle to visibility section
-    addRingToggle() {
-        // Find the visibility section
-        const sections = this.consoleContent.querySelectorAll('h4');
-        let visibilitySection;
-
-        for (const section of sections) {
-            if (section.textContent === 'Visibility Controls') {
-                visibilitySection = section;
-                break;
-            }
-        }
-
-        if (visibilitySection) {
-            // Find the last toggle in the visibility section
-            const lastToggle = visibilitySection.parentNode.querySelector('.switch:last-of-type');
-
-            if (lastToggle) {
-                const container = document.createElement('div');
-                container.style.marginBottom = '10px';
-                container.style.display = 'flex';
-                container.style.justifyContent = 'space-between';
-                container.style.alignItems = 'center';
-
-                const labelElem = document.createElement('label');
-                labelElem.textContent = 'Show Rings: ';
-
-                // Create switch container
-                const switchLabel = document.createElement('label');
-                switchLabel.className = 'switch';
-
-                const toggle = document.createElement('input');
-                toggle.type = 'checkbox';
-                toggle.checked = this.ringsVisible;
-                toggle.id = 'saturn-rings-toggle';
-                toggle.addEventListener('change', (e) => {
-                    this.toggleRings(e.target.checked);
-                });
-
-                // Create slider span
-                const sliderSpan = document.createElement('span');
-                sliderSpan.className = 'slider';
-
-                // Assemble the switch
-                switchLabel.appendChild(toggle);
-                switchLabel.appendChild(sliderSpan);
-
-                container.appendChild(labelElem);
-                container.appendChild(switchLabel);
-
-                // Insert after the last toggle in the visibility section
-                lastToggle.parentNode.after(container);
-            }
         }
     }
 }

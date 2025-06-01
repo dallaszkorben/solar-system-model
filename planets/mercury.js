@@ -48,12 +48,13 @@ class Mercury extends Planet {
             return 0.1 * relativePeriods.rotation;
         },
         get orbitalPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Mercury.factData.rotationPeriod, Mercury.factData.orbitalPeriod);
-            return 30 * relativePeriods.orbit; // Faster than Earth
+            // Mercury orbits in 88 days vs Earth's 365.25 days (ratio ~0.241)
+            // So Mercury should take 0.241x the time to orbit compared to Earth
+            return 60 * (Mercury.factData.orbitalPeriod / Planet.earthData.orbitalPeriod);
         },
         get maxOrbitalPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Mercury.factData.rotationPeriod, Mercury.factData.orbitalPeriod);
-            return 3 * relativePeriods.orbit;
+            // Maintain the same ratio for max speed
+            return 6 * (Mercury.factData.orbitalPeriod / Planet.earthData.orbitalPeriod);
         },
         rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
         maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
@@ -62,15 +63,14 @@ class Mercury extends Planet {
     };
 
     constructor() {
-        super(Mercury.factData, Mercury.nonScaleModelData, Mercury.scaleModelData);
+        super(Mercury.factData, Mercury.nonScaleModelData, Mercury.scaleModelData, Mercury.scaleModelData);
 
-        this.createSphere('images/Mercury-texture.jpg');
-        this.createAxis(0xaaaaaa); // Gray color for Mercury's axis
+        this.createSphere('textures/Mercury-texture.jpg');
+        this.createAxis(0xff00ff); // Gray color for Mercury's axis
         this.createLatitudeCircles([
             { name: 'Equator', angle: 0, color: 0xff0000 }
         ]);
         this.applyTilt();
         this.createOrbit();
-        this.createConsolePane('Mercury');
     }
 }

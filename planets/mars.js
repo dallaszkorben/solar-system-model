@@ -48,12 +48,13 @@ class Mars extends Planet {
             return 0.1 * relativePeriods.rotation;
         },
         get orbitalPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Mars.factData.rotationPeriod, Mars.factData.orbitalPeriod);
-            return 120 * relativePeriods.orbit;
+            // Mars orbits in 687 days vs Earth's 365.25 days (ratio ~1.88)
+            // So Mars should take 1.88x longer to orbit than Earth
+            return 60 * (Mars.factData.orbitalPeriod / Planet.earthData.orbitalPeriod);
         },
         get maxOrbitalPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Mars.factData.rotationPeriod, Mars.factData.orbitalPeriod);
-            return 12 * relativePeriods.orbit;
+            // Maintain the same ratio for max speed
+            return 6 * (Mars.factData.orbitalPeriod / Planet.earthData.orbitalPeriod);
         },
         rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
         maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
@@ -62,9 +63,9 @@ class Mars extends Planet {
     };
 
     constructor() {
-        super(Mars.factData, Mars.nonScaleModelData, Mars.scaleModelData);
+        super(Mars.factData, Mars.nonScaleModelData, Mars.scaleModelData, Mars.scaleModelData);
 
-        this.createSphere('images/Mars-texture.jpg');
+        this.createSphere('textures/Mars-texture.jpg');
         this.createAxis(0xff4500); // Orange-red color for Mars
         this.createLatitudeCircles([
             { name: 'Equator', angle: 0, color: 0x00ff00 },     // Bright green for equator
@@ -75,6 +76,5 @@ class Mars extends Planet {
         ]);
         this.applyTilt();
         this.createOrbit();
-        this.createConsolePane('Mars');
     }
 }

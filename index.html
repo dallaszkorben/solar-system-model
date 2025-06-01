@@ -13,6 +13,15 @@
     
     <script src="planets/planet.js"></script>
     <script src="planets/sky.js"></script>
+    <script src="planets/sun.js"></script>
+    <script src="planets/mercury.js"></script>
+    <script src="planets/venus.js"></script>
+    <script src="planets/earth.js"></script>
+    <script src="planets/mars.js"></script>
+    <script src="planets/jupiter.js"></script>
+    <script src="planets/saturn.js"></script>
+    <script src="planets/uranus.js"></script>
+    <script src="planets/neptune.js"></script>
     <script src="views/base-view.js"></script>
     <script src="views/global-view.js"></script>
     <script src="views/planet-side-view.js"></script>
@@ -25,7 +34,22 @@
     <script>
         // Initialize the solar system when the page loads
         window.addEventListener('load', function() {
-            const solarSystem = new SolarSystem();
+            console.log('Page loaded, initializing solar system...');
+            
+            // Add global error handler for texture loading issues
+            THREE.TextureLoader.prototype.crossOrigin = '';
+            
+            try {
+                const solarSystem = new SolarSystem();
+                console.log('Solar system initialized successfully');
+            } catch (error) {
+                console.error('Failed to initialize solar system:', error);
+            }
+        });
+        
+        // Add global error handler
+        window.addEventListener('error', function(event) {
+            console.error('Global error caught:', event.error);
         });
     </script>
 </body>
