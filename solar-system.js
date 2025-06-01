@@ -54,10 +54,6 @@ class SolarSystem {
             this.controls.enableDamping = true;
             this.controls.dampingFactor = 0.05;
 
-//            // Add ambient light (soft overall light)
-//            const ambientLight = new THREE.AmbientLight(0x404040, 0.5); // dim ambient light
-//            this.scene.add(ambientLight);
-
             // Add directional light (sun-like)
             const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
             directionalLight.position.set(0, 0, 0); // Light from the sun's position
@@ -138,6 +134,13 @@ class SolarSystem {
         }
     }
 
+    // Set a planet side view
+    setPlanetSideView(planetName) {
+        if (this.viewControlPanel) {
+            this.viewControlPanel.setView(`${planetName}SideView`);
+        }
+    }
+
     animate() {
         requestAnimationFrame(this.animate.bind(this));
 
@@ -179,6 +182,14 @@ class SolarSystem {
         if (this.sky) {
             this.sky.setRotationSpeed(speed);
         }
+    }
+
+    // Method to get a planet by name
+    getPlanetByName(name) {
+        if (this.planets && this.planets[name]) {
+            return this.planets[name];
+        }
+        return null;
     }
 
     // Method to enable/disable rotation for all planets

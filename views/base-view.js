@@ -58,7 +58,7 @@ class BaseView {
         },
 
         // Default planet side view (can be overridden by specific planets)
-        'planetSideView': {
+        'earthSideView': {
             rotateVerticalDefaultValue: 0,
             rotateVerticalMinValue: -Math.PI/2,
             rotateVerticalMaxValue: Math.PI/2,
@@ -201,6 +201,56 @@ class BaseView {
             position: new THREE.Vector3(x, y, z),
             up: up
         };
+    }
+
+        /**
+     * Sets camera position and orientation based on spherical coordinates
+     *
+     *              +Y
+     *              |
+     *              ↺  horizontalAngle
+     *            __|__
+     *          /   |  /|
+     *         /__ __ / |
+     *         |     | _/____↺____ +X
+     *         |  /  | /    verticalAngle
+     *         |_/___|/
+     *          /
+     *         ↙  distance
+     *        /
+     *       +Z
+     *
+     *
+     *
+     * @param {THREE.Camera} camera - The camera to position
+     * @param {THREE.OrbitControls} controls - The controls to update
+     * @param {number} horizontalAngle - Rotation around Y axis in radians (0 = looking from +Z)
+     * @param {number} verticalAngle - Rotation around X axis in radians (0 = horizontal, π/2 = top view)
+     * @param {number} distance - Distance from origin
+     * @param {number} rollAngle - Optional roll angle in radians (0 = no roll)
+     */
+    setCameraView(camera, controls, horizontalAngle, verticalAngle, distance, rollAngle = 0) {
+
+        const {position, up} = this.calculateSpericalCoordinatesToCameraSet(horizontalAngle, verticalAngle, distance, rollAngle);
+
+        // Set camera position
+        //camera.position.set(x, y, z);
+        camera.position.copy(position)
+
+        // Set up vector for top view
+        //camera.up.set(upX, upY, upZ);
+        camera.up.copy(up);
+
+        // Look at the center of the scene
+        camera.lookAt(0, 0, 0);
+
+        if (controls) {
+            controls.target.set(0, 0, 0);
+            controls.rotateSpeed = 0.5;
+            controls.zoomSpeed = 1.0;
+            controls.panSpeed = 0.8;
+            controls.update();
+        }
     }
 
     // DO NOT REMOVE THIS - might be needed

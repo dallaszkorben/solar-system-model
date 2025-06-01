@@ -13,6 +13,9 @@ class ViewControlPanel extends ControlPanel {
         this.globalView = new GlobalView(solarSystem);
         this.planetSideView = new PlanetSideView(solarSystem);
         this.localView = new LocalView(solarSystem);
+        
+        // Set view type for planet side view
+        this.planetSideView.setViewType('sunSideView');
 
         // Track current active view
         this.activeView = null;
@@ -138,9 +141,28 @@ class ViewControlPanel extends ControlPanel {
 
     handleViewChange(viewName) {
         console.log(`Changing view to: ${viewName}`);
+        
+        // Deactivate current view if any
+        if (this.activeView) {
+            this.activeView.deactivate();
+        }
 
-        this.globalView.setViewType(viewName);
-        this.activeView = this.globalView;  //TODO: ??? do I need it?
+        // Determine which view object to use based on the view name
+        if (viewName === 'topView' || viewName === 'sideView') {
+            // Global views
+            this.globalView.setViewType(viewName);
+            this.activeView = this.globalView;
+        } else if (viewName.includes('SideView')) {
+            // Planet side views
+            this.planetSideView.setViewType(viewName);
+            this.activeView = this.planetSideView;
+        } else {
+            // Local views
+            this.localView.setViewType(viewName);
+            this.activeView = this.localView;
+        }
+        
+        // Activate the new view
         this.activeView.activate();
     }
 
