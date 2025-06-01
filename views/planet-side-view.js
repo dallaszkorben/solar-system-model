@@ -145,8 +145,9 @@ class PlanetSideView extends BaseView {
         if (!this.allowNavigation) {
             // Position camera at a specific angle around the planet's equator
             // You can change this angle to move the camera around the planet
-            const horizontalAngleDiff = 0; // 0 = default position, Math.PI = opposite side
-            this.positionCameraAtEquatorAngle(horizontalAngleDiff);
+            const horizontalAngleDiff = 3.14/2; // 0 = default position, Math.PI = opposite side
+            const verticalAngleDiff = -3.14/2;
+            this.positionCameraAtEquatorAngle(horizontalAngleDiff, verticalAngleDiff);
         }
         // If navigation is allowed, just update the marker position
         else if (this.solarSystem.camera) {
@@ -164,10 +165,11 @@ class PlanetSideView extends BaseView {
 
 
     /**
-     * Position the camera at a specific angle around the planet's equator
+     * Position the camera at a specific angle around the planet's equator and meridian
      * @param {number} horizontalAngleDiff - Angle in radians to move around the equator (0 = current position, PI = opposite side)
+     * @param {number} verticalAngleDiff - Angle in radians to move up/down along meridian (PI/2 = north pole, -PI/2 = south pole, 0 = equator)
      */
-    positionCameraAtEquatorAngle(horizontalAngleDiff) {
+    positionCameraAtEquatorAngle(horizontalAngleDiff = 0, verticalAngleDiff = 0) {
         if (!this.targetPlanet || !this.solarSystem || !this.solarSystem.camera) return;
 
         // Get current planet position
@@ -178,13 +180,13 @@ class PlanetSideView extends BaseView {
         const cameraDistance = this.targetPlanet.diameter * this.targetPlanet.sideMarkerDistanceFactor;
 
         // Add PI/2 to the angle to make 0 the default position
-        const adjustedAngle = horizontalAngleDiff + Math.PI/2;
+        const adjustedHorizontalAngle = horizontalAngleDiff + Math.PI/2;
 
-        // Start with a position in the equatorial plane
+        // Create position using spherical coordinates (horizontal around equator, vertical along meridian)
         const basePosition = new THREE.Vector3(
-            Math.cos(adjustedAngle),
-            0,
-            Math.sin(adjustedAngle)
+            Math.cos(adjustedHorizontalAngle) * Math.cos(verticalAngleDiff),
+            Math.sin(verticalAngleDiff),
+            Math.sin(adjustedHorizontalAngle) * Math.cos(verticalAngleDiff)
         );
 
         // Apply the planet's axial tilt (rotation around Z-axis)
