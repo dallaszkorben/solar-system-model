@@ -171,6 +171,8 @@ class SolarSystem {
         this.renderer.render(this.scene, this.camera);
     }
 
+
+
     onWindowResize() {
         this.camera.aspect = window.innerWidth / window.innerHeight;
         this.camera.updateProjectionMatrix();

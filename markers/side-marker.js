@@ -28,27 +28,32 @@ class SideMarker {
         this.planet.sideMarkerGroup.add(this.marker);
     }
 
+    /**
+     * Update the marker position based on the distance factor
+     * This positions the marker at a fixed global direction from the planet
+     */
     updateMarkerPosition() {
         if (!this.marker) return;
-
+        
         // Calculate marker distance based on planet diameter and distance factor
         const markerDistance = this.planet.diameter * this.markerDistanceFactor;
-
-        // Get the planet's position in its parent group
-        const planetPos = new THREE.Vector3();
-        this.planet.group.getWorldPosition(planetPos);
-
-        // Calculate the tangent direction to the orbit
-        // For a circular orbit, the tangent is perpendicular to the radius vector
-        const orbitAngle = this.planet.orbitGroup.rotation.y;
-
-        // Position the marker at the same orbital radius as the planet
-        // but offset along the tangent direction
-        this.marker.position.set(
-            this.planet.orbitRadius, // Same X position as planet (orbital radius)
-            0,                       // Same Y position (in orbit plane)
-            markerDistance           // Offset in Z direction (tangent to orbit)
-        );
+        
+        // Position the marker at a fixed global direction (along Z-axis)
+        // This ensures the marker maintains a consistent position relative to the planet
+        this.marker.position.set(0, 0, markerDistance);
+    }
+    
+    /**
+     * Set the marker position in world space
+     * @param {THREE.Vector3} worldPosition - The world position to place the marker
+     */
+    setWorldPosition(worldPosition) {
+        if (!this.marker) return;
+        
+        // Convert world position to local space of the marker's parent
+        const localPos = new THREE.Vector3();
+        this.planet.sideMarkerGroup.worldToLocal(worldPosition, localPos);
+        this.marker.position.copy(localPos);
     }
 
     setMarkerDistance(distanceFactor) {
@@ -81,34 +86,23 @@ class SideMarker {
         return position;
     }
 
+    /**
+     * Set whether this marker should control the camera view
+     * @param {boolean} enabled - Whether camera view should be enabled
+     */
     setCameraView(enabled) {
         this.cameraView = enabled;
-        if (enabled) {
-            this.updateCameraPosition();
-        }
     }
-
-    updateCameraPosition() {
-        if (!this.cameraView || !this.marker) return;
-
-        // Get the world position of the marker and planet
-        const markerWorldPos = this.getWorldPosition();
+    
+    /**
+     * Get the target position for the camera to look at (usually the planet center)
+     * @returns {THREE.Vector3} The target position
+     */
+    getCameraTarget() {
         const planetWorldPos = new THREE.Vector3();
-        this.planet.sphere.getWorldPosition(planetWorldPos);
-
-        // Position the camera at the marker looking at the planet
-        if (this.planet.solarSystem && this.planet.solarSystem.camera) {
-            const camera = this.planet.solarSystem.camera;
-            const controls = this.planet.solarSystem.controls;
-
-            camera.position.copy(markerWorldPos);
-            camera.lookAt(planetWorldPos);
-
-            // Update orbit controls target if available
-            if (controls) {
-                controls.target.copy(planetWorldPos);
-                // Don't call controls.update() here as it can cause flickering
-            }
+        if (this.planet && this.planet.sphere) {
+            this.planet.sphere.getWorldPosition(planetWorldPos);
         }
+        return planetWorldPos;
     }
 }
