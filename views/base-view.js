@@ -57,33 +57,6 @@ class BaseView {
             traverseDepthMaxValue: 20000
         },
 
-        // Default planet side view (can be overridden by specific planets)
-        'earthSideView': {
-            rotateVerticalDefaultValue: 0,
-            rotateVerticalMinValue: -Math.PI/2,
-            rotateVerticalMaxValue: Math.PI/2,
-
-            rotateHorizontalDefaultValue: 0,
-            rotateHorizontalMinValue: -Math.PI,
-            rotateHorizontalMaxValue: Math.PI,
-
-            rotateDepthDefaultValue: 0,
-            rotateDepthMinValue: -Math.PI/2,
-            rotateDepthMaxValue: Math.PI/2,
-
-            traverseVerticalDefaultValue: 0,
-            traverseVerticalMinValue: 0.01,
-            traverseVerticalMaxValue: 2,
-
-            traverseHorizontalDefaultValue: 0,
-            traverseHorizontalMinValue: 0.01,
-            traverseHorizontalMaxValue: 2,
-
-            traverseDepthDefaultValue: 0,
-            traverseDepthMinValue: 0.01,
-            traverseDepthMaxValue: 2
-        },
-
         // Default local view (can be overridden by specific locations)
         'localView': {
             rotateVerticalDefaultValue: 0,

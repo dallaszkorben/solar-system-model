@@ -2,6 +2,36 @@
  * Planet side view for viewing a specific planet
  */
 class PlanetSideView extends BaseView {
+
+    static defaultViewCamera = {
+        rotateVerticalDefaultValue: 0,
+        rotateVerticalMinValue: -Math.PI/2,
+        rotateVerticalMaxValue: Math.PI/2,
+        rotateVerticalStep: 0.01,
+
+        rotateHorizontalDefaultValue: 0,
+        rotateHorizontalMinValue: -Math.PI/2 + 0.0001,
+        rotateHorizontalMaxValue: Math.PI/2,
+        rotateHorizontalStep: 0.01,
+
+        traverseDepthDefaultValue: 2,
+        traverseDepthMinValue: 0.6,
+        traverseDepthMaxValue: 5,
+        traverseDepthStep: 0.01
+    }
+
+    static viewCameras = {
+        'sunSideView': PlanetSideView.defaultViewCamera,
+        'mercurySideView': PlanetSideView.defaultViewCamera,
+        'venusSideView': PlanetSideView.defaultViewCamera,
+        'earthSideView': PlanetSideView.defaultViewCamera,
+        'marsSideView': PlanetSideView.defaultViewCamera,
+        'jupiterSideView': PlanetSideView.defaultViewCamera,
+        'saturnSideView': PlanetSideView.defaultViewCamera,
+        'uranusSideView': PlanetSideView.defaultViewCamera,
+        'neptuneSideView': PlanetSideView.defaultViewCamera
+    }
+
     constructor(solarSystem) {
         super(solarSystem);
         this.viewType = 'sunSideView';
@@ -85,8 +115,17 @@ class PlanetSideView extends BaseView {
         const planetWorldPos = new THREE.Vector3();
         this.targetPlanet.sphere.getWorldPosition(planetWorldPos);
 
-        // Calculate camera distance based on planet size and marker distance factor
-        const cameraDistance = this.targetPlanet.diameter * this.targetPlanet.sideMarkerDistanceFactor;
+        // Get absolute distance factor from viewCameras if available, otherwise use default (1.5)
+        let distanceFactor = 1.5; // Default is 1.5 (surface + radius)
+
+        // Check if we have camera settings for this planet
+        if (PlanetSideView.viewCameras && PlanetSideView.viewCameras[this.viewType] &&
+            PlanetSideView.viewCameras[this.viewType].traverseDepthDefaultValue !== undefined) {
+            distanceFactor = PlanetSideView.viewCameras[this.viewType].traverseDepthDefaultValue;
+        }
+
+        // Calculate camera distance based on planet size and absolute distance factor
+        const cameraDistance = this.targetPlanet.diameter * distanceFactor;
 
         // Calculate camera position in global space
         const cameraPos = new THREE.Vector3();
@@ -143,11 +182,38 @@ class PlanetSideView extends BaseView {
 
         // If navigation is not allowed, maintain fixed camera position
         if (!this.allowNavigation) {
-            // Position camera at a specific angle around the planet's equator
-            // You can change this angle to move the camera around the planet
-            const horizontalAngleDiff = 3.14/2; // 0 = default position, Math.PI = opposite side
-            const verticalAngleDiff = -3.14/2;
-            this.positionCameraAtEquatorAngle(horizontalAngleDiff, verticalAngleDiff);
+            // Get the current planet name
+            const planetName = this.viewType.replace('SideView', '');
+
+            // Get angles from control panel if available
+            let verticalAngleDiff = 0;
+            let horizontalAngleDiff = 0;
+            let depthTranslate = 1.5; // Default absolute distance
+
+            // Check if there's a control panel with slider values
+            if (this.solarSystem.viewControlPanel &&
+                this.solarSystem.viewControlPanel.planetSliderValues &&
+                this.solarSystem.viewControlPanel.planetSliderValues[planetName]) {
+
+                const planetValues = this.solarSystem.viewControlPanel.planetSliderValues[planetName];
+
+                if (planetValues.vertical !== undefined) {
+                    verticalAngleDiff = planetValues.vertical;
+                }
+
+                if (planetValues.horizontal !== undefined) {
+                    horizontalAngleDiff = planetValues.horizontal;
+                }
+
+                if (planetValues.depth !== undefined) {
+                    depthTranslate = planetValues.depth;
+                }
+            }
+
+            // Position camera using the angles and absolute depth
+            // Use the appropriate positioning function based on the view type
+            //this.positionCameraAtOrbitPlane(-verticalAngleDiff, horizontalAngleDiff, depthTranslate);
+            this.positionCameraAtEquatorAngle(-verticalAngleDiff, horizontalAngleDiff, depthTranslate);
         }
         // If navigation is allowed, just update the marker position
         else if (this.solarSystem.camera) {
@@ -166,27 +232,29 @@ class PlanetSideView extends BaseView {
 
     /**
      * Position the camera at a specific angle around the planet's equator and meridian
-     * @param {number} horizontalAngleDiff - Angle in radians to move around the equator (0 = current position, PI = opposite side)
-     * @param {number} verticalAngleDiff - Angle in radians to move up/down along meridian (PI/2 = north pole, -PI/2 = south pole, 0 = equator)
+     * @param {number} verticalAngleDiff - Angle in radians to move around the equator (0 = current position, PI = opposite side)
+     * @param {number} horizontalAngleDiff - Angle in radians to move up/down along meridian (PI/2 = north pole, -PI/2 = south pole, 0 = equator)
+     * @param {number} depthTranslate - Factor of planet diameter for absolute camera distance (0.5 = surface, 1 = radius beyond surface, etc.)
      */
-    positionCameraAtEquatorAngle(horizontalAngleDiff = 0, verticalAngleDiff = 0) {
+    positionCameraAtEquatorAngle(verticalAngleDiff = 0, horizontalAngleDiff = 0, depthTranslate = 1.5) {
         if (!this.targetPlanet || !this.solarSystem || !this.solarSystem.camera) return;
 
         // Get current planet position
         const planetWorldPos = new THREE.Vector3();
         this.targetPlanet.sphere.getWorldPosition(planetWorldPos);
 
-        // Calculate camera distance based on planet size and marker distance factor
-        const cameraDistance = this.targetPlanet.diameter * this.targetPlanet.sideMarkerDistanceFactor;
+        // Calculate camera distance based on absolute depth factor
+        // depthTranslate is in planet diameter units (0.5 = surface, 1 = radius beyond surface)
+        const cameraDistance = this.targetPlanet.diameter * depthTranslate;
 
         // Add PI/2 to the angle to make 0 the default position
-        const adjustedHorizontalAngle = horizontalAngleDiff + Math.PI/2;
+        const adjustedVerticalAngle = verticalAngleDiff + Math.PI/2;
 
-        // Create position using spherical coordinates (horizontal around equator, vertical along meridian)
+        // Create position using spherical coordinates (vertical around equator, horizontal along meridian)
         const basePosition = new THREE.Vector3(
-            Math.cos(adjustedHorizontalAngle) * Math.cos(verticalAngleDiff),
-            Math.sin(verticalAngleDiff),
-            Math.sin(adjustedHorizontalAngle) * Math.cos(verticalAngleDiff)
+            Math.cos(adjustedVerticalAngle) * Math.cos(horizontalAngleDiff),
+            Math.sin(horizontalAngleDiff),
+            Math.sin(adjustedVerticalAngle) * Math.cos(horizontalAngleDiff)
         );
 
         // Apply the planet's axial tilt (rotation around Z-axis)
@@ -218,28 +286,31 @@ class PlanetSideView extends BaseView {
 
 
     /**
-     * Position the camera at a specific angle around the planet's equator
-     * @param {number} horizontalAngleDiff - Angle in radians to move around the equator (0 = current position, PI = opposite side)
+     * Position the camera at a specific angle around the planet in the orbit plane
+     * @param {number} verticalAngleDiff - Angle in radians to move around the orbit plane (0 = current position, PI = opposite side)
+     * @param {number} horizontalAngleDiff - Angle in radians to move up/down from orbit plane (PI/2 = above, -PI/2 = below, 0 = in plane)
+     * @param {number} depthTranslate - Factor of planet diameter for absolute camera distance (0.5 = surface, 1 = radius beyond surface, etc.)
      */
-    positionCameraAtOrbitPlane(horizontalAngleDiff) {
+    positionCameraAtOrbitPlane(verticalAngleDiff = 0, horizontalAngleDiff = 0, depthTranslate = 1.5) {
         if (!this.targetPlanet || !this.solarSystem || !this.solarSystem.camera) return;
 
         // Get current planet position
         const planetWorldPos = new THREE.Vector3();
         this.targetPlanet.sphere.getWorldPosition(planetWorldPos);
 
-        // Calculate camera distance based on planet size and marker distance factor
-        const cameraDistance = this.targetPlanet.diameter * this.targetPlanet.sideMarkerDistanceFactor;
+        // Calculate camera distance based on absolute depth factor
+        const cameraDistance = this.targetPlanet.diameter * depthTranslate;
 
         // Add PI/2 to the angle to make 0 the default position (what was previously at PI/2)
-        const adjustedAngle = horizontalAngleDiff + Math.PI/2;
+        const adjustedAngle = verticalAngleDiff + Math.PI/2;
 
-        // For planets, we want to view them in the orbit plane
-        // Start with a position in the orbit plane (X-Z plane)
+        // Create position using spherical coordinates
+        // verticalAngleDiff controls position around the orbit plane (X-Z)
+        // horizontalAngleDiff controls elevation from the orbit plane (Y)
         const basePosition = new THREE.Vector3(
-            Math.cos(adjustedAngle),
-            0,
-            Math.sin(adjustedAngle)
+            Math.cos(adjustedAngle) * Math.cos(horizontalAngleDiff),
+            Math.sin(horizontalAngleDiff),
+            Math.sin(adjustedAngle) * Math.cos(horizontalAngleDiff)
         );
 
         // Scale to the desired distance
