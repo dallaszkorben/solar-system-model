@@ -55,9 +55,9 @@ class SolarSystem {
             this.controls.dampingFactor = 0.05;
 
             // Add directional light (sun-like)
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
-            directionalLight.position.set(0, 0, 0); // Light from the sun's position
-            this.scene.add(directionalLight);
+            this.sunLight = new THREE.DirectionalLight(0xffffff, 1.0);
+            this.sunLight.position.set(0, 0, 0); // Light from the sun's position
+            this.scene.add(this.sunLight);
 
             // Initialize planets collection
             this.planets = {};
@@ -221,13 +221,22 @@ class SolarSystem {
     // Method to enable/disable day/night effect for all planets
     setAllDayNightEffectEnabled(enabled) {
         if (this.planets) {
+            // Store the day/night state regardless of sun visibility
+            this.dayNightEffectEnabled = enabled;
+
+            const sunVisible = this.planets.sun && this.planets.sun.visible;
+
             Object.values(this.planets).forEach(planet => {
-                if (typeof planet.setDayNightEffectEnabled === 'function') {
+
+                // Skip the sun itself
+                if (planet !== this.planets.sun && typeof planet.setDayNightEffectEnabled === 'function') {
                     planet.setDayNightEffectEnabled(enabled);
                 }
             });
         }
     }
+
+
 
     // Method to enable/disable orbit for all planets
     setAllOrbitEnabled(enabled) {

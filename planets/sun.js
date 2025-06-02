@@ -131,9 +131,9 @@ class Sun extends Planet {
 
     addSunLight() {
         // Add a point light at the center of the sun with increased intensity and no distance falloff
-        const sunLight = new THREE.PointLight(0xffffff, 2.0, 0, 1);
-        sunLight.castShadow = true;
-        this.group.add(sunLight);
+        this.pointLight = new THREE.PointLight(0xffffff, 2.0, 0, 1);
+        this.pointLight.castShadow = true;
+        this.group.add(this.pointLight);
     }
 
     createConsolePane() {
@@ -317,5 +317,60 @@ class Sun extends Planet {
 
     getObject() {
         return this.group; // Sun doesn't orbit, so return the group directly
+    }
+
+    /**
+     * Override the setVisibility method to handle day/night effect when sun is hidden
+     * @param {boolean} isVisible - Whether the sun should be visible
+     */
+    setVisibility(isVisible) {
+        // Call the parent method to handle basic visibility
+        if (isVisible) {
+            this.show();
+        } else {
+            this.hide();
+        }
+
+        // Store visibility state
+        this.visible = isVisible;
+
+        // Control the sun's point light visibility directly
+        if (this.pointLight) {
+            this.pointLight.visible = isVisible;
+        }
+
+        // Find the solar system instance
+        const solarSystem = window.solarSystem;
+
+        if (solarSystem) {
+            // Control the directional light visibility directly
+            if (solarSystem.sunLight) {
+                solarSystem.sunLight.visible = isVisible;
+            }
+
+            // Get the current day/night toggle state
+            const dayNightToggle = document.getElementById('global-day-night-toggle');
+            const dayNightEnabled = dayNightToggle ? dayNightToggle.checked : true;
+
+            if (!isVisible) {
+                // Store the current day/night state
+                this.previousDayNightState = dayNightEnabled;
+
+                // When sun is hidden, always force planets to use basic material
+                // This will make them visible regardless of day/night setting
+                solarSystem.setAllDayNightEffectEnabled(solarSystem.dayNightEffectEnabled);
+            } else {
+                // Sun is now visible
+                if (this.previousDayNightState) {
+                    // If day/night was previously enabled, restore it
+                    if (dayNightToggle) {
+                        dayNightToggle.checked = true;
+                    }
+                    solarSystem.setAllDayNightEffectEnabled(true);
+                }
+
+                this.previousDayNightState = false;
+            }
+        }
     }
 }
