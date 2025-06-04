@@ -125,6 +125,7 @@ class Planet {
 
             // Use the appropriate material based on day/night effect setting
             const material = this.dayNightEffectEnabled ? standardMaterial : basicMaterial;
+            this.setRingMaterial(this.getRingBasicMaterial());
 
             this.sphere = new THREE.Mesh(geometry, material);
             this.group.add(this.sphere);
@@ -426,10 +427,10 @@ class Planet {
             this.seasonLabels.visible = false;
         }
         // Hide rings if this planet has them
-        if (this.rings) {
-            this.rings.visible = false;
-            this.ringsVisible = false;
-        }
+//        if (this.rings) {
+//            this.rings.visible = false;
+//            this.ringsVisible = false;
+//        }
     }
 
     /**
@@ -457,11 +458,21 @@ class Planet {
                 // Switch to standard material with lighting
                 if (this.standardMaterial) {
                     this.sphere.material = this.standardMaterial;
+
+                    if (this.hasRing()){
+                        this.setRingMaterial(this.getRingStandardMaterial());
+                    }
+
                 }
             } else {
                 // Switch to basic material without lighting
                 if (this.basicMaterial) {
                     this.sphere.material = this.basicMaterial;
+
+                    if (this.hasRing()){
+                        this.setRingMaterial(this.getRingBasicMaterial());
+                    }
+
                 }
             }
             this.sphere.material.needsUpdate = true;
@@ -599,4 +610,122 @@ class Planet {
             document.onmousemove = null;
         }
     }
+
+    createRings() {
+        if (!this.factData.ringInnerRadius || !this.factData.ringOuterRadius) {
+            return; // Skip if planet doesn't have ring data
+        }
+
+        // Calculate ring dimensions based on factData
+        const planetRadius = this.factData.diameter / 2;
+        const innerRadiusFactor = this.factData.ringInnerRadius / planetRadius;
+        const outerRadiusFactor = this.factData.ringOuterRadius / planetRadius;
+
+        const innerRadius = this.radius * innerRadiusFactor;
+        const outerRadius = this.radius * outerRadiusFactor;
+        const thickness = this.radius * 0.05; // Default thickness factor
+
+        // Create a group to hold all ring components
+        this.rings = new THREE.Group();
+
+        // Load ring texture
+        const textureLoader = new THREE.TextureLoader();
+        const ringTexture = textureLoader.load(`textures/${this.constructor.name.toLowerCase()}-ring-texture.png`);
+
+        // Create ring materials
+        const ringStandardMaterial = new THREE.MeshStandardMaterial({
+            map: ringTexture,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.9
+        });
+
+        const ringBasicMaterial = new THREE.MeshBasicMaterial({
+            map: ringTexture,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.9
+        });
+
+        // Store materials for later use
+        this.ringStandardMaterial = ringStandardMaterial;
+        this.ringBasicMaterial = ringBasicMaterial;
+
+        // Create a cylinder for the ring
+        const ringGeometry = new THREE.CylinderGeometry(
+            outerRadius,    // radiusTop
+            outerRadius,    // radiusBottom
+            thickness,      // height
+            64,             // radialSegments
+            1,              // heightSegments
+            false           // openEnded
+        );
+
+        // Modify UVs to map texture from inner to outer radius
+        const uvs = ringGeometry.attributes.uv;
+        const positionAttr = ringGeometry.attributes.position;
+
+        for (let i = 0; i < positionAttr.count; i++) {
+            const x = positionAttr.getX(i);
+            const z = positionAttr.getZ(i);
+
+            // Calculate actual radius of this vertex
+            const vertexRadius = Math.sqrt(x * x + z * z);
+
+            // Map U from innerRadius to outerRadius
+            const radius = (vertexRadius - innerRadius) / (outerRadius - innerRadius);
+            const angle = Math.atan2(z, x) / (Math.PI * 2);
+
+            // Set U based on normalized radius from inner to outer edge
+            // Set V based on angle around the cylinder
+            uvs.setXY(i, Math.max(0, Math.min(1, radius)), angle < 0 ? angle + 1 : angle);
+        }
+
+        // Create the ring mesh
+        const ring = new THREE.Mesh(ringGeometry, ringStandardMaterial);
+
+        // Align with the orbital plane
+        ring.rotation.y = Math.PI / 2;
+
+        this.rings.add(ring);
+
+        // Add rings to the planet group
+        this.group.add(this.rings);
+
+        // Set ring visibility property
+        this.ringsVisible = true;
+    }
+
+
+    // Add this method to the Planet class
+    hasRing() {
+        return !!this.factData.ringInnerRadius && !!this.factData.ringOuterRadius;
+    }
+
+    // Add this method to the Planet class
+    toggleRings(visible) {
+        if (this.rings) {
+            this.rings.visible = visible;
+            this.ringsVisible = visible;
+        }
+    }
+
+
+
+
+//    hasRing(){
+//        return false;
+//    }
+
+    getRingBasicMaterial(){
+        return null;
+    }
+
+    getRingStandardMaterial(){
+        return null;
+    }
+
+    setRingMaterial(material){
+    }
+
 }
