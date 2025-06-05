@@ -112,15 +112,22 @@ class Planet {
                 }.bind(this) // Bind this to access sphere in the callback
             );
 
-            // Create both material types for day/night effect
+            // Create material day/night effect - Without Light
             const standardMaterial = new THREE.MeshStandardMaterial({
                 map: texture,
-                roughness: 1.0,
-                metalness: 0.0
+                metalness: 0.1,
+                roughness: 0.9
+
             });
 
+            // With light
             const basicMaterial = new THREE.MeshBasicMaterial({
-                map: texture
+                map: texture,
+                roughness: 0.5,
+                emissiveIntensity: 0.9,
+                emissive: 0x999999,
+                color: 0x888888
+
             });
 
             // Use the appropriate material based on day/night effect setting
@@ -128,6 +135,12 @@ class Planet {
             this.setRingMaterial(this.getRingBasicMaterial());
 
             this.sphere = new THREE.Mesh(geometry, material);
+
+//if (this.constructor.name !== 'Sun'){
+//    this.sphere.castShadow = true;
+//    this.sphere.receiveShadow = true;
+//}
+
             this.group.add(this.sphere);
 
             // Store both materials for later switching
@@ -632,14 +645,15 @@ class Planet {
         const textureLoader = new THREE.TextureLoader();
         const ringTexture = textureLoader.load(`textures/${this.constructor.name.toLowerCase()}-ring-texture.png`);
 
-        // Create ring materials
+        // Create ring materials - with NO OWN LIGHT
         const ringStandardMaterial = new THREE.MeshStandardMaterial({
             map: ringTexture,
             side: THREE.DoubleSide,
             transparent: true,
-            opacity: 0.9
-        });
+            opacity: 1.0
 
+        });
+        // Create ring materials - with LIGHT
         const ringBasicMaterial = new THREE.MeshBasicMaterial({
             map: ringTexture,
             side: THREE.DoubleSide,

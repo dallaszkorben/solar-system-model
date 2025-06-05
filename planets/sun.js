@@ -51,7 +51,6 @@ class Sun extends Planet {
     };
 
     constructor() {
-//        super(Sun.nonScaleModelData.diameter, Sun.factData, Sun.nonScaleModelData, Sun.scaleModelData);
         super(Sun.factData, Sun.nonScaleModelData, Sun.scaleModelData, Sun.scaleModelData);
 
         // Override orbit properties since Sun doesn't orbit

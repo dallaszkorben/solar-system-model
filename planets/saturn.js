@@ -1,7 +1,16 @@
 /**
  * Saturn model creator
+ *
+ * originalPixels = 8192
+ *
+ * planeRadius = diameter/2 = 116460 / 2 = 58230
+ * ringWidth = ringOuterRadius - ringInnerRadius = 140000 - 74500 = 65500
+ * extra begin pixels = originalPixels * ringInnerRadius / ringWidth = 8192 * 74500 / 65500 = 8192 * 1.137 = 9314
+ * newPixels = 8192 + 9314 = 17506
+ *
  */
 class Saturn extends Planet {
+
     // Static data for Saturn
     static factData = {
         diameter: 116460.0, // km

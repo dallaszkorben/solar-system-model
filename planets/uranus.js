@@ -1,5 +1,14 @@
 /**
  * Uranus model creator
+ *
+ * originaPixels = 1024
+ *
+ * planeRadius = diameter / 2 = 116460 / 2 = 58230
+ * ringWidth = ringOuterRadius - ringInnerRadius = 98000 - 38000 = 60000
+ * extra begin pixels = originalPixels * ringInnerRadius / ringWidth = 1024 * 38000 / 60000 = 1024 * 0.633 = 648
+ * newPixels = 1024 + 648 = 1672
+ *
+ *
  */
 class Uranus extends Planet {
     // Static data for Uranus
@@ -204,6 +213,29 @@ class Uranus extends Planet {
         super.applyTilt();
         // No additional rotation needed for rings as they're already in the equatorial plane
         // and will tilt with the planet group
+    }
+
+    setRingMaterial(material) {
+        this.ringMaterial = material;
+
+        // Apply the material to all ring components
+        if (this.rings) {
+            this.rings.children.forEach(ringPart => {
+                ringPart.material = material;
+            });
+        }
+    }
+
+    hasRing(){
+        return true;
+    }
+
+    getRingBasicMaterial(){
+        return this.ringBasicMaterial;
+    }
+
+    getRingStandardMaterial(){
+        return this.ringStandardMaterial;
     }
 
 //    // Add a method to toggle ring visibility

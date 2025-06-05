@@ -46,6 +46,10 @@ class SolarSystem {
                 antialias: true,
                 logarithmicDepthBuffer: true
             });
+
+//this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+//this.renderer.shadowMap.enabled = true;
+
             this.renderer.setSize(window.innerWidth, window.innerHeight);
             this.renderer.setPixelRatio(window.devicePixelRatio);
 
@@ -57,7 +61,21 @@ class SolarSystem {
             // Add directional light (sun-like)
             this.sunLight = new THREE.DirectionalLight(0xffffff, 1.0);
             this.sunLight.position.set(0, 0, 0); // Light from the sun's position
+//this.sunLight.castShadow = true;
+//this.sunLight.shadow.mapSize.width = 2048;
+//this.sunLight.shadow.mapSize.height = 2048;
+//this.sunLight.shadow.camera.near = 0.5;
+//this.sunLight.shadow.camera.far = 5000000;
+//this.sunLight.shadow.camera.left = -500000;
+//this.sunLight.shadow.camera.right = 500000;
+//this.sunLight.shadow.camera.top = 500000;
+//this.sunLight.shadow.camera.bottom = -500000;
+
+
             this.scene.add(this.sunLight);
+
+//this.ambientLight = new THREE.AmbientLight(0x404040); // soft white light
+//this.scene.add(this.ambientLight);
 
             // Initialize planets collection
             this.planets = {};
