@@ -11,6 +11,12 @@ class Earth extends Planet {
         rotationPeriod: 23.93, // hours
         orbitalPeriod: 365.25, // days
     };
+    
+    // Location data
+    static locationData = [
+        { name: 'Kiruna', latitude: 67.8558, longitude: 20.2253, color: 0x00ff00 },
+        { name: 'Budapest', latitude: 47.4979, longitude: 19.0402, color: 0xff0000 }
+    ];
 
     static sizeScaleModeData = {
         diameter: Earth.factData.diameter/Planet.scaleDownDiameterFactor, // scaled diameter in the model
@@ -110,6 +116,23 @@ class Earth extends Planet {
             { name: '', season: 'autumn', angle: Math.PI*3/2 }
         ];
         this.createSeasonLabels(seasons);
+        
+        // Create location markers
+        this.locationMarkers = [];
+        this.createLocationMarkers();
+    }
+    
+    createLocationMarkers() {
+        Earth.locationData.forEach(location => {
+            const marker = new LocationMarker(this, location.name, location.latitude, location.longitude, location.color);
+            this.locationMarkers.push(marker);
+        });
+    }
+    
+    setLocationMarkersVisible(visible) {
+        if (this.locationMarkers) {
+            this.locationMarkers.forEach(marker => marker.setVisible(visible));
+        }
     }
     
     // This method has been moved to the Planet base class

@@ -10,6 +10,11 @@ class Mars extends Planet {
         rotationPeriod: 24.6, // hours
         orbitalPeriod: 687 // days
     };
+    
+    // Location data
+    static locationData = [
+        { name: 'Perseverance', latitude: 18.4447, longitude: 77.4508, color: 0x00ffff }
+    ];
 
     static scaleModelData = {
         diameter: Mars.factData.diameter/Planet.scaleDownDiameterFactor,                                   // scaled diameter in the model
@@ -76,5 +81,22 @@ class Mars extends Planet {
         ]);
         this.applyTilt();
         this.createOrbit();
+        
+        // Create location markers
+        this.locationMarkers = [];
+        this.createLocationMarkers();
+    }
+    
+    createLocationMarkers() {
+        Mars.locationData.forEach(location => {
+            const marker = new LocationMarker(this, location.name, location.latitude, location.longitude, location.color);
+            this.locationMarkers.push(marker);
+        });
+    }
+    
+    setLocationMarkersVisible(visible) {
+        if (this.locationMarkers) {
+            this.locationMarkers.forEach(marker => marker.setVisible(visible));
+        }
     }
 }

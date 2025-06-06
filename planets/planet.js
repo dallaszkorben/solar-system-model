@@ -7,6 +7,9 @@ class Planet {
     static scaleDownOrbitFactor = 1000;
     static shiftOrbit = 0;
 
+    // Default empty location data
+    static locationData = [];
+
     static maxOrbitFactor = 10.0;
     static maxRotationFactor = 10.0;
 
@@ -37,6 +40,9 @@ class Planet {
         this.noScaleModeData = noScaleModeData;
         this.sizeScaleModeData = sizeScaleModeData;
         this.distanceScaleModeData = distanceScaleModeData;
+
+        // Location markers
+        this.locationMarkers = [];
 
         // Use no-scale mode data by default
         this.diameter = noScaleModeData.diameter;
@@ -87,7 +93,7 @@ class Planet {
     createSphere(texturePath) {
         try {
             console.log(`Creating sphere with texture: ${texturePath}`);
-            const geometry = new THREE.SphereGeometry(this.radius, 64, 32);
+            const geometry = new THREE.SphereGeometry(this.radius, 256, 256);
             const textureLoader = new THREE.TextureLoader();
 
             // Add error handling for texture loading
@@ -123,7 +129,8 @@ class Planet {
             // With light
             const basicMaterial = new THREE.MeshBasicMaterial({
                 map: texture,
-                roughness: 0.5,
+                metalness: 0.0,
+                roughness: 0.9,
                 emissiveIntensity: 0.9,
                 emissive: 0x999999,
                 color: 0x888888
@@ -742,4 +749,14 @@ class Planet {
     setRingMaterial(material){
     }
 
+    // Default methods for location markers
+    createLocationMarkers() {
+        // To be implemented by subclasses if they have location data
+    }
+
+    setLocationMarkersVisible(visible) {
+        if (this.locationMarkers) {
+            this.locationMarkers.forEach(marker => marker.setVisible(visible));
+        }
+    }
 }

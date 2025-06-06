@@ -87,6 +87,9 @@ class SolarSystem {
             this.sky.applyTilt(); // Apply any tilt
             this.scene.add(this.sky.getObject());
             console.log('Sky created and added to scene');
+            
+            // Add toggle button for sky equator
+            this.addSkyEquatorToggle();
 
             // Create control panels after sky is created
             this.createControlPanels();
@@ -137,6 +140,15 @@ class SolarSystem {
             // Add all planets to the scene
             Object.values(this.planets).forEach(planet => {
                 this.scene.add(planet.getObject());
+            });
+            
+            // Set up event listener for toggling location markers
+            document.addEventListener('toggleLocationMarkers', (event) => {
+                Object.values(this.planets).forEach(planet => {
+                    if (typeof planet.setLocationMarkersVisible === 'function') {
+                        planet.setLocationMarkersVisible(event.detail.visible);
+                    }
+                });
             });
 
             console.log('All planets initialized and added to scene');
@@ -210,6 +222,61 @@ class SolarSystem {
             return this.planets[name];
         }
         return null;
+    }
+    
+    // Add toggle button for sky equator
+    addSkyEquatorToggle() {
+        if (!this.sky) return;
+        
+        // Find the solar system control panel
+        if (this.solarSystemControlPanel) {
+            // Create container for the toggle
+            const container = document.createElement('div');
+            container.style.marginBottom = '10px';
+            container.style.display = 'flex';
+            container.style.justifyContent = 'space-between';
+            container.style.alignItems = 'center';
+            
+            // Create label
+            const labelElem = document.createElement('label');
+            labelElem.textContent = 'Show Celestial Equator: ';
+            
+            // Create switch container
+            const switchLabel = document.createElement('label');
+            switchLabel.className = 'switch';
+            
+            // Create toggle input
+            const toggle = document.createElement('input');
+            toggle.type = 'checkbox';
+            toggle.checked = false; // Initially hidden
+            toggle.id = 'sky-equator-toggle';
+            
+            // Add event listener
+            toggle.addEventListener('change', (e) => {
+                if (this.sky) {
+                    if (e.target.checked) {
+                        this.sky.showEquator();
+                    } else {
+                        this.sky.hideEquator();
+                    }
+                }
+            });
+            
+            // Create slider span
+            const sliderSpan = document.createElement('span');
+            sliderSpan.className = 'slider';
+            
+            // Assemble the switch
+            switchLabel.appendChild(toggle);
+            switchLabel.appendChild(sliderSpan);
+            
+            // Add elements to container
+            container.appendChild(labelElem);
+            container.appendChild(switchLabel);
+            
+            // Add to control panel
+            this.solarSystemControlPanel.consoleContent.appendChild(container);
+        }
     }
 
     // Method to enable/disable rotation for all planets
