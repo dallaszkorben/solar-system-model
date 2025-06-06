@@ -69,11 +69,11 @@ class Venus extends Planet {
         this.createSphere('textures/Venus-texture.jpg');
         this.createAxis();
         this.createLatitudeCircles([
-            { name: 'Equator', angle: 0, color: 0xff0000 },
-            { name: 'North Tropic', angle: Venus.getTropic(), color: 0xff8800 },
-            { name: 'North Polar', angle: Venus.getPolar(), color: 0x00aaff },
-            { name: 'South Tropic', angle: -Venus.getTropic(), color: 0xff8800 },
-            { name: 'South Polar', angle: -Venus.getPolar(), color: 0x00aaff }
+            { name: 'Equator', angle: 0, color: 0x00ffff, widthScale: 1.0 },  // Cyan for equator (more visible on yellowish planet)
+            { name: 'North Tropic', angle: Venus.getTropic(), color: 0xff8800, widthScale: 0.6 },
+            { name: 'North Polar', angle: Venus.getPolar(), color: 0x00aaff, widthScale: 0.6 },
+            { name: 'South Tropic', angle: -Venus.getTropic(), color: 0xff8800, widthScale: 0.6 },
+            { name: 'South Polar', angle: -Venus.getPolar(), color: 0x00aaff, widthScale: 0.6 }
         ]);
         this.applyTilt();
         this.createOrbit();

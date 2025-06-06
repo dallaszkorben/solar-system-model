@@ -98,12 +98,13 @@ class Earth extends Planet {
 
         this.createSphere('textures/Earth-texture.jpg');
         this.createAxis();
+        this.createNorthPoleAxis();
         this.createLatitudeCircles([
-            { name: 'Equator', angle: 0, color: 0xff0000 },
-            { name: 'Tropic of Cancer', angle: 23.4, color: 0xff8800 },
-            { name: 'Tropic of Capricorn', angle: -23.4, color: 0xff8800 },
-            { name: 'Arctic Circle', angle: 66.6, color: 0x00aaff },
-            { name: 'Antarctic Circle', angle: -66.6, color: 0x00aaff }
+            { name: 'Equator', angle: 0, color: 0xff0000, widthScale: 1.0 },
+            { name: 'Tropic of Cancer', angle: 23.4, color: 0xff8800, widthScale: 0.6 },
+            { name: 'Tropic of Capricorn', angle: -23.4, color: 0xff8800, widthScale: 0.6 },
+            { name: 'Arctic Circle', angle: 66.6, color: 0x00aaff, widthScale: 0.6 },
+            { name: 'Antarctic Circle', angle: -66.6, color: 0x00aaff, widthScale: 0.6 }
         ]);
         this.applyTilt();
         this.createOrbit();
@@ -138,6 +139,30 @@ class Earth extends Planet {
     // This method has been moved to the Planet base class
     // makeDraggableElement is now inherited from Planet
 
+    // Create a north pole axis that extends to the sky
+    createNorthPoleAxis() {
+        const skyRadius = 20000000; // Large enough to reach the sky
+        
+        // Create a line geometry from Earth's north pole surface to the sky
+        const points = [];
+        points.push(new THREE.Vector3(0, this.radius, 0)); // Start at north pole on surface
+        points.push(new THREE.Vector3(0, skyRadius, 0)); // Extend to sky
+        
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+        
+        // Use LineBasicMaterial for constant width regardless of distance
+        const material = new THREE.LineBasicMaterial({
+            color: 0xff0000, // Red color
+            linewidth: 3, // Thicker line
+            depthTest: false // Ensure it's always visible
+        });
+        
+        this.northPoleAxis = new THREE.Line(geometry, material);
+        this.northPoleAxis.renderOrder = 1000; // Ensure it renders on top
+        this.northPoleAxis.visible = false; // Hidden by default
+        this.group.add(this.northPoleAxis);
+    }
+    
     // Add Earth-specific location markers toggle
     addLocationMarkersToggle() {
         // Find the visibility section

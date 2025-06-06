@@ -37,17 +37,27 @@ class Sky extends Planet {
             super(factData, noScaleModeData, sizeScaleModeData, distanceScaleModeData);
 
             // Create the sky sphere with updated texture path
-            console.log('Loading sky texture from: textures/starry-sky-texture.jpg');
-            this.createSphere('textures/starry-sky-texture.jpg');
+            console.log('Loading sky texture from: textures/starry-sky-texture.png');
+            this.createSphere('textures/starry-sky-constellation-texture.png');
+
+//
+//
+            // Rotate the sky sphere itself by PI/2 counterclockwise
+            this.sphere.rotation.y = 0; //-Math.PI/2;
+
+//            // Rotate the sky's orientation before applying tilt
+//            this.group.rotation.y = -Math.PI/4; // Rotate the horizontal axis 90 degrees around vertical axis
 
             // Apply Earth's axial tilt
             this.applyTilt();
 
-            // Add rotation axis visualization
-            this.showRotationAxis();
+            // Create rotation axis (but don't show it by default)
+            this.createAxis(0xff0000);
 
-            // Create equator
-            this.createEquator();
+            // Create latitude circles (just equator for sky)
+            this.createLatitudeCircles([
+                { name: 'Celestial Equator', angle: 0, color: 0x00ffff, widthScale: 1.0 }
+            ]);
 
             console.log('Sky object created successfully');
         } catch (error) {
@@ -57,8 +67,16 @@ class Sky extends Planet {
         // Set material to basic material with BackSide rendering
         if (this.sphere && this.sphere.material && this.sphere.material.map) {
             console.log('Sky texture loaded successfully, applying to material');
+
+            // Get the texture and flip it horizontally to fix mirroring
+            const texture = this.sphere.material.map;
+            texture.flipY = true; // This flips the texture vertically
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.repeat.x = -1; // This flips the texture horizontally
+            texture.needsUpdate = true;
+
             this.sphere.material = new THREE.MeshBasicMaterial({
-                map: this.sphere.material.map,
+                map: texture,
                 side: THREE.BackSide, // Render on the inside of the sphere
                 depthWrite: false
             });
@@ -95,17 +113,18 @@ class Sky extends Planet {
         this.customRotationSpeed = speed;
     }
 
-    // Method to show the rotation axis
-    showRotationAxis() {
+    // Override the createAxis method from Planet class
+    createAxis(color = 0xff0000) {
         // Remove any existing axis
-        if (this.rotationAxis) {
-            this.group.remove(this.rotationAxis);
+        if (this.axis) {
+            this.group.remove(this.axis);
         }
 
         // Create a red line for the rotation axis
         const material = new THREE.LineBasicMaterial({
-            color: 0xff0000,
-            linewidth: 3
+            color: color,
+            linewidth: 3,
+            depthTest: false
         });
 
         // Make the axis extend through the entire sky sphere
@@ -115,77 +134,61 @@ class Sky extends Planet {
         points.push(new THREE.Vector3(0, axisLength, 0));
 
         const geometry = new THREE.BufferGeometry().setFromPoints(points);
-        this.rotationAxis = new THREE.Line(geometry, material);
+        this.axis = new THREE.Line(geometry, material);
+        this.axis.renderOrder = 1000; // Ensure it renders on top
+
+        // Initially hidden
+        this.axis.visible = false;
 
         // Add to the group
-        this.group.add(this.rotationAxis);
+        this.group.add(this.axis);
 
-        console.log("Added rotation axis visualization to sky");
+        console.log("Created rotation axis for sky (initially hidden)");
+    }
+
+    // Method to show the rotation axis
+    showRotationAxis() {
+        if (this.axis) {
+            this.axis.visible = true;
+            console.log("Sky axis visibility set to true");
+        }
     }
 
     // Method to hide the rotation axis
     hideRotationAxis() {
-        if (this.rotationAxis) {
-            this.group.remove(this.rotationAxis);
-            this.rotationAxis = null;
+        if (this.axis) {
+            this.axis.visible = false;
         }
     }
 
-    // Method to create the celestial equator
-    createEquator() {
-        // Create a circle geometry for the equator
-        const equatorRadius = this.radius;
-        const segments = 128;
-        const equatorGeometry = new THREE.BufferGeometry();
-
-        // Create points for a circle in the XZ plane
-        const vertices = [];
-        for (let i = 0; i <= segments; i++) {
-            const theta = (i / segments) * Math.PI * 2;
-            const x = equatorRadius * Math.cos(theta);
-            const z = equatorRadius * Math.sin(theta);
-            vertices.push(x, 0, z);
+    // Method to toggle rotation axis visibility
+    toggleRotationAxis() {
+        if (this.axis) {
+            this.axis.visible = !this.axis.visible;
+            return this.axis.visible;
         }
-
-        equatorGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-
-        // Create a blue material for the equator
-        const equatorMaterial = new THREE.LineBasicMaterial({
-            color: 0x00ffff,
-            linewidth: 2
-        });
-
-        // Create the line
-        this.equator = new THREE.Line(equatorGeometry, equatorMaterial);
-
-        // Add to the group
-        this.group.add(this.equator);
-
-        // Initially hidden
-        this.equator.visible = false;
-
-        console.log("Added celestial equator to sky");
+        return false;
     }
 
-    // Method to show the equator
+    // Method to show the equator (latitude circles)
     showEquator() {
-        if (this.equator) {
-            this.equator.visible = true;
+        if (this.latitudeCircles) {
+            this.latitudeCircles.visible = true;
         }
     }
 
-    // Method to hide the equator
+    // Method to hide the equator (latitude circles)
     hideEquator() {
-        if (this.equator) {
-            this.equator.visible = false;
+        if (this.latitudeCircles) {
+            this.latitudeCircles.visible = false;
         }
     }
 
     // Method to toggle equator visibility
     toggleEquator() {
-        if (this.equator) {
-            this.equator.visible = !this.equator.visible;
-            return this.equator.visible;
+        if (this.latitudeCircles) {
+            this.latitudeCircles.visible = !this.latitudeCircles.visible;
+            return this.latitudeCircles.visible;
         }
         return false;
     }

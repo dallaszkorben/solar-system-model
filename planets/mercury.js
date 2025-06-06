@@ -68,7 +68,7 @@ class Mercury extends Planet {
         this.createSphere('textures/Mercury-texture.jpg');
         this.createAxis(0xff00ff); // Gray color for Mercury's axis
         this.createLatitudeCircles([
-            { name: 'Equator', angle: 0, color: 0xff0000 }
+            { name: 'Equator', angle: 0, color: 0x00ffff, widthScale: 1.0 }  // Cyan for equator (more visible on gray planet)
         ]);
         this.applyTilt();
         this.createOrbit();

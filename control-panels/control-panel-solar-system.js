@@ -99,6 +99,9 @@ class SolarSystemControlPanel extends ControlPanel {
         planets.forEach(planet => {
             this.addToggle(planet);
         });
+
+        // Add event listeners for planet control panel toggles
+        this.setupPlanetControlPanelToggles();
     }
 
     addStarryToggle() {
@@ -107,13 +110,13 @@ class SolarSystemControlPanel extends ControlPanel {
         toggleContainer.style.display = 'flex';
         toggleContainer.style.justifyContent = 'space-between';
         toggleContainer.style.alignItems = 'center';
-        
+
         // Create icon container
         const iconContainer = document.createElement('div');
         iconContainer.style.width = '24px';
         iconContainer.style.height = '24px';
         iconContainer.style.marginRight = '8px';
-        
+
         // Create and add starry sky icon
         const starryIcon = document.createElement('img');
         starryIcon.src = 'icons/starry-sky.png'; // You might need to create this icon
@@ -156,7 +159,7 @@ class SolarSystemControlPanel extends ControlPanel {
                         this.solarSystem.scene.background = new THREE.Color(0x000000);
                     }
                 }
-                
+
                 // Also try to toggle the sky object if it exists
                 if (this.solarSystem.sky) {
                     this.solarSystem.sky.getObject().visible = toggle.checked;
@@ -172,23 +175,40 @@ class SolarSystemControlPanel extends ControlPanel {
         switchLabel1.appendChild(toggle);
         switchLabel1.appendChild(sliderSpan1);
 
-        // Create second switch container (empty for alignment)
+        // Create second switch container (controls switch)
         const switchLabel2 = document.createElement('label');
         switchLabel2.className = 'switch';
-        switchLabel2.style.visibility = 'hidden'; // Hide but keep space
+        switchLabel2.title = "Show/Hide Sky Controls";
 
-        // Create dummy toggle for alignment
-        const dummyToggle = document.createElement('input');
-        dummyToggle.type = 'checkbox';
-        dummyToggle.style.visibility = 'hidden';
+        // Create second toggle input (controls switch)
+        const toggle2 = document.createElement('input');
+        toggle2.type = 'checkbox';
+        toggle2.checked = false;
+        toggle2.id = 'sky-controls-toggle';
+
+        // Add event listener for controls toggle
+        toggle2.addEventListener('change', (e) => {
+            if (this.solarSystem && this.solarSystem.sky) {
+                if (e.target.checked) {
+                    // Create sky control panel if it doesn't exist
+                    if (!this.solarSystem.sky.controlPanel) {
+                        this.solarSystem.sky.controlPanel = new PlanetControlPanel(this.solarSystem.sky);
+                    }
+                    this.solarSystem.sky.controlPanel.show();
+                } else {
+                    if (this.solarSystem.sky.controlPanel) {
+                        this.solarSystem.sky.controlPanel.hide();
+                    }
+                }
+            }
+        });
 
         // Create slider span for second switch
         const sliderSpan2 = document.createElement('span');
         sliderSpan2.className = 'slider';
-        sliderSpan2.style.visibility = 'hidden';
 
         // Assemble the second switch
-        switchLabel2.appendChild(dummyToggle);
+        switchLabel2.appendChild(toggle2);
         switchLabel2.appendChild(sliderSpan2);
 
         toggleContainer.appendChild(iconContainer);
@@ -204,13 +224,13 @@ class SolarSystemControlPanel extends ControlPanel {
         toggleContainer.style.display = 'flex';
         toggleContainer.style.justifyContent = 'space-between';
         toggleContainer.style.alignItems = 'center';
-        
+
         // Create icon container
         const iconContainer = document.createElement('div');
         iconContainer.style.width = '24px';
         iconContainer.style.height = '24px';
         iconContainer.style.marginRight = '8px';
-        
+
         // Create and add planet icon
         const planetIcon = document.createElement('img');
         planetIcon.src = `icons/${label.toLowerCase()}.png`;
@@ -278,6 +298,26 @@ class SolarSystemControlPanel extends ControlPanel {
         this.consoleContent.appendChild(toggleContainer);
     }
 
+    /**
+     * Setup event listeners for planet control panel toggles
+     */
+    setupPlanetControlPanelToggles() {
+        const planets = ['sun', 'mercury', 'venus', 'earth', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune'];
+
+        planets.forEach(planetName => {
+            const toggle = document.getElementById(`${planetName}-controls-toggle`);
+            if (toggle) {
+                toggle.addEventListener('change', (e) => {
+                    if (e.target.checked) {
+                        this.solarSystem.showPlanetControlPanel(planetName);
+                    } else {
+                        this.solarSystem.hidePlanetControlPanel(planetName);
+                    }
+                });
+            }
+        });
+    }
+
     createRotationControlsSection() {
         // Create section header
         const rotationHeader = document.createElement('h4');
@@ -297,23 +337,23 @@ class SolarSystemControlPanel extends ControlPanel {
         rotationSliderLabel.style.display = 'block';
         rotationSliderLabel.style.marginBottom = '5px';
         rotationSliderContainer.appendChild(rotationSliderLabel);
-        
+
         // Create controls container for slider, reset button and toggle
         const rotationControlsContainer = document.createElement('div');
         rotationControlsContainer.style.display = 'flex';
         rotationControlsContainer.style.alignItems = 'center';
         rotationControlsContainer.style.gap = '10px';
-        
+
         // Create slider
         const rotationSlider = document.createElement('input');
         rotationSlider.type = 'range';
         rotationSlider.min = '0';
         rotationSlider.max = Planet.maxRotationFactor;
-        rotationSlider.step = '0.1';
+        rotationSlider.step = '0.01';
         rotationSlider.value = '1.0'; //default
         rotationSlider.style.flexGrow = '1';
         rotationSlider.id = 'global-rotation-speed-slider';
-        
+
         // Create reset button
         const rotationResetButton = document.createElement('img');
         rotationResetButton.src = 'icons/reset.png';
@@ -321,7 +361,7 @@ class SolarSystemControlPanel extends ControlPanel {
         rotationResetButton.style.height = '24px';
         rotationResetButton.style.cursor = 'pointer';
         rotationResetButton.title = "Reset to default speed";
-        
+
         // Add event listener for reset button
         rotationResetButton.addEventListener('click', () => {
             rotationSlider.value = '1.0';
@@ -331,7 +371,7 @@ class SolarSystemControlPanel extends ControlPanel {
                 this.solarSystem.setAllRotationEnabled(false);
             }
         });
-        
+
         // Create switch container
         const rotationSwitchLabel = document.createElement('label');
         rotationSwitchLabel.className = 'switch';
@@ -356,12 +396,12 @@ class SolarSystemControlPanel extends ControlPanel {
         // Assemble the switch
         rotationSwitchLabel.appendChild(rotationToggle);
         rotationSwitchLabel.appendChild(rotationSliderSpan);
-        
+
         // Add components to controls container
         rotationControlsContainer.appendChild(rotationSlider);
         rotationControlsContainer.appendChild(rotationResetButton);
         rotationControlsContainer.appendChild(rotationSwitchLabel);
-        
+
         // Add controls container to slider container
         rotationSliderContainer.appendChild(rotationControlsContainer);
 
@@ -408,13 +448,13 @@ class SolarSystemControlPanel extends ControlPanel {
         orbitSliderLabel.style.display = 'block';
         orbitSliderLabel.style.marginBottom = '5px';
         orbitSliderContainer.appendChild(orbitSliderLabel);
-        
+
         // Create controls container for slider, reset button and toggle
         const orbitControlsContainer = document.createElement('div');
         orbitControlsContainer.style.display = 'flex';
         orbitControlsContainer.style.alignItems = 'center';
         orbitControlsContainer.style.gap = '10px';
-        
+
         // Create slider
         const orbitSlider = document.createElement('input');
         orbitSlider.type = 'range';
@@ -424,7 +464,7 @@ class SolarSystemControlPanel extends ControlPanel {
         orbitSlider.step = '0.1';
         orbitSlider.style.flexGrow = '1';
         orbitSlider.id = 'global-orbit-speed-slider';
-        
+
         // Create reset button
         const orbitResetButton = document.createElement('img');
         orbitResetButton.src = 'icons/reset.png';
@@ -432,7 +472,7 @@ class SolarSystemControlPanel extends ControlPanel {
         orbitResetButton.style.height = '24px';
         orbitResetButton.style.cursor = 'pointer';
         orbitResetButton.title = "Reset to default speed";
-        
+
         // Add event listener for reset button
         orbitResetButton.addEventListener('click', () => {
             orbitSlider.value = '1.0';
@@ -442,7 +482,7 @@ class SolarSystemControlPanel extends ControlPanel {
                 this.solarSystem.setAllOrbitEnabled(false);
             }
         });
-        
+
         // Create switch container
         const orbitSwitchLabel = document.createElement('label');
         orbitSwitchLabel.className = 'switch';
@@ -467,12 +507,12 @@ class SolarSystemControlPanel extends ControlPanel {
         // Assemble the switch
         orbitSwitchLabel.appendChild(orbitToggle);
         orbitSwitchLabel.appendChild(orbitSliderSpan);
-        
+
         // Add components to controls container
         orbitControlsContainer.appendChild(orbitSlider);
         orbitControlsContainer.appendChild(orbitResetButton);
         orbitControlsContainer.appendChild(orbitSwitchLabel);
-        
+
         // Add controls container to slider container
         orbitSliderContainer.appendChild(orbitControlsContainer);
 
@@ -518,13 +558,13 @@ class SolarSystemControlPanel extends ControlPanel {
         orbitOpacityLabel.style.display = 'block';
         orbitOpacityLabel.style.marginBottom = '5px';
         orbitOpacityContainer.appendChild(orbitOpacityLabel);
-        
+
         // Create controls container for slider, reset button and toggle
         const orbitOpacityControlsContainer = document.createElement('div');
         orbitOpacityControlsContainer.style.display = 'flex';
         orbitOpacityControlsContainer.style.alignItems = 'center';
         orbitOpacityControlsContainer.style.gap = '10px';
-        
+
         // Create slider
         const orbitOpacitySlider = document.createElement('input');
         orbitOpacitySlider.type = 'range';
@@ -534,7 +574,7 @@ class SolarSystemControlPanel extends ControlPanel {
         orbitOpacitySlider.value = Planet.orbitOpacity; // Default opacity
         orbitOpacitySlider.style.flexGrow = '1';
         orbitOpacitySlider.id = 'orbit-opacity-slider';
-        
+
         // Create reset button
         const orbitOpacityResetButton = document.createElement('img');
         orbitOpacityResetButton.src = 'icons/reset.png';
@@ -542,7 +582,7 @@ class SolarSystemControlPanel extends ControlPanel {
         orbitOpacityResetButton.style.height = '24px';
         orbitOpacityResetButton.style.cursor = 'pointer';
         orbitOpacityResetButton.title = "Reset to default opacity";
-        
+
         // Add event listener for reset button
         orbitOpacityResetButton.addEventListener('click', () => {
             orbitOpacitySlider.value = Planet.orbitOpacity;
@@ -552,7 +592,7 @@ class SolarSystemControlPanel extends ControlPanel {
                 this.solarSystem.setAllOrbitLinesVisible(true);
             }
         });
-        
+
         // Create switch container
         const orbitVisibilitySwitchLabel = document.createElement('label');
         orbitVisibilitySwitchLabel.className = 'switch';
@@ -577,12 +617,12 @@ class SolarSystemControlPanel extends ControlPanel {
         // Assemble the switch
         orbitVisibilitySwitchLabel.appendChild(orbitVisibilityToggle);
         orbitVisibilitySwitchLabel.appendChild(orbitVisibilitySliderSpan);
-        
+
         // Add components to controls container
         orbitOpacityControlsContainer.appendChild(orbitOpacitySlider);
         orbitOpacityControlsContainer.appendChild(orbitOpacityResetButton);
         orbitOpacityControlsContainer.appendChild(orbitVisibilitySwitchLabel);
-        
+
         // Add controls container to opacity container
         orbitOpacityContainer.appendChild(orbitOpacityControlsContainer);
 

@@ -224,35 +224,57 @@ class SolarSystem {
         return null;
     }
     
-    // Add toggle button for sky equator
+    // Method to show planet control panel
+    showPlanetControlPanel(planetName) {
+        const planet = this.getPlanetByName(planetName);
+        if (!planet) return;
+        
+        // Create planet control panel if it doesn't exist
+        if (!planet.controlPanel) {
+            planet.controlPanel = new PlanetControlPanel(planet);
+        }
+        
+        // Show the panel
+        planet.controlPanel.show();
+    }
+    
+    // Method to hide planet control panel
+    hidePlanetControlPanel(planetName) {
+        const planet = this.getPlanetByName(planetName);
+        if (planet && planet.controlPanel) {
+            planet.controlPanel.hide();
+        }
+    }
+    
+    // Add toggle buttons for sky features
     addSkyEquatorToggle() {
         if (!this.sky) return;
         
         // Find the solar system control panel
         if (this.solarSystemControlPanel) {
-            // Create container for the toggle
-            const container = document.createElement('div');
-            container.style.marginBottom = '10px';
-            container.style.display = 'flex';
-            container.style.justifyContent = 'space-between';
-            container.style.alignItems = 'center';
+            // Create container for the equator toggle
+            const equatorContainer = document.createElement('div');
+            equatorContainer.style.marginBottom = '10px';
+            equatorContainer.style.display = 'flex';
+            equatorContainer.style.justifyContent = 'space-between';
+            equatorContainer.style.alignItems = 'center';
             
             // Create label
-            const labelElem = document.createElement('label');
-            labelElem.textContent = 'Show Celestial Equator: ';
+            const equatorLabel = document.createElement('label');
+            equatorLabel.textContent = 'Show Celestial Equator: ';
             
             // Create switch container
-            const switchLabel = document.createElement('label');
-            switchLabel.className = 'switch';
+            const equatorSwitchLabel = document.createElement('label');
+            equatorSwitchLabel.className = 'switch';
             
             // Create toggle input
-            const toggle = document.createElement('input');
-            toggle.type = 'checkbox';
-            toggle.checked = false; // Initially hidden
-            toggle.id = 'sky-equator-toggle';
+            const equatorToggle = document.createElement('input');
+            equatorToggle.type = 'checkbox';
+            equatorToggle.checked = false; // Initially hidden
+            equatorToggle.id = 'sky-equator-toggle';
             
             // Add event listener
-            toggle.addEventListener('change', (e) => {
+            equatorToggle.addEventListener('change', (e) => {
                 if (this.sky) {
                     if (e.target.checked) {
                         this.sky.showEquator();
@@ -263,19 +285,66 @@ class SolarSystem {
             });
             
             // Create slider span
-            const sliderSpan = document.createElement('span');
-            sliderSpan.className = 'slider';
+            const equatorSliderSpan = document.createElement('span');
+            equatorSliderSpan.className = 'slider';
             
             // Assemble the switch
-            switchLabel.appendChild(toggle);
-            switchLabel.appendChild(sliderSpan);
+            equatorSwitchLabel.appendChild(equatorToggle);
+            equatorSwitchLabel.appendChild(equatorSliderSpan);
             
             // Add elements to container
-            container.appendChild(labelElem);
-            container.appendChild(switchLabel);
+            equatorContainer.appendChild(equatorLabel);
+            equatorContainer.appendChild(equatorSwitchLabel);
             
             // Add to control panel
-            this.solarSystemControlPanel.consoleContent.appendChild(container);
+            this.solarSystemControlPanel.consoleContent.appendChild(equatorContainer);
+            
+            // Create container for the rotation axis toggle
+            const axisContainer = document.createElement('div');
+            axisContainer.style.marginBottom = '10px';
+            axisContainer.style.display = 'flex';
+            axisContainer.style.justifyContent = 'space-between';
+            axisContainer.style.alignItems = 'center';
+            
+            // Create label
+            const axisLabel = document.createElement('label');
+            axisLabel.textContent = 'Show Rotation Axis: ';
+            
+            // Create switch container
+            const axisSwitchLabel = document.createElement('label');
+            axisSwitchLabel.className = 'switch';
+            
+            // Create toggle input
+            const axisToggle = document.createElement('input');
+            axisToggle.type = 'checkbox';
+            axisToggle.checked = false; // Initially hidden
+            axisToggle.id = 'sky-axis-toggle';
+            
+            // Add event listener
+            axisToggle.addEventListener('change', (e) => {
+                if (this.sky) {
+                    if (e.target.checked) {
+                        this.sky.showRotationAxis();
+                    } else {
+                        this.sky.hideRotationAxis();
+                    }
+                }
+            });
+            
+            // Create slider span
+            const axisSliderSpan = document.createElement('span');
+            axisSliderSpan.className = 'slider';
+            
+            // Assemble the switch
+            axisSwitchLabel.appendChild(axisToggle);
+            axisSwitchLabel.appendChild(axisSliderSpan);
+            
+            // Add elements to container
+            axisContainer.appendChild(axisLabel);
+            axisContainer.appendChild(axisSwitchLabel);
+            
+            // Add to control panel
+            this.solarSystemControlPanel.consoleContent.appendChild(axisContainer);
         }
     }
 

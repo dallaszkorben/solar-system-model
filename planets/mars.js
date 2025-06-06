@@ -73,11 +73,11 @@ class Mars extends Planet {
         this.createSphere('textures/Mars-texture.jpg');
         this.createAxis(0xff4500); // Orange-red color for Mars
         this.createLatitudeCircles([
-            { name: 'Equator', angle: 0, color: 0x00ff00 },     // Bright green for equator
-            { name: 'Northern Tropic', angle: 25.19, color: 0xff00ff },  // Magenta for northern tropic
-            { name: 'Southern Tropic', angle: -25.19, color: 0xffaa00 }, // Orange for southern tropic
-            { name: 'North Polar Circle', angle: 65, color: 0xffff00 },  // Yellow for north pole
-            { name: 'South Polar Circle', angle: -65, color: 0x00ffff }  // Cyan for south pole
+            { name: 'Equator', angle: 0, color: 0x00ffff, widthScale: 1.0 },     // Cyan for equator (more visible on red planet)
+            { name: 'Northern Tropic', angle: 25.19, color: 0xff00ff, widthScale: 0.6 },  // Magenta for northern tropic
+            { name: 'Southern Tropic', angle: -25.19, color: 0xff00ff, widthScale: 0.6 }, // Magenta for southern tropic (same as northern)
+            { name: 'North Polar Circle', angle: 65, color: 0xffff00, widthScale: 0.6 },  // Yellow for north pole
+            { name: 'South Polar Circle', angle: -65, color: 0xffff00, widthScale: 0.6 }  // Yellow for south pole (same as north)
         ]);
         this.applyTilt();
         this.createOrbit();

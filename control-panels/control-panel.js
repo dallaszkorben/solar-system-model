@@ -18,7 +18,13 @@ class ControlPanel {
         this.consolePane.className = 'console-pane';
         this.consolePane.style.position = 'absolute';
         this.consolePane.style.top = this.position.top;
-        this.consolePane.style.left = this.position.left;
+        
+        // Handle either left or right position
+        if (this.position.right) {
+            this.consolePane.style.right = this.position.right;
+        } else if (this.position.left) {
+            this.consolePane.style.left = this.position.left;
+        }
         this.consolePane.style.backgroundColor = 'rgba(80, 80, 80, 0.8)';
         this.consolePane.style.color = 'white';
         this.consolePane.style.padding = '0';
@@ -46,6 +52,11 @@ class ControlPanel {
         titleElement.style.margin = '0';
         header.appendChild(titleElement);
 
+        // Create icons container for collapse and close
+        const iconsContainer = document.createElement('div');
+        iconsContainer.style.display = 'flex';
+        iconsContainer.style.alignItems = 'center';
+        
         // Add collapse/expand icon
         const collapseIcon = document.createElement('div');
         collapseIcon.innerHTML = '&#9650;'; // Up arrow (collapse)
@@ -57,7 +68,40 @@ class ControlPanel {
         collapseIcon.style.justifyContent = 'center';
         collapseIcon.style.alignItems = 'center';
         collapseIcon.style.userSelect = 'none';
-        header.appendChild(collapseIcon);
+        collapseIcon.title = 'Collapse/Expand';
+        iconsContainer.appendChild(collapseIcon);
+        
+        // Add close icon
+        const closeIcon = document.createElement('div');
+        closeIcon.innerHTML = '&#10006;'; // X symbol
+        closeIcon.style.cursor = 'pointer';
+        closeIcon.style.fontSize = '16px';
+        closeIcon.style.width = '20px';
+        closeIcon.style.height = '20px';
+        closeIcon.style.display = 'flex';
+        closeIcon.style.justifyContent = 'center';
+        closeIcon.style.alignItems = 'center';
+        closeIcon.style.userSelect = 'none';
+        closeIcon.style.marginLeft = '8px';
+        closeIcon.title = 'Close';
+        
+        // Add click handler to hide the panel
+        closeIcon.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent dragging
+            this.hide();
+            
+            // Find the toggle for this panel in the Solar System Controls
+            const planetName = this.title.split(' ')[0].toLowerCase();
+            const toggle = document.getElementById(`${planetName}-controls-toggle`);
+            if (toggle) {
+                toggle.checked = false;
+            }
+        });
+        
+        iconsContainer.appendChild(closeIcon);
+        
+        // Add icons container to header
+        header.appendChild(iconsContainer);
 
         // Add the header to the console pane
         this.consolePane.appendChild(header);

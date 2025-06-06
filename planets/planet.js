@@ -196,23 +196,56 @@ class Planet {
         const segments = 64;
         this.latitudeCircles = new THREE.Group(); // Group for latitude circles
 
+        // Base tube radius for equator (widthScale = 1.0) - doubled for more visibility
+        const baseRadius = 0.004 * this.radius;
+        
         latitudes.forEach(latitude => {
             const phi = THREE.MathUtils.degToRad(latitude.angle);
             const latRadius = this.radius * Math.cos(phi);
             const y = this.radius * Math.sin(phi);
-            const vertices = [];
-
-            for (let i = 0; i <= segments; i++) {
-                const theta = (i / segments) * Math.PI * 2;
-                const x = latRadius * Math.cos(theta);
-                const z = latRadius * Math.sin(theta);
-                vertices.push(x, y, z);
-            }
-
-            const geometry = new THREE.BufferGeometry();
-            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-            const material = new THREE.LineBasicMaterial({ color: latitude.color, linewidth: 2 });
-            const circle = new THREE.Line(geometry, material);
+            
+            // Default width scale to 1.0 if not specified
+            const widthScale = latitude.widthScale || 1.0;
+            
+            // Create a tube geometry for thicker lines
+            const tubeRadius = baseRadius * widthScale;
+            const tubeSegments = 8;
+            
+            // Create a circle curve
+            const curve = new THREE.EllipseCurve(
+                0, 0,             // center
+                latRadius, latRadius, // xRadius, yRadius
+                0, 2 * Math.PI,   // startAngle, endAngle
+                false,            // clockwise
+                0                 // rotation
+            );
+            
+            // Get points from the curve
+            const points = curve.getPoints(segments);
+            
+            // Convert 2D points to 3D
+            const path = new THREE.CatmullRomCurve3(
+                points.map(point => new THREE.Vector3(point.x, y, point.y))
+            );
+            
+            // Create tube geometry
+            const geometry = new THREE.TubeGeometry(
+                path,
+                segments,
+                tubeRadius,
+                tubeSegments,
+                true
+            );
+            
+            // Create material
+            const material = new THREE.MeshBasicMaterial({ 
+                color: latitude.color,
+                transparent: true,
+                opacity: 0.8
+            });
+            
+            // Create mesh
+            const circle = new THREE.Mesh(geometry, material);
             this.latitudeCircles.add(circle);
         });
 

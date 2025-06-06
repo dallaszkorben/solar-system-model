@@ -86,9 +86,9 @@ class Uranus extends Planet {
         this.createSphere('textures/Uranus-texture.jpg');
         this.createAxis(0x00ffcc); // Cyan-green color for Uranus's axis
         this.createLatitudeCircles([
-            { name: 'Equator', angle: 0, color: 0xff0000 },
-            { name: 'North Pole Region', angle: 60, color: 0x00aaff },
-            { name: 'South Pole Region', angle: -60, color: 0x00aaff }
+            { name: 'Equator', angle: 0, color: 0xff0000, widthScale: 1.0 },
+            { name: 'North Pole Region', angle: 60, color: 0x00aaff, widthScale: 0.6 },
+            { name: 'South Pole Region', angle: -60, color: 0x00aaff, widthScale: 0.6 }
         ]);
         this.createRings();
         this.applyTilt();
