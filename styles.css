@@ -72,3 +72,30 @@ input[type="radio"] + label {
     cursor: pointer;
     margin-right: 10px;
 }
+
+/* Set cursor for active interactive elements */
+input[type="range"]:not([disabled]),
+input[type="checkbox"]:not([disabled]) + .slider,
+img:not([disabled]) {
+    cursor: pointer !important;
+}
+
+/* Keep default cursor for disabled elements */
+input[disabled],
+input[type="checkbox"][disabled] + .slider,
+img[disabled],
+img[src="icons/reset.png"][disabled] {
+    cursor: default !important;
+    pointer-events: none;
+}
+
+/* Ensure the slider thumb has pointer cursor when not disabled */
+input[type="range"]:not([disabled])::-webkit-slider-thumb {
+    cursor: pointer !important;
+}
+input[type="range"]:not([disabled])::-moz-range-thumb {
+    cursor: pointer !important;
+}
+input[type="range"]:not([disabled])::-ms-thumb {
+    cursor: pointer !important;
+}

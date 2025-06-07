@@ -7,17 +7,17 @@ class SkyControlPanel extends PlanetControlPanel {
         super(sky); // Call parent constructor
 
         // Override the title to verify implementation
-        this.consolePane.querySelector('h3').textContent = '!!! Sky Controls !!!';
-        
+        this.consolePane.querySelector('h3').textContent = 'Sky Controls';
+
         // Initialize the toggle state based on the actual sky visibility
         const skyToggle = document.getElementById('sky-panel-visibility-toggle');
         if (skyToggle && sky && sky.getObject()) {
             skyToggle.checked = sky.getObject().visible;
-            
+
             // Update dependent controls based on actual visibility
             const starsContainer = document.getElementById('sky-stars-container');
             const constellationsContainer = document.getElementById('sky-constellations-container');
-            
+
             if (starsContainer) {
                 starsContainer.style.opacity = sky.getObject().visible ? '1' : '0.5';
                 const interactiveElements = starsContainer.querySelectorAll('input, img');
@@ -28,7 +28,7 @@ class SkyControlPanel extends PlanetControlPanel {
                     }
                 });
             }
-            
+
             if (constellationsContainer) {
                 constellationsContainer.style.opacity = sky.getObject().visible ? '1' : '0.5';
                 const interactiveElements = constellationsContainer.querySelectorAll('input, img');
@@ -98,13 +98,13 @@ class SkyControlPanel extends PlanetControlPanel {
             if (this.planet) {
                 // Always set visibility directly on the sky object
                 this.planet.getObject().visible = e.target.checked;
-                
+
                 // Update the Starry Sky toggle in the Solar System Controls panel
                 const starryToggle = document.getElementById('starry-sky-visibility-toggle');
                 if (starryToggle) {
                     starryToggle.checked = e.target.checked;
                 }
-                
+
                 // Manually trigger scene background update
                 if (e.target.checked) {
                     // Load the starry sky texture
@@ -120,35 +120,55 @@ class SkyControlPanel extends PlanetControlPanel {
                         window.solarSystem.scene.background = new THREE.Color(0x000000);
                     }
                 }
-                
+
                 // Update Stars and Constellations brightness sliders
                 const starsContainer = document.getElementById('sky-stars-container');
                 const constellationsContainer = document.getElementById('sky-constellations-container');
-                
+
                 if (starsContainer) {
                     // Grey out the entire container when disabled
                     starsContainer.style.opacity = e.target.checked ? '1' : '0.5';
-                    
+
                     // Disable all interactive elements in the container
                     const interactiveElements = starsContainer.querySelectorAll('input, img');
                     interactiveElements.forEach(element => {
                         element.disabled = !e.target.checked;
+                        // Set cursor style based on element state
                         if (element.tagName === 'IMG') {
                             element.style.cursor = e.target.checked ? 'pointer' : 'default';
+                            if (!e.target.checked) {
+                                element.style.pointerEvents = 'none';
+                            } else {
+                                element.style.pointerEvents = 'auto';
+                            }
+                        } else if (element.tagName === 'INPUT') {
+                            if (element.type === 'range' || element.type === 'checkbox') {
+                                element.style.cursor = e.target.checked ? 'pointer' : 'default';
+                            }
                         }
                     });
                 }
-                
+
                 if (constellationsContainer) {
                     // Grey out the entire container when disabled
                     constellationsContainer.style.opacity = e.target.checked ? '1' : '0.5';
-                    
+
                     // Disable all interactive elements in the container
                     const interactiveElements = constellationsContainer.querySelectorAll('input, img');
                     interactiveElements.forEach(element => {
                         element.disabled = !e.target.checked;
+                        // Set cursor style based on element state
                         if (element.tagName === 'IMG') {
                             element.style.cursor = e.target.checked ? 'pointer' : 'default';
+                            if (!e.target.checked) {
+                                element.style.pointerEvents = 'none';
+                            } else {
+                                element.style.pointerEvents = 'auto';
+                            }
+                        } else if (element.tagName === 'INPUT') {
+                            if (element.type === 'range' || element.type === 'checkbox') {
+                                element.style.cursor = e.target.checked ? 'pointer' : 'default';
+                            }
                         }
                     });
                 }
@@ -210,13 +230,15 @@ class SkyControlPanel extends PlanetControlPanel {
         resetButton.src = 'icons/reset.png';
         resetButton.style.width = '24px';
         resetButton.style.height = '24px';
-        resetButton.style.cursor = 'pointer';
         resetButton.title = "Reset to default brightness";
+        // Set cursor style based on disabled state
+        resetButton.style.cursor = 'pointer';
+        resetButton.setAttribute('data-disabled', 'false');
 
         // Add event listener for reset button
         resetButton.addEventListener('click', () => {
             slider.value = defaultValue.toString();
-            
+
             if (id === 'stars') {
                 this.planet.setStarsBrightness(defaultValue);
                 toggle.checked = true;
@@ -254,11 +276,11 @@ class SkyControlPanel extends PlanetControlPanel {
         // Add event listener for slider
         slider.addEventListener('input', () => {
             const brightness = parseFloat(slider.value);
-            
+
             // If slider is moved and toggle is off, turn it on
             if (!toggle.checked && brightness > 0) {
                 toggle.checked = true;
-                
+
                 // Update visibility based on toggle
                 if (id === 'stars' && this.planet.sphere) {
                     this.planet.sphere.visible = true;
@@ -266,7 +288,7 @@ class SkyControlPanel extends PlanetControlPanel {
                     this.planet.constellationSphere.visible = true;
                 }
             }
-            
+
             // Update brightness
             if (id === 'stars') {
                 this.planet.setStarsBrightness(brightness);
@@ -279,14 +301,14 @@ class SkyControlPanel extends PlanetControlPanel {
         toggle.addEventListener('change', (e) => {
             if (id === 'stars' && this.planet.sphere) {
                 this.planet.sphere.visible = e.target.checked;
-                
+
                 // If turning on, apply current brightness
                 if (e.target.checked) {
                     this.planet.setStarsBrightness(parseFloat(slider.value));
                 }
             } else if (id === 'constellations' && this.planet.constellationSphere) {
                 this.planet.constellationSphere.visible = e.target.checked;
-                
+
                 // If turning on, apply current brightness
                 if (e.target.checked) {
                     this.planet.setConstellationsBrightness(parseFloat(slider.value));
@@ -304,7 +326,7 @@ class SkyControlPanel extends PlanetControlPanel {
 
         // Add to control panel
         this.consoleContent.appendChild(container);
-        
+
         // Apply initial brightness
         if (id === 'stars') {
             this.planet.setStarsBrightness(parseFloat(slider.value));
