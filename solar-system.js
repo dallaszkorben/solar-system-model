@@ -84,12 +84,10 @@ class SolarSystem {
             // Create sky as a planet
             this.sky = new Sky();
             this.sky.rotationEnabled = true; // Enable rotation mechanism but speed is 0
-            this.sky.applyTilt(); // Apply any tilt
             this.scene.add(this.sky.getObject());
             console.log('Sky created and added to scene');
-            
-            // Add toggle button for sky equator
-            this.addSkyEquatorToggle();
+
+            // Sky equator toggle will be handled by SolarSystemControlPanel
 
             // Create control panels after sky is created
             this.createControlPanels();
@@ -141,7 +139,7 @@ class SolarSystem {
             Object.values(this.planets).forEach(planet => {
                 this.scene.add(planet.getObject());
             });
-            
+
             // Set up event listener for toggling location markers
             document.addEventListener('toggleLocationMarkers', (event) => {
                 Object.values(this.planets).forEach(planet => {
@@ -223,21 +221,21 @@ class SolarSystem {
         }
         return null;
     }
-    
+
     // Method to show planet control panel
     showPlanetControlPanel(planetName) {
         const planet = this.getPlanetByName(planetName);
         if (!planet) return;
-        
+
         // Create planet control panel if it doesn't exist
         if (!planet.controlPanel) {
             planet.controlPanel = new PlanetControlPanel(planet);
         }
-        
+
         // Show the panel
         planet.controlPanel.show();
     }
-    
+
     // Method to hide planet control panel
     hidePlanetControlPanel(planetName) {
         const planet = this.getPlanetByName(planetName);
@@ -245,108 +243,8 @@ class SolarSystem {
             planet.controlPanel.hide();
         }
     }
-    
-    // Add toggle buttons for sky features
-    addSkyEquatorToggle() {
-        if (!this.sky) return;
-        
-        // Find the solar system control panel
-        if (this.solarSystemControlPanel) {
-            // Create container for the equator toggle
-            const equatorContainer = document.createElement('div');
-            equatorContainer.style.marginBottom = '10px';
-            equatorContainer.style.display = 'flex';
-            equatorContainer.style.justifyContent = 'space-between';
-            equatorContainer.style.alignItems = 'center';
-            
-            // Create label
-            const equatorLabel = document.createElement('label');
-            equatorLabel.textContent = 'Show Celestial Equator: ';
-            
-            // Create switch container
-            const equatorSwitchLabel = document.createElement('label');
-            equatorSwitchLabel.className = 'switch';
-            
-            // Create toggle input
-            const equatorToggle = document.createElement('input');
-            equatorToggle.type = 'checkbox';
-            equatorToggle.checked = false; // Initially hidden
-            equatorToggle.id = 'sky-equator-toggle';
-            
-            // Add event listener
-            equatorToggle.addEventListener('change', (e) => {
-                if (this.sky) {
-                    if (e.target.checked) {
-                        this.sky.showEquator();
-                    } else {
-                        this.sky.hideEquator();
-                    }
-                }
-            });
-            
-            // Create slider span
-            const equatorSliderSpan = document.createElement('span');
-            equatorSliderSpan.className = 'slider';
-            
-            // Assemble the switch
-            equatorSwitchLabel.appendChild(equatorToggle);
-            equatorSwitchLabel.appendChild(equatorSliderSpan);
-            
-            // Add elements to container
-            equatorContainer.appendChild(equatorLabel);
-            equatorContainer.appendChild(equatorSwitchLabel);
-            
-            // Add to control panel
-            this.solarSystemControlPanel.consoleContent.appendChild(equatorContainer);
-            
-            // Create container for the rotation axis toggle
-            const axisContainer = document.createElement('div');
-            axisContainer.style.marginBottom = '10px';
-            axisContainer.style.display = 'flex';
-            axisContainer.style.justifyContent = 'space-between';
-            axisContainer.style.alignItems = 'center';
-            
-            // Create label
-            const axisLabel = document.createElement('label');
-            axisLabel.textContent = 'Show Rotation Axis: ';
-            
-            // Create switch container
-            const axisSwitchLabel = document.createElement('label');
-            axisSwitchLabel.className = 'switch';
-            
-            // Create toggle input
-            const axisToggle = document.createElement('input');
-            axisToggle.type = 'checkbox';
-            axisToggle.checked = false; // Initially hidden
-            axisToggle.id = 'sky-axis-toggle';
-            
-            // Add event listener
-            axisToggle.addEventListener('change', (e) => {
-                if (this.sky) {
-                    if (e.target.checked) {
-                        this.sky.showRotationAxis();
-                    } else {
-                        this.sky.hideRotationAxis();
-                    }
-                }
-            });
-            
-            // Create slider span
-            const axisSliderSpan = document.createElement('span');
-            axisSliderSpan.className = 'slider';
-            
-            // Assemble the switch
-            axisSwitchLabel.appendChild(axisToggle);
-            axisSwitchLabel.appendChild(axisSliderSpan);
-            
-            // Add elements to container
-            axisContainer.appendChild(axisLabel);
-            axisContainer.appendChild(axisSwitchLabel);
-            
-            // Add to control panel
-            this.solarSystemControlPanel.consoleContent.appendChild(axisContainer);
-        }
-    }
+
+
 
     // Method to enable/disable rotation for all planets
     setAllRotationEnabled(enabled) {

@@ -540,6 +540,7 @@ class SolarSystemControlPanel extends ControlPanel {
         this.consoleContent.appendChild(orbitSliderContainer);
     }
 
+
     createGeneralControlSection() {
         // Create a separate section for Orbit Visibility
         const orbitVisibilityHeader = document.createElement('h4');

@@ -36,20 +36,22 @@ class Sky extends Planet {
             // Call parent constructor
             super(factData, noScaleModeData, sizeScaleModeData, distanceScaleModeData);
 
-            // Create the sky sphere with updated texture path
-            console.log('Loading sky texture from: textures/starry-sky-texture.png');
-            this.createSphere('textures/starry-sky-constellation-texture.png');
-
-//
-//
-            // Rotate the sky sphere itself by PI/2 counterclockwise
-            this.sphere.rotation.y = 0; //-Math.PI/2;
-
-//            // Rotate the sky's orientation before applying tilt
-//            this.group.rotation.y = -Math.PI/4; // Rotate the horizontal axis 90 degrees around vertical axis
+            // Create the sky sphere with a temporary texture
+            console.log('Loading sky textures...');
+            this.createSphere(null); // Create sphere without texture initially
 
             // Apply Earth's axial tilt
-            this.applyTilt();
+            //this.applyTilt();
+
+            // Store these values as class properties for the control panel to use
+            this.defaultPitchDegrees = 0;
+            this.defaultYawDegrees = 0;
+            this.defaultRollDegrees = Earth.factData.axialTilt;
+
+            // Rotate the sky sphere
+            this.setPitchRotation(THREE.MathUtils.degToRad(this.defaultPitchDegrees));
+            this.setYawRotation(THREE.MathUtils.degToRad(this.defaultYawDegrees));
+            this.setRollRotation(THREE.MathUtils.degToRad(this.defaultRollDegrees));
 
             // Create rotation axis (but don't show it by default)
             this.createAxis(0xff0000);
@@ -64,33 +66,63 @@ class Sky extends Planet {
             console.error('Error creating Sky object:', error);
         }
 
-        // Set material to basic material with BackSide rendering
-        if (this.sphere && this.sphere.material && this.sphere.material.map) {
-            console.log('Sky texture loaded successfully, applying to material');
+        // Create a simple material for the sphere initially
+        this.sphere.material = new THREE.MeshBasicMaterial({
+            color: 0x000020, // Dark blue color as fallback
+            side: THREE.BackSide,
+            depthWrite: false
+        });
 
-            // Get the texture and flip it horizontally to fix mirroring
-            const texture = this.sphere.material.map;
-            texture.flipY = true; // This flips the texture vertically
-            texture.wrapS = THREE.RepeatWrapping;
-            texture.repeat.x = -1; // This flips the texture horizontally
-            texture.needsUpdate = true;
+        // Load both textures explicitly
+        const textureLoader = new THREE.TextureLoader();
 
-            this.sphere.material = new THREE.MeshBasicMaterial({
-                map: texture,
-                side: THREE.BackSide, // Render on the inside of the sphere
-                depthWrite: false
+        // Load the star texture first
+        textureLoader.load('textures/starry-sky-star-texture-0_0_23.4.jpg', (starTexture) => {
+            console.log('Star texture loaded successfully');
+
+            // Apply transformations
+            starTexture.flipY = true;
+            starTexture.wrapS = THREE.RepeatWrapping;
+            starTexture.repeat.x = -1;
+            starTexture.needsUpdate = true;
+
+            // Apply the star texture
+            this.sphere.material.map = starTexture;
+            this.sphere.material.needsUpdate = true;
+
+            // Now load the constellation texture
+            textureLoader.load('textures/starry-sky-constellation-texture-16k-0_0_23.4.png', (constellationTexture) => {
+                console.log('Constellation texture loaded successfully');
+
+                // Create a second sphere for the constellation overlay
+                const constellationGeometry = new THREE.SphereGeometry(this.radius * 0.99, 64, 32);
+                const constellationMaterial = new THREE.MeshBasicMaterial({
+                    map: constellationTexture,
+                    transparent: true,
+                    opacity: 1.0,
+                    side: THREE.BackSide,
+                    depthWrite: false
+                });
+
+                // Apply transformations
+                constellationTexture.flipY = true;
+                constellationTexture.wrapS = THREE.RepeatWrapping;
+                constellationTexture.repeat.x = -1;
+                constellationTexture.needsUpdate = true;
+
+                // Create and add the constellation sphere (initially hidden)
+                this.constellationSphere = new THREE.Mesh(constellationGeometry, constellationMaterial);
+                this.constellationSphere.visible = false; // Initially hidden
+                this.constellationSphere.renderOrder = -999; // Ensure it's drawn before other objects but after the star sphere
+                this.group.add(this.constellationSphere);
+
+                console.log('Both textures applied successfully');
             });
-        } else {
-            console.error('Failed to apply sky texture: sphere, material, or texture map is undefined');
-            // Create a fallback material with a color
-            this.sphere.material = new THREE.MeshBasicMaterial({
-                color: 0x000020, // Dark blue color as fallback
-                side: THREE.BackSide,
-                depthWrite: false
-            });
-        }
+        }, undefined, (error) => {
+            console.error('Error loading star texture:', error);
+        });
 
-        // Set render order to ensure it's drawn first
+        // Set render order to ensure it's drawn first (before everything else)
         this.sphere.renderOrder = -1000;
 
         // Add a custom rotation speed variable that can be set later
@@ -102,6 +134,10 @@ class Sky extends Planet {
         // Use customRotationSpeed if set, otherwise use the parent's update logic
         if (this.customRotationSpeed !== 0) {
             this.sphere.rotation.y += this.customRotationSpeed;
+            // Also rotate the constellation sphere if it exists
+            if (this.constellationSphere) {
+                this.constellationSphere.rotation.y += this.customRotationSpeed;
+            }
         } else {
             // Call the parent update method
             super.update(time);
@@ -111,6 +147,25 @@ class Sky extends Planet {
     // Method to set custom rotation speed
     setRotationSpeed(speed) {
         this.customRotationSpeed = speed;
+    }
+
+    // Methods to set rotation around specific axes
+    setPitchRotation(angle) {
+        if (this.group) {
+            this.group.rotation.x = angle;
+        }
+    }
+
+    setYawRotation(angle) {
+        if (this.group) {
+            this.group.rotation.y = angle;
+        }
+    }
+
+    setRollRotation(angle) {
+        if (this.group) {
+            this.group.rotation.z = angle;
+        }
     }
 
     // Override the createAxis method from Planet class
@@ -191,5 +246,68 @@ class Sky extends Planet {
             return this.latitudeCircles.visible;
         }
         return false;
+    }
+    
+    // Override setVisibility to also control constellation sphere and axis visibility
+    setVisibility(visible) {
+        // Call parent method to handle main sphere visibility
+        super.setVisibility(visible);
+        
+        // Update the Stars toggle state
+        const starsToggle = document.getElementById('sky-stars-toggle');
+        if (starsToggle) {
+            // Disable the toggle if main visibility is off
+            starsToggle.disabled = !visible;
+            
+            // If main visibility is on, sphere visibility is controlled by Stars toggle
+            if (visible && this.sphere) {
+                this.sphere.visible = starsToggle.checked;
+                
+                // Ensure render order is maintained
+                this.sphere.renderOrder = -1000;
+            }
+        }
+        
+        // Also control constellation sphere visibility
+        if (this.constellationSphere) {
+            // Update the Constellations toggle state
+            const constellationToggle = document.getElementById('sky-constellations-toggle');
+            if (constellationToggle) {
+                // Disable the toggle if main visibility is off
+                constellationToggle.disabled = !visible;
+                
+                // If main visibility is off, hide constellation
+                if (!visible) {
+                    this.constellationSphere.visible = false;
+                } else {
+                    // If main visibility is on, constellation visibility is controlled by its toggle
+                    this.constellationSphere.visible = constellationToggle.checked;
+                    
+                    // Ensure render order is maintained
+                    this.constellationSphere.renderOrder = -999;
+                }
+            } else {
+                // If toggle doesn't exist, just hide constellation when main visibility is off
+                if (!visible) {
+                    this.constellationSphere.visible = false;
+                }
+            }
+        }
+        
+        // Ensure axis visibility matches its toggle state
+        if (this.axis) {
+            const axisToggle = document.getElementById('sky-panel-axis-toggle');
+            if (axisToggle) {
+                this.axis.visible = visible && axisToggle.checked;
+            }
+        }
+        
+        // Ensure latitude circles visibility matches its toggle state
+        if (this.latitudeCircles) {
+            const latitudeToggle = document.getElementById('sky-panel-latitude-toggle');
+            if (latitudeToggle) {
+                this.latitudeCircles.visible = visible && latitudeToggle.checked;
+            }
+        }
     }
 }
