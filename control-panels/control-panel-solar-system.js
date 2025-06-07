@@ -338,14 +338,11 @@ toggle2.addEventListener('change', (e) => {
 
         // Create all planet control panels upfront
         planets.forEach(planetName => {
-//            if (this.solarSystem && this.solarSystem.planets && this.solarSystem.planets[planetName]) {
-                // Create the control panel if it doesn't exist
                 if (!this.solarSystem.controlPanels[planetName]) {
-//                    this.solarSystem.planets[planetName].controlPanel = new PlanetControlPanel(this.solarSystem.planets[planetName]);
                     this.solarSystem.controlPanels[planetName] = new PlanetControlPanel(this.solarSystem.planetObjs[planetName]);
                 }
-//            }
-        });
+
+            });
 
         // Create sky control panel upfront if it doesn't exist
         if (this.solarSystem && this.solarSystem.sky && !this.solarSystem.sky.controlPanel) {

@@ -2,6 +2,20 @@
  * SolarSystem class to manage the 3D solar system model
  */
 class SolarSystem {
+
+    static celestialBodies = {
+        sky:     {name: 'Sky',        instantiate: new Sky(),     planetControlPanelClass: 'SkyControlPanel'   },
+        sun:     {name: 'Sun',        instantiate: new Sun(),     planetControlPanelClass: 'PlanetControlPanel'},
+        mercury: {name: 'Mercury',    instantiate: new Mercury(), planetControlPanelClass: 'PlanetControlPanel'},
+        venus:   {name: 'Venus',      instantiate: new Venus(),   planetControlPanelClass: 'PlanetControlPanel'},
+        earth:   {name: 'Earth',      instantiate: new Earth(),   planetControlPanelClass: 'PlanetControlPanel'},
+        mars:    {name: 'Mars',       instantiate: new Mars(),    planetControlPanelClass: 'PlanetControlPanel'},
+        jupiter: {name: 'Jupiter',    instantiate: new Jupiter(), planetControlPanelClass: 'PlanetControlPanel'},
+        saturn:  {name: 'Saturn',     instantiate: new Saturn(),  planetControlPanelClass: 'PlanetControlPanel'},
+        uranus:  {name: 'Uranus',     instantiate: new Uranus(),  planetControlPanelClass: 'PlanetControlPanel'},
+        neptune: {name: 'Neptune',    instantiate: new Neptune(), planetControlPanelClass: 'PlanetControlPanel'},
+    }
+
     constructor() {
         this.scene = null;
         this.camera = null;
@@ -23,7 +37,7 @@ class SolarSystem {
     }
 
     init() {
-//        try {
+
             console.log('Initializing solar system...');
 
             // Create the scene
@@ -47,9 +61,6 @@ class SolarSystem {
                 logarithmicDepthBuffer: true
             });
 
-//this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-//this.renderer.shadowMap.enabled = true;
-
             this.renderer.setSize(window.innerWidth, window.innerHeight);
             this.renderer.setPixelRatio(window.devicePixelRatio);
 
@@ -61,21 +72,8 @@ class SolarSystem {
             // Add directional light (sun-like)
             this.sunLight = new THREE.DirectionalLight(0xffffff, 1.0);
             this.sunLight.position.set(0, 0, 0); // Light from the sun's position
-//this.sunLight.castShadow = true;
-//this.sunLight.shadow.mapSize.width = 2048;
-//this.sunLight.shadow.mapSize.height = 2048;
-//this.sunLight.shadow.camera.near = 0.5;
-//this.sunLight.shadow.camera.far = 5000000;
-//this.sunLight.shadow.camera.left = -500000;
-//this.sunLight.shadow.camera.right = 500000;
-//this.sunLight.shadow.camera.top = 500000;
-//this.sunLight.shadow.camera.bottom = -500000;
-
 
             this.scene.add(this.sunLight);
-
-//this.ambientLight = new THREE.AmbientLight(0x404040); // soft white light
-//this.scene.add(this.ambientLight);
 
             console.log('Creating sky...');
             // Create sky as a planet
@@ -84,7 +82,7 @@ class SolarSystem {
             this.scene.add(this.sky.getObject());
             console.log('Sky created and added to scene');
 
-            // Sky equator toggle will be handled by SolarSystemControlPanel
+            this.initializePlanets();
 
             // Create control panels after sky is created
             this.createControlPanels();
@@ -99,44 +97,21 @@ class SolarSystem {
             this.animate();
 
             console.log('Solar system initialization complete');
-//        } catch (error) {
-//            console.error('Error initializing solar system:', error);
-//        }
-    }
-
-    createControlPanels() {
-        this.initializePlanets();
-
-        // Create the control panels
-        this.solarSystemControlPanel = new SolarSystemControlPanel(this);
-        this.viewControlPanel = new ViewControlPanel(this);
-        // PlanetControlPanel will be created later
-
-        // Initialize planets
-//        this.initializePlanets();
     }
 
     // Initialize planets for the solar system
     initializePlanets() {
-        try {
             console.log('Initializing planets with textures...');
 
-            // Create planets using the proper planet classes
-            this.planetObjs = {
-                sun: new Sun(),
-                mercury: new Mercury(),
-                venus: new Venus(),
-                earth: new Earth(),
-                mars: new Mars(),
-                jupiter: new Jupiter(),
-                saturn: new Saturn(),
-                uranus: new Uranus(),
-                neptune: new Neptune()
-            };
-
-            // Add all planets to the scene
-            Object.values(this.planetObjs).forEach(planet => {
-                this.scene.add(planet.getObject());
+            // Create planets using the celestialBodies static object
+            this.planetObjs = {};
+            
+            // Add all planets to the scene (excluding sky which is handled separately)
+            Object.entries(SolarSystem.celestialBodies).forEach(([key, body]) => {
+                if (key !== 'sky') {
+                    this.planetObjs[key] = body.instantiate;
+                    this.scene.add(body.instantiate.getObject());
+                }
             });
 
             // Set up event listener for toggling location markers
@@ -149,10 +124,15 @@ class SolarSystem {
             });
 
             console.log('All planets initialized and added to scene');
-        } catch (error) {
-            console.error('Error initializing planets:', error);
-        }
     }
+
+    createControlPanels() {
+
+        // Create the control panels
+        this.solarSystemControlPanel = new SolarSystemControlPanel(this);
+        this.viewControlPanel = new ViewControlPanel(this);
+    }
+
 
     // Set the default view
     setDefaultView() {
@@ -220,25 +200,6 @@ class SolarSystem {
         }
         return null;
     }
-
-//    // Method to show planet control panel
-//    showPlanetControlPanel(planetName) {
-//        const planet = this.getPlanetByName(planetName);
-//        if (!planet) return;
-//
-//        // Create planet control panel if it doesn't exist
-//        if (!planet.controlPanel) {
-//            // Use SkyControlPanel for Sky, PlanetControlPanel for other planets
-//            if (planet.constructor.name === 'Sky') {
-//                planet.controlPanel = new SkyControlPanel(planet);
-//            } else {
-//                planet.controlPanel = new PlanetControlPanel(planet);
-//            }
-//        }
-//
-//        // Show the panel
-//        planet.controlPanel.show();
-//    }
 
     // Method to hide planet control panel
     hidePlanetControlPanel(planetName) {
