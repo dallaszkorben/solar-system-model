@@ -17,13 +17,13 @@ class SolarSystem {
         this.scaleModeState = 'no-scale';
 
         // Initialize planets collection
-        this.planets = {};
+        this.planetObjs = {};
 
         this.init();
     }
 
     init() {
-        try {
+//        try {
             console.log('Initializing solar system...');
 
             // Create the scene
@@ -77,9 +77,6 @@ class SolarSystem {
 //this.ambientLight = new THREE.AmbientLight(0x404040); // soft white light
 //this.scene.add(this.ambientLight);
 
-            // Initialize planets collection
-            this.planets = {};
-
             console.log('Creating sky...');
             // Create sky as a planet
             this.sky = new Sky();
@@ -102,19 +99,21 @@ class SolarSystem {
             this.animate();
 
             console.log('Solar system initialization complete');
-        } catch (error) {
-            console.error('Error initializing solar system:', error);
-        }
+//        } catch (error) {
+//            console.error('Error initializing solar system:', error);
+//        }
     }
 
     createControlPanels() {
+        this.initializePlanets();
+
         // Create the control panels
         this.solarSystemControlPanel = new SolarSystemControlPanel(this);
         this.viewControlPanel = new ViewControlPanel(this);
         // PlanetControlPanel will be created later
 
         // Initialize planets
-        this.initializePlanets();
+//        this.initializePlanets();
     }
 
     // Initialize planets for the solar system
@@ -123,7 +122,7 @@ class SolarSystem {
             console.log('Initializing planets with textures...');
 
             // Create planets using the proper planet classes
-            this.planets = {
+            this.planetObjs = {
                 sun: new Sun(),
                 mercury: new Mercury(),
                 venus: new Venus(),
@@ -136,13 +135,13 @@ class SolarSystem {
             };
 
             // Add all planets to the scene
-            Object.values(this.planets).forEach(planet => {
+            Object.values(this.planetObjs).forEach(planet => {
                 this.scene.add(planet.getObject());
             });
 
             // Set up event listener for toggling location markers
             document.addEventListener('toggleLocationMarkers', (event) => {
-                Object.values(this.planets).forEach(planet => {
+                Object.values(this.planetObjs).forEach(planet => {
                     if (typeof planet.setLocationMarkersVisible === 'function') {
                         planet.setLocationMarkersVisible(event.detail.visible);
                     }
@@ -180,8 +179,8 @@ class SolarSystem {
         }
 
         // Update all planets
-        if (this.planets) {
-            Object.values(this.planets).forEach(planet => {
+        if (this.planetObjs) {
+            Object.values(this.planetObjs).forEach(planet => {
                 planet.update(now);
             });
         }
@@ -216,30 +215,30 @@ class SolarSystem {
 
     // Method to get a planet by name
     getPlanetByName(name) {
-        if (this.planets && this.planets[name]) {
-            return this.planets[name];
+        if (this.planetObjs && this.planetObjs[name]) {
+            return this.planetObjs[name];
         }
         return null;
     }
 
-    // Method to show planet control panel
-    showPlanetControlPanel(planetName) {
-        const planet = this.getPlanetByName(planetName);
-        if (!planet) return;
-
-        // Create planet control panel if it doesn't exist
-        if (!planet.controlPanel) {
-            // Use SkyControlPanel for Sky, PlanetControlPanel for other planets
-            if (planet.constructor.name === 'Sky') {
-                planet.controlPanel = new SkyControlPanel(planet);
-            } else {
-                planet.controlPanel = new PlanetControlPanel(planet);
-            }
-        }
-
-        // Show the panel
-        planet.controlPanel.show();
-    }
+//    // Method to show planet control panel
+//    showPlanetControlPanel(planetName) {
+//        const planet = this.getPlanetByName(planetName);
+//        if (!planet) return;
+//
+//        // Create planet control panel if it doesn't exist
+//        if (!planet.controlPanel) {
+//            // Use SkyControlPanel for Sky, PlanetControlPanel for other planets
+//            if (planet.constructor.name === 'Sky') {
+//                planet.controlPanel = new SkyControlPanel(planet);
+//            } else {
+//                planet.controlPanel = new PlanetControlPanel(planet);
+//            }
+//        }
+//
+//        // Show the panel
+//        planet.controlPanel.show();
+//    }
 
     // Method to hide planet control panel
     hidePlanetControlPanel(planetName) {
@@ -253,8 +252,8 @@ class SolarSystem {
 
     // Method to enable/disable rotation for all planets
     setAllRotationEnabled(enabled) {
-        if (this.planets) {
-            Object.values(this.planets).forEach(planet => {
+        if (this.planetObjs) {
+            Object.values(this.planetObjs).forEach(planet => {
                 planet.setRotationEnabled(enabled);
             });
         }
@@ -263,8 +262,8 @@ class SolarSystem {
     // Method to set global rotation speed factor (0-10)
     setGlobalRotationSpeed(factor) {
         // Apply to all planets
-        if (this.planets) {
-            Object.values(this.planets).forEach(planet => {
+        if (this.planetObjs) {
+            Object.values(this.planetObjs).forEach(planet => {
                 planet.setGlobalRotationSpeedFactor(factor);
             });
         }
@@ -277,16 +276,16 @@ class SolarSystem {
 
     // Method to enable/disable day/night effect for all planets
     setAllDayNightEffectEnabled(enabled) {
-        if (this.planets) {
+        if (this.planetObjs) {
             // Store the day/night state regardless of sun visibility
             this.dayNightEffectEnabled = enabled;
 
-            const sunVisible = this.planets.sun && this.planets.sun.visible;
+            const sunVisible = this.planetObjs.sun && this.planetObjs.sun.visible;
 
-            Object.values(this.planets).forEach(planet => {
+            Object.values(this.planetObjs).forEach(planet => {
 
                 // Skip the sun itself
-                if (planet !== this.planets.sun && typeof planet.setDayNightEffectEnabled === 'function') {
+                if (planet !== this.planetObjs.sun && typeof planet.setDayNightEffectEnabled === 'function') {
                     planet.setDayNightEffectEnabled(enabled);
                 }
             });
@@ -297,8 +296,8 @@ class SolarSystem {
 
     // Method to enable/disable orbit for all planets
     setAllOrbitEnabled(enabled) {
-        if (this.planets) {
-            Object.values(this.planets).forEach(planet => {
+        if (this.planetObjs) {
+            Object.values(this.planetObjs).forEach(planet => {
                 planet.setOrbitEnabled(enabled);
             });
         }
@@ -307,8 +306,8 @@ class SolarSystem {
     // Method to set global orbit speed factor (0-10)
     setGlobalOrbitSpeed(factor) {
         // Apply to all planets
-        if (this.planets) {
-            Object.values(this.planets).forEach(planet => {
+        if (this.planetObjs) {
+            Object.values(this.planetObjs).forEach(planet => {
                 planet.setGlobalOrbitSpeedFactor(factor);
             });
         }
@@ -321,8 +320,8 @@ class SolarSystem {
 
     // Method to set visibility of all orbit lines
     setAllOrbitLinesVisible(visible) {
-        if (this.planets) {
-            Object.values(this.planets).forEach(planet => {
+        if (this.planetObjs) {
+            Object.values(this.planetObjs).forEach(planet => {
                 if (planet.orbitLine) {
                     planet.orbitLine.visible = visible;
                 }
@@ -332,8 +331,8 @@ class SolarSystem {
 
     // Method to set opacity of all orbit lines
     setOrbitLinesOpacity(opacity) {
-        if (this.planets) {
-            Object.values(this.planets).forEach(planet => {
+        if (this.planetObjs) {
+            Object.values(this.planetObjs).forEach(planet => {
                 if (planet.orbitLine && planet.orbitLine.material) {
                     planet.orbitOpacity = opacity; // Update the planet's orbitOpacity property
                     planet.orbitLine.material.opacity = opacity;
@@ -349,8 +348,8 @@ class SolarSystem {
         console.log(`Scale mode set to: ${state}`);
 
         // Apply the appropriate scale mode data to all planets
-        if (this.planets) {
-            Object.values(this.planets).forEach(planet => {
+        if (this.planetObjs) {
+            Object.values(this.planetObjs).forEach(planet => {
                 this.applyScaleModeToObject(planet);
             });
         }

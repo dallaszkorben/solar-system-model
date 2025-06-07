@@ -52,8 +52,8 @@ class PlanetSideView extends BaseView {
         const planetName = viewType.replace('SideView', '');
 
         // Get the target planet from the solar system
-        if (this.solarSystem && this.solarSystem.planets) {
-            this.targetPlanet = this.solarSystem.planets[planetName];
+        if (this.solarSystem && this.solarSystem.planetObjs) {
+            this.targetPlanet = this.solarSystem.planetObjs[planetName];
         }
     }
 

@@ -51,8 +51,8 @@ class LocalView extends BaseView {
      */
     setTarget(planetName, markerName) {
         // Get the target planet from the solar system
-        if (this.solarSystem && this.solarSystem.planets) {
-            this.targetPlanet = this.solarSystem.planets[planetName];
+        if (this.solarSystem && this.solarSystem.planetObjs) {
+            this.targetPlanet = this.solarSystem.planetObjs[planetName];
             this.markerName = markerName;
             this.viewType = `${planetName}_${markerName.toLowerCase()}`;
 

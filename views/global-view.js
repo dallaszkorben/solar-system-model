@@ -33,7 +33,7 @@ class GlobalView extends BaseView {
         const verticalAngle = cameraSettings.rotateVerticalDefaultValue;
         const horizontalAngle = cameraSettings.rotateHorizontalDefaultValue;
 
-        const outerMostOrbitRadius = this.solarSystem.planets.neptune.orbitRadius;
+        const outerMostOrbitRadius = this.solarSystem.planetObjs.neptune.orbitRadius;
         const fov = camera.fov * (Math.PI / 180);
         const cameraDistance = 0.9 * outerMostOrbitRadius / Math.sin(fov / 2);
 

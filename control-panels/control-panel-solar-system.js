@@ -278,8 +278,8 @@ class SolarSystemControlPanel extends ControlPanel {
         // Add event listener for visibility toggle
         toggle1.addEventListener('change', () => {
             const planetName = label.toLowerCase();
-            if (this.solarSystem && this.solarSystem.planets && this.solarSystem.planets[planetName]) {
-                this.solarSystem.planets[planetName].setVisibility(toggle1.checked);
+            if (this.solarSystem && this.solarSystem.planetObjs && this.solarSystem.planetObjs[planetName]) {
+                this.solarSystem.planetObjs[planetName].setVisibility(toggle1.checked);
             }
         });
 
@@ -301,6 +301,16 @@ class SolarSystemControlPanel extends ControlPanel {
         toggle2.type = 'checkbox';
         toggle2.checked = false;
         toggle2.id = `${label.toLowerCase()}-controls-toggle`;
+
+// Add event listener for controls toggle
+toggle2.addEventListener('change', (e) => {
+    if (e.target.checked) {
+        this.solarSystem.controlPanels[label.toLowerCase()].show();
+    } else {
+        this.solarSystem.controlPanels[label.toLowerCase()].hide();
+    }
+});
+
 
         // Create slider span for second switch
         const sliderSpan2 = document.createElement('span');
@@ -324,14 +334,17 @@ class SolarSystemControlPanel extends ControlPanel {
     setupPlanetControlPanelToggles() {
         const planets = ['sun', 'mercury', 'venus', 'earth', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune'];
 
+        this.solarSystem.controlPanels = {}
+
         // Create all planet control panels upfront
         planets.forEach(planetName => {
-            if (this.solarSystem && this.solarSystem.planets && this.solarSystem.planets[planetName]) {
+//            if (this.solarSystem && this.solarSystem.planets && this.solarSystem.planets[planetName]) {
                 // Create the control panel if it doesn't exist
-                if (!this.solarSystem.planets[planetName].controlPanel) {
-                    this.solarSystem.planets[planetName].controlPanel = new PlanetControlPanel(this.solarSystem.planets[planetName]);
+                if (!this.solarSystem.controlPanels[planetName]) {
+//                    this.solarSystem.planets[planetName].controlPanel = new PlanetControlPanel(this.solarSystem.planets[planetName]);
+                    this.solarSystem.controlPanels[planetName] = new PlanetControlPanel(this.solarSystem.planetObjs[planetName]);
                 }
-            }
+//            }
         });
 
         // Create sky control panel upfront if it doesn't exist
@@ -346,14 +359,10 @@ class SolarSystemControlPanel extends ControlPanel {
                 toggle.addEventListener('change', (e) => {
                     if (e.target.checked) {
                         // Just show the panel since it's already created
-                        if (this.solarSystem.planets[planetName].controlPanel) {
-                            this.solarSystem.planets[planetName].controlPanel.show();
-                        }
+                        this.solarSystem.controlPanels[planetName].show();
                     } else {
                         // Hide the panel
-                        if (this.solarSystem.planets[planetName].controlPanel) {
-                            this.solarSystem.planets[planetName].controlPanel.hide();
-                        }
+                        this.solarSystem.controlPanels[planetName].hide();
                     }
                 });
             }

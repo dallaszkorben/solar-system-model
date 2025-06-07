@@ -180,7 +180,7 @@ class Planet {
         const cylinderMaterial = new THREE.MeshBasicMaterial({
             color: color,
             depthTest: true,
-            depthWrite: false
+//            depthWrite: false
         });
         this.axis = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
         this.axis.renderOrder = 1;
