@@ -133,7 +133,7 @@ class Planet {
                 roughness: 0.9,
                 emissiveIntensity: 0.9,
                 emissive: 0x999999,
-                color: 0x888888
+                color: 0xbbbbbb
 
             });
 
@@ -198,19 +198,19 @@ class Planet {
 
         // Base tube radius for equator (widthScale = 1.0) - doubled for more visibility
         const baseRadius = 0.004 * this.radius;
-        
+
         latitudes.forEach(latitude => {
             const phi = THREE.MathUtils.degToRad(latitude.angle);
             const latRadius = this.radius * Math.cos(phi);
             const y = this.radius * Math.sin(phi);
-            
+
             // Default width scale to 1.0 if not specified
             const widthScale = latitude.widthScale || 1.0;
-            
+
             // Create a tube geometry for thicker lines
             const tubeRadius = baseRadius * widthScale;
             const tubeSegments = 8;
-            
+
             // Create a circle curve
             const curve = new THREE.EllipseCurve(
                 0, 0,             // center
@@ -219,15 +219,15 @@ class Planet {
                 false,            // clockwise
                 0                 // rotation
             );
-            
+
             // Get points from the curve
             const points = curve.getPoints(segments);
-            
+
             // Convert 2D points to 3D
             const path = new THREE.CatmullRomCurve3(
                 points.map(point => new THREE.Vector3(point.x, y, point.y))
             );
-            
+
             // Create tube geometry
             const geometry = new THREE.TubeGeometry(
                 path,
@@ -236,14 +236,14 @@ class Planet {
                 tubeSegments,
                 true
             );
-            
+
             // Create material
-            const material = new THREE.MeshBasicMaterial({ 
+            const material = new THREE.MeshBasicMaterial({
                 color: latitude.color,
                 transparent: true,
                 opacity: 0.8
             });
-            
+
             // Create mesh
             const circle = new THREE.Mesh(geometry, material);
             this.latitudeCircles.add(circle);
@@ -480,10 +480,10 @@ class Planet {
             this.seasonLabels.visible = false;
         }
         // Hide rings if this planet has them
-//        if (this.rings) {
-//            this.rings.visible = false;
-//            this.ringsVisible = false;
-//        }
+        if (this.rings) {
+            this.rings.visible = false;
+            this.ringsVisible = false;
+        }
     }
 
     /**
@@ -780,6 +780,7 @@ class Planet {
     }
 
     setRingMaterial(material){
+        return null;
     }
 
     // Default methods for location markers

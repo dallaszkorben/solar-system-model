@@ -43,10 +43,15 @@ class Sky extends Planet {
             // Apply Earth's axial tilt
             //this.applyTilt();
 
-            // Store these values as class properties for the control panel to use
+            // Store these values as object properties for the control panel to use
             this.defaultPitchDegrees = 0;
             this.defaultYawDegrees = 0;
             this.defaultRollDegrees = Earth.factData.axialTilt;
+            
+            // Brightness control properties
+            this.maxStarBrightness = 2.0;
+            this.defaultStarBrightness = 0.5;
+            this.defaultConstellationBrightness = 0.5;
 
             // Rotate the sky sphere
             this.setPitchRotation(THREE.MathUtils.degToRad(this.defaultPitchDegrees));
@@ -66,11 +71,13 @@ class Sky extends Planet {
             console.error('Error creating Sky object:', error);
         }
 
-        // Create a simple material for the sphere initially
+        // Create a simple material for the sphere initially with doubled brightness
         this.sphere.material = new THREE.MeshBasicMaterial({
-            color: 0x000020, // Dark blue color as fallback
+            color: 0xffffff, // White color to enhance brightness
             side: THREE.BackSide,
-            depthWrite: false
+            depthWrite: false,
+            transparent: true,
+            opacity: 1.0
         });
 
         // Load both textures explicitly
@@ -86,8 +93,10 @@ class Sky extends Planet {
             starTexture.repeat.x = -1;
             starTexture.needsUpdate = true;
 
-            // Apply the star texture
+            // Apply the star texture with doubled brightness
             this.sphere.material.map = starTexture;
+            // Set brightness by using the maxStarBrightness property
+            this.sphere.material.color.setRGB(this.maxStarBrightness, this.maxStarBrightness, this.maxStarBrightness);
             this.sphere.material.needsUpdate = true;
 
             // Now load the constellation texture
@@ -99,7 +108,7 @@ class Sky extends Planet {
                 const constellationMaterial = new THREE.MeshBasicMaterial({
                     map: constellationTexture,
                     transparent: true,
-                    opacity: 1.0,
+                    opacity: this.defaultConstellationBrightness, // Use default brightness from object property
                     side: THREE.BackSide,
                     depthWrite: false
                 });
@@ -246,6 +255,29 @@ class Sky extends Planet {
             return this.latitudeCircles.visible;
         }
         return false;
+    }
+    
+    // Set stars brightness
+    setStarsBrightness(brightness) {
+        if (this.sphere && this.sphere.material) {
+            this.sphere.material.opacity = brightness;
+            this.sphere.material.transparent = brightness < 1.0;
+            
+            // Scale brightness using maxStarBrightness
+            // When slider is at 100%, we get maxStarBrightness * 2 intensity
+            const colorIntensity = brightness * this.maxStarBrightness * 2.0;
+            this.sphere.material.color.setRGB(colorIntensity, colorIntensity, colorIntensity);
+            
+            this.sphere.material.needsUpdate = true;
+        }
+    }
+    
+    // Set constellations brightness
+    setConstellationsBrightness(brightness) {
+        if (this.constellationSphere && this.constellationSphere.material) {
+            this.constellationSphere.material.opacity = brightness;
+            this.constellationSphere.material.needsUpdate = true;
+        }
     }
     
     // Override setVisibility to also control constellation sphere and axis visibility

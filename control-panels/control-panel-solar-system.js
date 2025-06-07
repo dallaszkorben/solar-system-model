@@ -11,6 +11,9 @@ class SolarSystemControlPanel extends ControlPanel {
     constructor(solarSystem) {
         super('Solar System Controls', { top: '20px', left: '20px' });
         this.solarSystem = solarSystem;
+        
+        // Make solarSystem globally accessible for cross-panel communication
+        window.solarSystem = solarSystem;
 
         // Create sections from the old version
         this.createScaleModeSection();
@@ -162,7 +165,42 @@ class SolarSystemControlPanel extends ControlPanel {
 
                 // Also try to toggle the sky object if it exists
                 if (this.solarSystem.sky) {
+                    // Set visibility directly on the sky object
                     this.solarSystem.sky.getObject().visible = toggle.checked;
+                    
+                    // Update the Sky panel visibility toggle if it exists
+                    if (this.solarSystem.sky.controlPanel) {
+                        const skyPanelToggle = document.getElementById('sky-panel-visibility-toggle');
+                        if (skyPanelToggle) {
+                            skyPanelToggle.checked = toggle.checked;
+                            
+                            // Update the brightness sliders state without triggering another toggle event
+                            const starsContainer = document.getElementById('sky-stars-container');
+                            const constellationsContainer = document.getElementById('sky-constellations-container');
+                            
+                            if (starsContainer) {
+                                starsContainer.style.opacity = toggle.checked ? '1' : '0.5';
+                                const interactiveElements = starsContainer.querySelectorAll('input, img');
+                                interactiveElements.forEach(element => {
+                                    element.disabled = !toggle.checked;
+                                    if (element.tagName === 'IMG') {
+                                        element.style.cursor = toggle.checked ? 'pointer' : 'default';
+                                    }
+                                });
+                            }
+                            
+                            if (constellationsContainer) {
+                                constellationsContainer.style.opacity = toggle.checked ? '1' : '0.5';
+                                const interactiveElements = constellationsContainer.querySelectorAll('input, img');
+                                interactiveElements.forEach(element => {
+                                    element.disabled = !toggle.checked;
+                                    if (element.tagName === 'IMG') {
+                                        element.style.cursor = toggle.checked ? 'pointer' : 'default';
+                                    }
+                                });
+                            }
+                        }
+                    }
                 }
             }
         });
@@ -192,7 +230,7 @@ class SolarSystemControlPanel extends ControlPanel {
                 if (e.target.checked) {
                     // Create sky control panel if it doesn't exist
                     if (!this.solarSystem.sky.controlPanel) {
-                        this.solarSystem.sky.controlPanel = new PlanetControlPanel(this.solarSystem.sky);
+                        this.solarSystem.sky.controlPanel = new SkyControlPanel(this.solarSystem.sky);
                     }
                     this.solarSystem.sky.controlPanel.show();
                 } else {

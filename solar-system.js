@@ -229,7 +229,12 @@ class SolarSystem {
 
         // Create planet control panel if it doesn't exist
         if (!planet.controlPanel) {
-            planet.controlPanel = new PlanetControlPanel(planet);
+            // Use SkyControlPanel for Sky, PlanetControlPanel for other planets
+            if (planet.constructor.name === 'Sky') {
+                planet.controlPanel = new SkyControlPanel(planet);
+            } else {
+                planet.controlPanel = new PlanetControlPanel(planet);
+            }
         }
 
         // Show the panel
