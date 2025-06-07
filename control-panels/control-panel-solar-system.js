@@ -11,7 +11,7 @@ class SolarSystemControlPanel extends ControlPanel {
     constructor(solarSystem) {
         super('Solar System Controls', { top: '20px', left: '20px' });
         this.solarSystem = solarSystem;
-        
+
         // Make solarSystem globally accessible for cross-panel communication
         window.solarSystem = solarSystem;
 
@@ -149,35 +149,22 @@ class SolarSystemControlPanel extends ControlPanel {
         // Add event listener for visibility toggle
         toggle.addEventListener('change', () => {
             if (this.solarSystem) {
-                // Set the scene background directly
-                if (this.solarSystem.scene) {
-                    if (toggle.checked) {
-                        // Load the starry sky texture
-                        const textureLoader = new THREE.TextureLoader();
-                        textureLoader.load('textures/starry-sky-texture.jpg', (texture) => {
-                            this.solarSystem.scene.background = texture;
-                        });
-                    } else {
-                        // Set to black background
-                        this.solarSystem.scene.background = new THREE.Color(0x000000);
-                    }
-                }
 
                 // Also try to toggle the sky object if it exists
                 if (this.solarSystem.sky) {
                     // Set visibility directly on the sky object
                     this.solarSystem.sky.getObject().visible = toggle.checked;
-                    
+
                     // Update the Sky panel visibility toggle if it exists
                     if (this.solarSystem.sky.controlPanel) {
                         const skyPanelToggle = document.getElementById('sky-panel-visibility-toggle');
                         if (skyPanelToggle) {
                             skyPanelToggle.checked = toggle.checked;
-                            
+
                             // Update the brightness sliders state without triggering another toggle event
                             const starsContainer = document.getElementById('sky-stars-container');
                             const constellationsContainer = document.getElementById('sky-constellations-container');
-                            
+
                             if (starsContainer) {
                                 starsContainer.style.opacity = toggle.checked ? '1' : '0.5';
                                 const interactiveElements = starsContainer.querySelectorAll('input, img');
@@ -188,7 +175,7 @@ class SolarSystemControlPanel extends ControlPanel {
                                     }
                                 });
                             }
-                            
+
                             if (constellationsContainer) {
                                 constellationsContainer.style.opacity = toggle.checked ? '1' : '0.5';
                                 const interactiveElements = constellationsContainer.querySelectorAll('input, img');
@@ -226,17 +213,11 @@ class SolarSystemControlPanel extends ControlPanel {
 
         // Add event listener for controls toggle
         toggle2.addEventListener('change', (e) => {
-            if (this.solarSystem && this.solarSystem.sky) {
+            if (this.solarSystem && this.solarSystem.sky && this.solarSystem.sky.controlPanel) {
                 if (e.target.checked) {
-                    // Create sky control panel if it doesn't exist
-                    if (!this.solarSystem.sky.controlPanel) {
-                        this.solarSystem.sky.controlPanel = new SkyControlPanel(this.solarSystem.sky);
-                    }
                     this.solarSystem.sky.controlPanel.show();
                 } else {
-                    if (this.solarSystem.sky.controlPanel) {
-                        this.solarSystem.sky.controlPanel.hide();
-                    }
+                    this.solarSystem.sky.controlPanel.hide();
                 }
             }
         });
@@ -337,19 +318,42 @@ class SolarSystemControlPanel extends ControlPanel {
     }
 
     /**
+     * Instantiate the PlanetControlPanel/SkyControlPanel objects
      * Setup event listeners for planet control panel toggles
      */
     setupPlanetControlPanelToggles() {
         const planets = ['sun', 'mercury', 'venus', 'earth', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune'];
 
+        // Create all planet control panels upfront
+        planets.forEach(planetName => {
+            if (this.solarSystem && this.solarSystem.planets && this.solarSystem.planets[planetName]) {
+                // Create the control panel if it doesn't exist
+                if (!this.solarSystem.planets[planetName].controlPanel) {
+                    this.solarSystem.planets[planetName].controlPanel = new PlanetControlPanel(this.solarSystem.planets[planetName]);
+                }
+            }
+        });
+
+        // Create sky control panel upfront if it doesn't exist
+        if (this.solarSystem && this.solarSystem.sky && !this.solarSystem.sky.controlPanel) {
+            this.solarSystem.sky.controlPanel = new SkyControlPanel(this.solarSystem.sky);
+        }
+
+        // Set up toggle event listeners to show/hide the panels
         planets.forEach(planetName => {
             const toggle = document.getElementById(`${planetName}-controls-toggle`);
             if (toggle) {
                 toggle.addEventListener('change', (e) => {
                     if (e.target.checked) {
-                        this.solarSystem.showPlanetControlPanel(planetName);
+                        // Just show the panel since it's already created
+                        if (this.solarSystem.planets[planetName].controlPanel) {
+                            this.solarSystem.planets[planetName].controlPanel.show();
+                        }
                     } else {
-                        this.solarSystem.hidePlanetControlPanel(planetName);
+                        // Hide the panel
+                        if (this.solarSystem.planets[planetName].controlPanel) {
+                            this.solarSystem.planets[planetName].controlPanel.hide();
+                        }
                     }
                 });
             }

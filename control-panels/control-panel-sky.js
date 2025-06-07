@@ -80,6 +80,7 @@ class SkyControlPanel extends PlanetControlPanel {
         container.style.justifyContent = 'space-between';
         container.style.alignItems = 'center';
 
+        // Use "Sky" label specifically for Sky
         const labelElem = document.createElement('label');
         labelElem.textContent = 'Sky: ';
 
@@ -105,19 +106,13 @@ class SkyControlPanel extends PlanetControlPanel {
                     starryToggle.checked = e.target.checked;
                 }
 
-                // Manually trigger scene background update
-                if (e.target.checked) {
-                    // Load the starry sky texture
-                    const textureLoader = new THREE.TextureLoader();
-                    textureLoader.load('textures/starry-sky-texture.jpg', (texture) => {
-                        if (window.solarSystem && window.solarSystem.scene) {
-                            window.solarSystem.scene.background = texture;
-                        }
-                    });
-                } else {
-                    // Set to black background
-                    if (window.solarSystem && window.solarSystem.scene) {
-                        window.solarSystem.scene.background = new THREE.Color(0x000000);
+                // Tell the Sky object to update the scene background
+                if (this.planet) {
+
+                    // Update the toggle in Solar System Controls panel
+                    const starryToggle = document.getElementById('starry-sky-visibility-toggle');
+                    if (starryToggle && starryToggle.checked !== e.target.checked) {
+                        starryToggle.checked = e.target.checked;
                     }
                 }
 

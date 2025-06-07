@@ -110,7 +110,7 @@ class Planet {
                     console.error(`Error loading texture: ${texturePath}`, err);
                     // Create a fallback colored material
                     if (this.sphere && this.sphere.material) {
-                        const fallbackColor = 0x888888; // Gray fallback color
+                        const fallbackColor = 0xffffff; // White fallback color
                         this.sphere.material.map = null;
                         this.sphere.material.color.set(fallbackColor);
                         this.sphere.material.needsUpdate = true;
@@ -142,11 +142,6 @@ class Planet {
             this.setRingMaterial(this.getRingBasicMaterial());
 
             this.sphere = new THREE.Mesh(geometry, material);
-
-//if (this.constructor.name !== 'Sun'){
-//    this.sphere.castShadow = true;
-//    this.sphere.receiveShadow = true;
-//}
 
             this.group.add(this.sphere);
 

@@ -167,10 +167,9 @@ class PlanetControlPanel extends ControlPanel {
         container.style.justifyContent = 'space-between';
         container.style.alignItems = 'center';
 
-        // Use "Sky" label for Sky, "Planet" for others
-        const labelText = this.planet.constructor.name === 'Sky' ? 'Sky: ' : 'Planet: ';
+        // Use "Planet" label for all planets
         const labelElem = document.createElement('label');
-        labelElem.textContent = labelText;
+        labelElem.textContent = 'Planet: ';
 
         // Create switch container
         const switchLabel = document.createElement('label');
