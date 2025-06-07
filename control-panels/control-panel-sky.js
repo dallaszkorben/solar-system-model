@@ -3,6 +3,7 @@
  * Extends PlanetControlPanel with sky-specific functionality
  */
 class SkyControlPanel extends PlanetControlPanel {
+
     constructor(sky) {
         super(sky); // Call parent constructor
 

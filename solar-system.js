@@ -4,16 +4,16 @@
 class SolarSystem {
 
     static celestialBodies = {
-        sky:     {name: 'Sky',        instantiate: new Sky(),     planetControlPanelClass: 'SkyControlPanel'   },
-        sun:     {name: 'Sun',        instantiate: new Sun(),     planetControlPanelClass: 'PlanetControlPanel'},
-        mercury: {name: 'Mercury',    instantiate: new Mercury(), planetControlPanelClass: 'PlanetControlPanel'},
-        venus:   {name: 'Venus',      instantiate: new Venus(),   planetControlPanelClass: 'PlanetControlPanel'},
-        earth:   {name: 'Earth',      instantiate: new Earth(),   planetControlPanelClass: 'PlanetControlPanel'},
-        mars:    {name: 'Mars',       instantiate: new Mars(),    planetControlPanelClass: 'PlanetControlPanel'},
-        jupiter: {name: 'Jupiter',    instantiate: new Jupiter(), planetControlPanelClass: 'PlanetControlPanel'},
-        saturn:  {name: 'Saturn',     instantiate: new Saturn(),  planetControlPanelClass: 'PlanetControlPanel'},
-        uranus:  {name: 'Uranus',     instantiate: new Uranus(),  planetControlPanelClass: 'PlanetControlPanel'},
-        neptune: {name: 'Neptune',    instantiate: new Neptune(), planetControlPanelClass: 'PlanetControlPanel'},
+        sky:     {name: 'Sky',        instantiate: new Sky(),     planetControlPanelClass: SkyControlPanel    },
+        sun:     {name: 'Sun',        instantiate: new Sun(),     planetControlPanelClass: PlanetControlPanel },
+        mercury: {name: 'Mercury',    instantiate: new Mercury(), planetControlPanelClass: PlanetControlPanel },
+        venus:   {name: 'Venus',      instantiate: new Venus(),   planetControlPanelClass: PlanetControlPanel },
+        earth:   {name: 'Earth',      instantiate: new Earth(),   planetControlPanelClass: PlanetControlPanel },
+        mars:    {name: 'Mars',       instantiate: new Mars(),    planetControlPanelClass: PlanetControlPanel },
+        jupiter: {name: 'Jupiter',    instantiate: new Jupiter(), planetControlPanelClass: PlanetControlPanel },
+        saturn:  {name: 'Saturn',     instantiate: new Saturn(),  planetControlPanelClass: PlanetControlPanel },
+        uranus:  {name: 'Uranus',     instantiate: new Uranus(),  planetControlPanelClass: PlanetControlPanel },
+        neptune: {name: 'Neptune',    instantiate: new Neptune(), planetControlPanelClass: PlanetControlPanel },
     }
 
     constructor() {
@@ -30,7 +30,7 @@ class SolarSystem {
         // Scale mode state: 'no-scale', 'size-scale', or 'distance-scale'
         this.scaleModeState = 'no-scale';
 
-        // Initialize planets collection
+        // Initialize planets collection - used in SolarSystem
         this.planetObjs = {};
 
         this.init();
@@ -75,13 +75,6 @@ class SolarSystem {
 
             this.scene.add(this.sunLight);
 
-            console.log('Creating sky...');
-            // Create sky as a planet
-            this.sky = new Sky();
-            this.sky.rotationEnabled = true; // Enable rotation mechanism but speed is 0
-            this.scene.add(this.sky.getObject());
-            console.log('Sky created and added to scene');
-
             this.initializePlanets();
 
             // Create control panels after sky is created
@@ -99,19 +92,13 @@ class SolarSystem {
             console.log('Solar system initialization complete');
     }
 
-    // Initialize planets for the solar system
     initializePlanets() {
             console.log('Initializing planets with textures...');
 
-            // Create planets using the celestialBodies static object
-            this.planetObjs = {};
-            
             // Add all planets to the scene (excluding sky which is handled separately)
             Object.entries(SolarSystem.celestialBodies).forEach(([key, body]) => {
-                if (key !== 'sky') {
-                    this.planetObjs[key] = body.instantiate;
-                    this.scene.add(body.instantiate.getObject());
-                }
+                this.planetObjs[key] = body.instantiate;
+                this.scene.add(body.instantiate.getObject());
             });
 
             // Set up event listener for toggling location markers

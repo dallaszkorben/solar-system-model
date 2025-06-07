@@ -6,6 +6,8 @@ class PlanetControlPanel extends ControlPanel {
         super(`${planet ? planet.constructor.name : 'Planet'} Controls`, { top: '20px', right: '20px' });
         this.planet = planet;
 
+        this.defaultAxisVisibility = true;
+
         // Create visibility controls section
         this.createVisibilitySection();
 
@@ -32,12 +34,6 @@ class PlanetControlPanel extends ControlPanel {
 
         // Add visibility toggle
         this.addVisibilityToggle();
-        
-        // Add Stars and Constellations toggles for Sky
-        if (this.planet && this.planet.constructor.name === 'Sky') {
-            this.addStarsToggle();
-            this.addConstellationsToggle();
-        }
 
         // Add orbit line toggle if planet has orbit
         if (this.planet && this.planet.orbitRadius > 0) {
@@ -56,105 +52,6 @@ class PlanetControlPanel extends ControlPanel {
         if (this.planet && this.planet.latitudeCircles) {
             this.addLatitudeCirclesToggle();
         }
-    }
-    
-    /**
-     * Add stars toggle for Sky
-     */
-    addStarsToggle() {
-        const container = document.createElement('div');
-        container.style.marginBottom = '10px';
-        container.style.display = 'flex';
-        container.style.justifyContent = 'space-between';
-        container.style.alignItems = 'center';
-        container.style.paddingLeft = '20px'; // Indent to show hierarchy
-        container.id = 'sky-stars-container';
-
-        const labelElem = document.createElement('label');
-        labelElem.textContent = 'Stars: ';
-
-        // Create switch container
-        const switchLabel = document.createElement('label');
-        switchLabel.className = 'switch';
-
-        // Create toggle input
-        const toggle = document.createElement('input');
-        toggle.type = 'checkbox';
-        toggle.checked = true; // Initially visible
-        toggle.id = 'sky-stars-toggle';
-
-        // Add event listener
-        toggle.addEventListener('change', (e) => {
-            if (this.planet && this.planet.sphere) {
-                this.planet.sphere.visible = e.target.checked;
-            }
-        });
-
-        // Create slider span
-        const sliderSpan = document.createElement('span');
-        sliderSpan.className = 'slider';
-
-        // Assemble the switch
-        switchLabel.appendChild(toggle);
-        switchLabel.appendChild(sliderSpan);
-
-        // Add elements to container
-        container.appendChild(labelElem);
-        container.appendChild(switchLabel);
-
-        // Add to control panel
-        this.consoleContent.appendChild(container);
-    }
-    
-    /**
-     * Add constellations toggle for Sky
-     */
-    addConstellationsToggle() {
-        const container = document.createElement('div');
-        container.style.marginBottom = '10px';
-        container.style.display = 'flex';
-        container.style.justifyContent = 'space-between';
-        container.style.alignItems = 'center';
-        container.style.paddingLeft = '20px'; // Indent to show hierarchy
-        container.id = 'sky-constellations-container';
-
-        const labelElem = document.createElement('label');
-        labelElem.textContent = 'Constellations: ';
-
-        // Create switch container
-        const switchLabel = document.createElement('label');
-        switchLabel.className = 'switch';
-
-        // Create toggle input
-        const toggle = document.createElement('input');
-        toggle.type = 'checkbox';
-        toggle.checked = false; // Initially hidden
-        toggle.id = 'sky-constellations-toggle';
-
-        // Add event listener
-        toggle.addEventListener('change', (e) => {
-            if (this.planet && this.planet.constellationSphere) {
-                this.planet.constellationSphere.visible = e.target.checked;
-                console.log('Constellation visibility set to:', e.target.checked);
-            } else {
-                console.log('Constellation sphere not found');
-            }
-        });
-
-        // Create slider span
-        const sliderSpan = document.createElement('span');
-        sliderSpan.className = 'slider';
-
-        // Assemble the switch
-        switchLabel.appendChild(toggle);
-        switchLabel.appendChild(sliderSpan);
-
-        // Add elements to container
-        container.appendChild(labelElem);
-        container.appendChild(switchLabel);
-
-        // Add to control panel
-        this.consoleContent.appendChild(container);
     }
 
     /**
@@ -190,30 +87,6 @@ class PlanetControlPanel extends ControlPanel {
                 const mainToggle = document.getElementById(`${this.planet.constructor.name.toLowerCase()}-visibility-toggle`);
                 if (mainToggle) {
                     mainToggle.checked = e.target.checked;
-                }
-                
-                // Update Stars and Constellations toggles if this is Sky
-                if (this.planet.constructor.name === 'Sky') {
-                    const starsToggle = document.getElementById('sky-stars-toggle');
-                    const constellationsToggle = document.getElementById('sky-constellations-toggle');
-                    
-                    if (starsToggle) {
-                        starsToggle.disabled = !e.target.checked;
-                        // Grey out the label and switch when disabled
-                        const starsContainer = starsToggle.closest('div');
-                        if (starsContainer) {
-                            starsContainer.style.opacity = e.target.checked ? '1' : '0.5';
-                        }
-                    }
-                    
-                    if (constellationsToggle) {
-                        constellationsToggle.disabled = !e.target.checked;
-                        // Grey out the label and switch when disabled
-                        const constellationsContainer = constellationsToggle.closest('div');
-                        if (constellationsContainer) {
-                            constellationsContainer.style.opacity = e.target.checked ? '1' : '0.5';
-                        }
-                    }
                 }
             }
         });
@@ -301,11 +174,12 @@ class PlanetControlPanel extends ControlPanel {
         const toggle = document.createElement('input');
         toggle.type = 'checkbox';
 
-        // Set initial state - OFF for Sky, ON for other planets
-        toggle.checked = this.planet.constructor.name !== 'Sky';
-        toggle.id = `${this.planet.constructor.name.toLowerCase()}-panel-axis-toggle`;
+//        // Set initial state - OFF for Sky, ON for other planets
+//        toggle.checked = this.planet.constructor.name !== 'Sky';
+//        toggle.id = `${this.planet.constructor.name.toLowerCase()}-panel-axis-toggle`;
 
         // Add event listener
+        toggle.checked = this.defaultAxisVisibility;
         toggle.addEventListener('change', (e) => {
             if (this.planet && this.planet.axis) {
                 this.planet.axis.visible = e.target.checked;

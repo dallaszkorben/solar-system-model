@@ -93,149 +93,142 @@ class SolarSystemControlPanel extends ControlPanel {
         sectionHeader.style.paddingBottom = '5px';
         this.consoleContent.appendChild(sectionHeader);
 
-        // Add starry sky toggle first
-        this.addStarryToggle();
-
-        // Add toggles for planets
-        const planets = ['Sun', 'Mercury', 'Venus', 'Earth', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune'];
-
-        planets.forEach(planet => {
-            this.addToggle(planet);
+        // Add toggles for each celestial body
+        Object.entries(SolarSystem.celestialBodies).forEach(([key, body]) => {
+            this.addToggle(body.name);
         });
 
         // Add event listeners for planet control panel toggles
         this.setupPlanetControlPanelToggles();
     }
 
-    addStarryToggle() {
-        const toggleContainer = document.createElement('div');
-        toggleContainer.style.marginBottom = '10px';
-        toggleContainer.style.display = 'flex';
-        toggleContainer.style.justifyContent = 'space-between';
-        toggleContainer.style.alignItems = 'center';
-
-        // Create icon container
-        const iconContainer = document.createElement('div');
-        iconContainer.style.width = '24px';
-        iconContainer.style.height = '24px';
-        iconContainer.style.marginRight = '8px';
-
-        // Create and add starry sky icon
-        const starryIcon = document.createElement('img');
-        starryIcon.src = 'icons/starry-sky.png'; // You might need to create this icon
-        starryIcon.style.width = '100%';
-        starryIcon.style.height = '100%';
-        starryIcon.alt = '★'; // Fallback if image not found
-        iconContainer.appendChild(starryIcon);
-
-        const toggleLabel = document.createElement('label');
-        toggleLabel.textContent = 'Starry Sky';
-        toggleLabel.style.flexGrow = '1';
-        toggleLabel.style.display = 'flex';
-        toggleLabel.style.alignItems = 'center';
-
-        // Create first switch container (visibility switch)
-        const switchLabel1 = document.createElement('label');
-        switchLabel1.className = 'switch';
-        switchLabel1.style.marginRight = '10px';
-        switchLabel1.title = "Show/Hide Starry Sky";
-
-        // Create toggle input (visibility switch)
-        const toggle = document.createElement('input');
-        toggle.type = 'checkbox';
-        toggle.checked = true; // Default ON
-        toggle.id = 'starry-sky-visibility-toggle';
-
-        // Add event listener for visibility toggle
-        toggle.addEventListener('change', () => {
-            if (this.solarSystem) {
-
-                // Also try to toggle the sky object if it exists
-                if (this.solarSystem.sky) {
-                    // Set visibility directly on the sky object
-                    this.solarSystem.sky.getObject().visible = toggle.checked;
-
-                    // Update the Sky panel visibility toggle if it exists
-                    if (this.solarSystem.sky.controlPanel) {
-                        const skyPanelToggle = document.getElementById('sky-panel-visibility-toggle');
-                        if (skyPanelToggle) {
-                            skyPanelToggle.checked = toggle.checked;
-
-                            // Update the brightness sliders state without triggering another toggle event
-                            const starsContainer = document.getElementById('sky-stars-container');
-                            const constellationsContainer = document.getElementById('sky-constellations-container');
-
-                            if (starsContainer) {
-                                starsContainer.style.opacity = toggle.checked ? '1' : '0.5';
-                                const interactiveElements = starsContainer.querySelectorAll('input, img');
-                                interactiveElements.forEach(element => {
-                                    element.disabled = !toggle.checked;
-                                    if (element.tagName === 'IMG') {
-                                        element.style.cursor = toggle.checked ? 'pointer' : 'default';
-                                    }
-                                });
-                            }
-
-                            if (constellationsContainer) {
-                                constellationsContainer.style.opacity = toggle.checked ? '1' : '0.5';
-                                const interactiveElements = constellationsContainer.querySelectorAll('input, img');
-                                interactiveElements.forEach(element => {
-                                    element.disabled = !toggle.checked;
-                                    if (element.tagName === 'IMG') {
-                                        element.style.cursor = toggle.checked ? 'pointer' : 'default';
-                                    }
-                                });
-                            }
-                        }
-                    }
-                }
-            }
-        });
-
-        // Create slider span for switch
-        const sliderSpan1 = document.createElement('span');
-        sliderSpan1.className = 'slider';
-
-        // Assemble the switch
-        switchLabel1.appendChild(toggle);
-        switchLabel1.appendChild(sliderSpan1);
-
-        // Create second switch container (controls switch)
-        const switchLabel2 = document.createElement('label');
-        switchLabel2.className = 'switch';
-        switchLabel2.title = "Show/Hide Sky Controls";
-
-        // Create second toggle input (controls switch)
-        const toggle2 = document.createElement('input');
-        toggle2.type = 'checkbox';
-        toggle2.checked = false;
-        toggle2.id = 'sky-controls-toggle';
-
-        // Add event listener for controls toggle
-        toggle2.addEventListener('change', (e) => {
-            if (this.solarSystem && this.solarSystem.sky && this.solarSystem.sky.controlPanel) {
-                if (e.target.checked) {
-                    this.solarSystem.sky.controlPanel.show();
-                } else {
-                    this.solarSystem.sky.controlPanel.hide();
-                }
-            }
-        });
-
-        // Create slider span for second switch
-        const sliderSpan2 = document.createElement('span');
-        sliderSpan2.className = 'slider';
-
-        // Assemble the second switch
-        switchLabel2.appendChild(toggle2);
-        switchLabel2.appendChild(sliderSpan2);
-
-        toggleContainer.appendChild(iconContainer);
-        toggleContainer.appendChild(toggleLabel);
-        toggleContainer.appendChild(switchLabel1);
-        toggleContainer.appendChild(switchLabel2);
-        this.consoleContent.appendChild(toggleContainer);
-    }
+//    addStarryToggle() {
+//        const toggleContainer = document.createElement('div');
+//        toggleContainer.style.marginBottom = '10px';
+//        toggleContainer.style.display = 'flex';
+//        toggleContainer.style.justifyContent = 'space-between';
+//        toggleContainer.style.alignItems = 'center';
+//
+//        // Create icon container
+//        const iconContainer = document.createElement('div');
+//        iconContainer.style.width = '24px';
+//        iconContainer.style.height = '24px';
+//        iconContainer.style.marginRight = '8px';
+//
+//        // Create and add starry sky icon
+//        const starryIcon = document.createElement('img');
+//        starryIcon.src = 'icons/starry-sky.png'; // You might need to create this icon
+//        starryIcon.style.width = '100%';
+//        starryIcon.style.height = '100%';
+//        starryIcon.alt = '★'; // Fallback if image not found
+//        iconContainer.appendChild(starryIcon);
+//
+//        const toggleLabel = document.createElement('label');
+//        toggleLabel.textContent = 'Starry Sky';
+//        toggleLabel.style.flexGrow = '1';
+//        toggleLabel.style.display = 'flex';
+//        toggleLabel.style.alignItems = 'center';
+//
+//        // Create first switch container (visibility switch)
+//        const switchLabel1 = document.createElement('label');
+//        switchLabel1.className = 'switch';
+//        switchLabel1.style.marginRight = '10px';
+//        switchLabel1.title = "Show/Hide Starry Sky";
+//
+//        // Create toggle input (visibility switch)
+//        const toggle = document.createElement('input');
+//        toggle.type = 'checkbox';
+//        toggle.checked = true; // Default ON
+//        toggle.id = 'starry-sky-visibility-toggle';
+//
+//        // Add event listener for visibility toggle
+//        toggle.addEventListener('change', () => {
+//            if (this.solarSystem) {
+//
+//                // Also try to toggle the sky object if it exists
+//                if (this.solarSystem.sky) {
+//                    // Set visibility directly on the sky object
+//                    this.solarSystem.sky.getObject().visible = toggle.checked;
+//
+//                    // Update the Sky panel visibility toggle if it exists
+//                    if (this.solarSystem.sky.controlPanel) {
+//                        const skyPanelToggle = document.getElementById('sky-panel-visibility-toggle');
+//                        if (skyPanelToggle) {
+//                            skyPanelToggle.checked = toggle.checked;
+//
+//                            // Update the brightness sliders state without triggering another toggle event
+//                            const starsContainer = document.getElementById('sky-stars-container');
+//                            const constellationsContainer = document.getElementById('sky-constellations-container');
+//
+//                            if (starsContainer) {
+//                                starsContainer.style.opacity = toggle.checked ? '1' : '0.5';
+//                                const interactiveElements = starsContainer.querySelectorAll('input, img');
+//                                interactiveElements.forEach(element => {
+//                                    element.disabled = !toggle.checked;
+//                                    if (element.tagName === 'IMG') {
+//                                        element.style.cursor = toggle.checked ? 'pointer' : 'default';
+//                                    }
+//                                });
+//                            }
+//
+//                            if (constellationsContainer) {
+//                                constellationsContainer.style.opacity = toggle.checked ? '1' : '0.5';
+//                                const interactiveElements = constellationsContainer.querySelectorAll('input, img');
+//                                interactiveElements.forEach(element => {
+//                                    element.disabled = !toggle.checked;
+//                                    if (element.tagName === 'IMG') {
+//                                        element.style.cursor = toggle.checked ? 'pointer' : 'default';
+//                                    }
+//                                });
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        });
+//
+//        // Create slider span for switch
+//        const sliderSpan1 = document.createElement('span');
+//        sliderSpan1.className = 'slider';
+//
+//        // Assemble the switch
+//        switchLabel1.appendChild(toggle);
+//        switchLabel1.appendChild(sliderSpan1);
+//
+//        // Create second switch container (controls switch)
+//        const switchLabel2 = document.createElement('label');
+//        switchLabel2.className = 'switch';
+//        switchLabel2.title = "Show/Hide Sky Controls";
+//
+//        // Create second toggle input (controls switch)
+//        const toggle2 = document.createElement('input');
+//        toggle2.type = 'checkbox';
+//        toggle2.checked = false;
+//        toggle2.id = 'sky-controls-toggle';
+//
+//        // Add event listener for controls toggle
+//toggle2.addEventListener('change', (e) => {
+//    if (e.target.checked) {
+//        this.solarSystem.controlPanels['sky'].show();
+//    } else {
+//        this.solarSystem.controlPanels['sky'].hide();
+//    }
+//});
+//
+//        // Create slider span for second switch
+//        const sliderSpan2 = document.createElement('span');
+//        sliderSpan2.className = 'slider';
+//
+//        // Assemble the second switch
+//        switchLabel2.appendChild(toggle2);
+//        switchLabel2.appendChild(sliderSpan2);
+//
+//        toggleContainer.appendChild(iconContainer);
+//        toggleContainer.appendChild(toggleLabel);
+//        toggleContainer.appendChild(switchLabel1);
+//        toggleContainer.appendChild(switchLabel2);
+//        this.consoleContent.appendChild(toggleContainer);
+//    }
 
     addToggle(label) {
         const toggleContainer = document.createElement('div');
@@ -279,7 +272,9 @@ class SolarSystemControlPanel extends ControlPanel {
         toggle1.addEventListener('change', () => {
             const planetName = label.toLowerCase();
             if (this.solarSystem && this.solarSystem.planetObjs && this.solarSystem.planetObjs[planetName]) {
-                this.solarSystem.planetObjs[planetName].setVisibility(toggle1.checked);
+//                this.solarSystem.planetObjs[planetName].setVisibility(toggle1.checked);
+                this.solarSystem.controlPanels[planetName].setVisibility(toggle1.checked);
+
             }
         });
 
@@ -332,38 +327,30 @@ toggle2.addEventListener('change', (e) => {
      * Setup event listeners for planet control panel toggles
      */
     setupPlanetControlPanelToggles() {
-        const planets = ['sun', 'mercury', 'venus', 'earth', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune'];
-
         this.solarSystem.controlPanels = {}
 
-        // Create all planet control panels upfront
-        planets.forEach(planetName => {
-                if (!this.solarSystem.controlPanels[planetName]) {
-                    this.solarSystem.controlPanels[planetName] = new PlanetControlPanel(this.solarSystem.planetObjs[planetName]);
-                }
-
-            });
-
-        // Create sky control panel upfront if it doesn't exist
-        if (this.solarSystem && this.solarSystem.sky && !this.solarSystem.sky.controlPanel) {
-            this.solarSystem.sky.controlPanel = new SkyControlPanel(this.solarSystem.sky);
-        }
-
-        // Set up toggle event listeners to show/hide the panels
-        planets.forEach(planetName => {
-            const toggle = document.getElementById(`${planetName}-controls-toggle`);
-            if (toggle) {
-                toggle.addEventListener('change', (e) => {
-                    if (e.target.checked) {
-                        // Just show the panel since it's already created
-                        this.solarSystem.controlPanels[planetName].show();
-                    } else {
-                        // Hide the panel
-                        this.solarSystem.controlPanels[planetName].hide();
-                    }
-                });
+        // Create all celestial body control panels upfront
+        Object.entries(SolarSystem.celestialBodies).forEach(([key, body]) => {
+            if (!this.solarSystem.controlPanels[key]) {
+                const ControlPanelClass = body.planetControlPanelClass;
+                const celestialObj = this.solarSystem.planetObjs[key];
+                this.solarSystem.controlPanels[key] = new ControlPanelClass(celestialObj);
             }
         });
+
+//        // Set up toggle event listeners to show/hide the panels
+//        Object.entries(SolarSystem.celestialBodies).forEach(([key, body]) => {
+//            const toggle = document.getElementById(`${key}-controls-toggle`);
+//            if (toggle) {
+//                toggle.addEventListener('change', (e) => {
+//                    if (e.target.checked) {
+//                        this.solarSystem.controlPanels[key].show();
+//                    } else {
+//                        this.solarSystem.controlPanels[key].hide();
+//                    }
+//                });
+//            }
+//        });
     }
 
     createRotationControlsSection() {
