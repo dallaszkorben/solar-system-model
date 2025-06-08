@@ -3,6 +3,9 @@
  */
 class Sun extends Planet {
 
+    static NAME = 'Sun';
+    static ID   = 'sun';
+
     // Static data for Sun
     static factData = {
         diameter: 1391400.0,        // km
@@ -52,6 +55,9 @@ class Sun extends Planet {
 
     constructor() {
         super(Sun.factData, Sun.nonScaleModelData, Sun.scaleModelData, Sun.scaleModelData);
+
+        this.name = Sun.NAME;
+        this.id   = Sun.ID;
 
         // Override orbit properties since Sun doesn't orbit
         this.orbitEnabled = false;

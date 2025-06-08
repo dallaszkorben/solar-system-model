@@ -11,7 +11,10 @@
  *
  */
 class Uranus extends Planet {
-    // Static data for Uranus
+
+    static NAME = 'Uranus';
+    static ID   = 'uranus';
+
     static factData = {
         diameter: 50724.0, // km
         axialTilt: 97.77, // degrees - Uranus has an extreme axial tilt
@@ -64,11 +67,11 @@ class Uranus extends Planet {
         get orbitalPeriod() {
             // Uranus orbits in 30688.5 days vs Earth's 365.25 days (ratio ~84.02)
             // So Uranus should take 84.02x longer to orbit than Earth
-            return 60 * (Uranus.factData.orbitalPeriod / Planet.earthData.orbitalPeriod);
+            return 60 * (Uranus.factData.orbitalPeriod / Planet.referenceData.orbitalPeriod);
         },
         get maxOrbitalPeriod() {
             // Maintain the same ratio for max speed
-            return 6 * (Uranus.factData.orbitalPeriod / Planet.earthData.orbitalPeriod);
+            return 6 * (Uranus.factData.orbitalPeriod / Planet.referenceData.orbitalPeriod);
         },
         rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
         maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
@@ -78,6 +81,9 @@ class Uranus extends Planet {
 
     constructor() {
         super(Uranus.factData, Uranus.nonScaleModelData, Uranus.scaleModelData, Uranus.scaleModelData);
+
+        this.name = Uranus.NAME;
+        this.id   = Uranus.ID;
 
         // Ring visibility property
         this.ringsVisible = true;

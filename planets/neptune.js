@@ -2,7 +2,10 @@
  * Neptune model creator
  */
 class Neptune extends Planet {
-    // Static data for Neptune
+
+    static NAME = 'Neptune';
+    static ID   = 'neptune';
+
     static factData = {
         diameter: 49528.0, // km
         axialTilt: 28.32, // degrees
@@ -50,11 +53,11 @@ class Neptune extends Planet {
         get orbitalPeriod() {
             // Neptune orbits in 60195 days vs Earth's 365.25 days (ratio ~164.8)
             // So Neptune should take 164.8x longer to orbit than Earth
-            return 60 * (Neptune.factData.orbitalPeriod / Planet.earthData.orbitalPeriod);
+            return 60 * (Neptune.factData.orbitalPeriod / Planet.referenceData.orbitalPeriod);
         },
         get maxOrbitalPeriod() {
             // Maintain the same ratio for max speed
-            return 6 * (Neptune.factData.orbitalPeriod / Planet.earthData.orbitalPeriod);
+            return 6 * (Neptune.factData.orbitalPeriod / Planet.referenceData.orbitalPeriod);
         },
         rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
         maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
@@ -64,6 +67,9 @@ class Neptune extends Planet {
 
     constructor() {
         super(Neptune.factData, Neptune.nonScaleModelData, Neptune.scaleModelData, Neptune.scaleModelData);
+
+        this.name = Neptune.NAME;
+        this.id   = Neptune.ID;
 
         this.createSphere('textures/Neptune-texture.jpg');
         this.createAxis(0x0066ff); // Blue color for Neptune's axis

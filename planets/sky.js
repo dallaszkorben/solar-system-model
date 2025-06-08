@@ -3,8 +3,11 @@
  * Inherits from Planet to allow rotation and tilt
  */
 class Sky extends Planet {
+
+    static NAME = 'Sky';
+    static ID   = 'sky';
+
     constructor() {
-        try {
             console.log('Creating Sky object...');
 
             // Create minimal fact data for the sky with Earth's axial tilt
@@ -33,8 +36,22 @@ class Sky extends Planet {
             // Distance scale mode data (same as no-scale for sky)
             const distanceScaleModeData = { ...noScaleModeData };
 
+
+
+
+
+
+
+
             // Call parent constructor
             super(factData, noScaleModeData, sizeScaleModeData, distanceScaleModeData);
+
+            this.name = Sky.NAME;
+            this.id   = Sky.ID;
+
+            //
+            // Global variables
+            //
 
             // Store these values as object properties for the control panel to use
             this.defaultPitchDegrees = 0;
@@ -45,6 +62,13 @@ class Sky extends Planet {
             this.maxStarBrightness = 2.0;
             this.defaultStarBrightness = 0.5;
             this.defaultConstellationBrightness = 0.5;
+
+            //
+            //
+            //
+
+
+
 
             // Create the sky sphere with our custom method
             console.log('Loading sky textures...');
@@ -64,9 +88,6 @@ class Sky extends Planet {
             ]);
 
             console.log('Sky object created successfully');
-        } catch (error) {
-            console.error('Error creating Sky object:', error);
-        }
 
         // Add a custom rotation speed variable that can be set later
         this.customRotationSpeed = 0;

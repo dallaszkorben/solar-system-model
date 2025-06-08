@@ -2,7 +2,10 @@
  * Venus model creator
  */
 class Venus extends Planet {
-    // Static data for Venus
+
+    static NAME = 'Venus';
+    static ID   = 'venus';
+
     static factData = {
         diameter: 12104.0, // km
         axialTilt: 177.36, // degrees (retrograde rotation)
@@ -51,11 +54,11 @@ class Venus extends Planet {
         get orbitalPeriod() {
             // Venus orbits in 224.7 days vs Earth's 365.25 days (ratio ~0.615)
             // So Venus should take 0.615x the time to orbit compared to Earth
-            return 60 * (Venus.factData.orbitalPeriod / Planet.earthData.orbitalPeriod);
+            return 60 * (Venus.factData.orbitalPeriod / Planet.referenceData.orbitalPeriod);
         },
         get maxOrbitalPeriod() {
             // Maintain the same ratio for max speed
-            return 6 * (Venus.factData.orbitalPeriod / Planet.earthData.orbitalPeriod);
+            return 6 * (Venus.factData.orbitalPeriod / Planet.referenceData.orbitalPeriod);
         },
         rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
         maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
@@ -65,6 +68,9 @@ class Venus extends Planet {
 
     constructor() {
         super(Venus.factData, Venus.nonScaleModelData, Venus.scaleModelData, Venus.scaleModelData);
+
+        this.name = Venus.NAME;
+        this.id   = Venus.ID;
 
         this.createSphere('textures/Venus-texture.jpg');
         this.createAxis();
@@ -88,7 +94,7 @@ class Venus extends Planet {
         this.createSeasonLabels(seasons);
 
         // Removed console pane creation for now
-        
+
         // Listen for global day/night changes
         document.addEventListener('globalDayNightChange', (e) => {
             const toggle = document.getElementById('venus-day-night-toggle');

@@ -3,7 +3,7 @@
  */
 class PlanetControlPanel extends ControlPanel {
     constructor(planet) {
-        super(`${planet ? planet.constructor.name : 'Planet'} Controls`, { top: '20px', right: '20px' });
+        super(`${planet.name} Controls`, { top: '20px', right: '20px' });
         this.planet = planet;
 
         this.defaultAxisVisibility = true;
@@ -11,13 +11,19 @@ class PlanetControlPanel extends ControlPanel {
         // Create visibility controls section
         this.createVisibilitySection();
 
-        // Create rotation controls section for Sky
-        if (planet && planet.constructor.name === 'Sky') {
-            this.createSkyRotationSection();
-        }
-
         // Hide the panel by default
         this.hide();
+    }
+
+    setPlanetVisibility(enable){
+
+        this.planet.setVisibility(enable);
+
+        // Also update the main visibility toggle in the solar system panel
+        const mainToggle = document.getElementById(`${this.planet.ID}-visibility-toggle`);
+        if (mainToggle) {
+            mainToggle.checked = enable;
+        }
     }
 
     /**
@@ -36,20 +42,22 @@ class PlanetControlPanel extends ControlPanel {
         this.addVisibilityToggle();
 
         // Add orbit line toggle if planet has orbit
-        if (this.planet && this.planet.orbitRadius > 0) {
+        if (this.planet.orbitRadius > 0) {
             this.addOrbitLineToggle();
         }
 
         // Add axis toggle
         this.addAxisToggle();
 
+
+// !!!! TODO: must be changed
         // Add North Pole Axis toggle for Earth only
-        if (this.planet && this.planet.constructor.name === 'Earth') {
+        if (this.planet.ID === 'earth') {
             this.addNorthPoleAxisToggle();
         }
 
         // Add latitude circles toggle if planet has them
-        if (this.planet && this.planet.latitudeCircles) {
+        if (this.planet.latitudeCircles) {
             this.addLatitudeCirclesToggle();
         }
     }
@@ -76,19 +84,13 @@ class PlanetControlPanel extends ControlPanel {
         const toggle = document.createElement('input');
         toggle.type = 'checkbox';
         toggle.checked = true; // Initially visible
-        toggle.id = `${this.planet.constructor.name.toLowerCase()}-panel-visibility-toggle`;
+        toggle.id = `${this.planet.ID}-panel-visibility-toggle`;
 
+
+// !!! TODO: Must be investigated, DOES NOT WORK
         // Add event listener
         toggle.addEventListener('change', (e) => {
-            if (this.planet) {
-                this.planet.setVisibility(e.target.checked);
-
-                // Also update the main visibility toggle in the solar system panel
-                const mainToggle = document.getElementById(`${this.planet.constructor.name.toLowerCase()}-visibility-toggle`);
-                if (mainToggle) {
-                    mainToggle.checked = e.target.checked;
-                }
-            }
+            this.setPlanetVisibility(e.target.checked)
         });
 
         // Create slider span
@@ -128,11 +130,11 @@ class PlanetControlPanel extends ControlPanel {
         const toggle = document.createElement('input');
         toggle.type = 'checkbox';
         toggle.checked = true; // Initially visible
-        toggle.id = `${this.planet.constructor.name.toLowerCase()}-panel-orbit-toggle`;
+        toggle.id = `${this.planet.ID}-panel-orbit-toggle`;
 
         // Add event listener
         toggle.addEventListener('change', (e) => {
-            if (this.planet && this.planet.orbitLine) {
+            if (this.planet.orbitLine) {
                 this.planet.orbitLine.visible = e.target.checked;
             }
         });
@@ -174,14 +176,10 @@ class PlanetControlPanel extends ControlPanel {
         const toggle = document.createElement('input');
         toggle.type = 'checkbox';
 
-//        // Set initial state - OFF for Sky, ON for other planets
-//        toggle.checked = this.planet.constructor.name !== 'Sky';
-//        toggle.id = `${this.planet.constructor.name.toLowerCase()}-panel-axis-toggle`;
-
         // Add event listener
         toggle.checked = this.defaultAxisVisibility;
         toggle.addEventListener('change', (e) => {
-            if (this.planet && this.planet.axis) {
+            if (this.planet.axis) {
                 this.planet.axis.visible = e.target.checked;
             }
         });
@@ -227,7 +225,7 @@ class PlanetControlPanel extends ControlPanel {
 
         // Add event listener
         toggle.addEventListener('change', (e) => {
-            if (this.planet && this.planet.northPoleAxis) {
+            if (this.planet.northPoleAxis) {
                 this.planet.northPoleAxis.visible = e.target.checked;
             }
         });
@@ -269,11 +267,11 @@ class PlanetControlPanel extends ControlPanel {
         const toggle = document.createElement('input');
         toggle.type = 'checkbox';
         toggle.checked = false; // Initially hidden
-        toggle.id = `${this.planet.constructor.name.toLowerCase()}-panel-latitude-toggle`;
+        toggle.id = `${this.planet.ID}-panel-latitude-toggle`;
 
         // Add event listener
         toggle.addEventListener('change', (e) => {
-            if (this.planet && this.planet.latitudeCircles) {
+            if (this.planet.latitudeCircles) {
                 this.planet.latitudeCircles.visible = e.target.checked;
             }
         });
@@ -292,29 +290,6 @@ class PlanetControlPanel extends ControlPanel {
 
         // Add to control panel
         this.consoleContent.appendChild(container);
-    }
-
-    /**
-     * Create Sky rotation controls section
-     */
-    createSkyRotationSection() {
-        // Create section header
-        const sectionHeader = document.createElement('h4');
-        sectionHeader.textContent = 'Rotation Controls';
-        sectionHeader.style.margin = '15px 0 10px 0';
-        sectionHeader.style.borderBottom = '1px solid #555';
-        sectionHeader.style.paddingBottom = '5px';
-        this.consoleContent.appendChild(sectionHeader);
-
-        // Get default values from the Sky object if available
-        const defaultPitch = this.planet.defaultPitchDegrees !== undefined ? this.planet.defaultPitchDegrees : 0;
-        const defaultYaw = this.planet.defaultYawDegrees !== undefined ? this.planet.defaultYawDegrees : 0;
-        const defaultRoll = this.planet.defaultRollDegrees !== undefined ? this.planet.defaultRollDegrees : 23.4;
-
-        // Add rotation sliders with defaults from Sky object
-        this.addRotationSlider('Pitch', 'pitch', defaultPitch);
-        this.addRotationSlider('Yaw', 'yaw', defaultYaw);
-        this.addRotationSlider('Roll', 'roll', defaultRoll);
     }
 
     /**
@@ -381,18 +356,16 @@ class PlanetControlPanel extends ControlPanel {
             valueField.value = `${degrees}°`;
 
             // Apply rotation to the sky
-            if (this.planet) {
-                switch(id) {
-                    case 'pitch':
-                        this.planet.setPitchRotation(radians);
-                        break;
-                    case 'yaw':
-                        this.planet.setYawRotation(radians);
-                        break;
-                    case 'roll':
-                        this.planet.setRollRotation(radians);
-                        break;
-                }
+            switch(id) {
+                case 'pitch':
+                    this.planet.setPitchRotation(radians);
+                    break;
+                case 'yaw':
+                    this.planet.setYawRotation(radians);
+                    break;
+                case 'roll':
+                    this.planet.setRollRotation(radians);
+                    break;
             }
         });
 
@@ -402,19 +375,17 @@ class PlanetControlPanel extends ControlPanel {
             valueField.value = `${defaultDegrees}°`;
 
             // Reset rotation to default
-            if (this.planet) {
-                const radians = (defaultDegrees * Math.PI) / 180;
-                switch(id) {
-                    case 'pitch':
-                        this.planet.setPitchRotation(radians);
-                        break;
-                    case 'yaw':
-                        this.planet.setYawRotation(radians);
-                        break;
-                    case 'roll':
-                        this.planet.setRollRotation(radians);
-                        break;
-                }
+            const radians = (defaultDegrees * Math.PI) / 180;
+            switch(id) {
+                case 'pitch':
+                    this.planet.setPitchRotation(radians);
+                    break;
+                case 'yaw':
+                    this.planet.setYawRotation(radians);
+                    break;
+                case 'roll':
+                    this.planet.setRollRotation(radians);
+                    break;
             }
         });
 
@@ -430,19 +401,17 @@ class PlanetControlPanel extends ControlPanel {
         this.consoleContent.appendChild(container);
 
         // Apply initial rotation based on default value
-        if (this.planet) {
-            const radians = (defaultDegrees * Math.PI) / 180;
-            switch(id) {
-                case 'pitch':
-                    this.planet.setPitchRotation(radians);
-                    break;
-                case 'yaw':
-                    this.planet.setYawRotation(radians);
-                    break;
-                case 'roll':
-                    this.planet.setRollRotation(radians);
-                    break;
-            }
+        const radians = (defaultDegrees * Math.PI) / 180;
+        switch(id) {
+            case 'pitch':
+                this.planet.setPitchRotation(radians);
+                break;
+            case 'yaw':
+                this.planet.setYawRotation(radians);
+                break;
+            case 'roll':
+                this.planet.setRollRotation(radians);
+                break;
         }
     }
 }

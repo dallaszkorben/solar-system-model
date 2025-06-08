@@ -8,17 +8,17 @@ class ControlPanel {
         this.consoleVisible = false;
         this.title = title;
         this.position = position;
-        
+
         this.createConsolePane();
     }
-    
+
     createConsolePane() {
         // Create console pane
         this.consolePane = document.createElement('div');
         this.consolePane.className = 'console-pane';
         this.consolePane.style.position = 'absolute';
         this.consolePane.style.top = this.position.top;
-        
+
         // Handle either left or right position
         if (this.position.right) {
             this.consolePane.style.right = this.position.right;
@@ -56,7 +56,7 @@ class ControlPanel {
         const iconsContainer = document.createElement('div');
         iconsContainer.style.display = 'flex';
         iconsContainer.style.alignItems = 'center';
-        
+
         // Add collapse/expand icon
         const collapseIcon = document.createElement('div');
         collapseIcon.innerHTML = '&#9650;'; // Up arrow (collapse)
@@ -70,7 +70,7 @@ class ControlPanel {
         collapseIcon.style.userSelect = 'none';
         collapseIcon.title = 'Collapse/Expand';
         iconsContainer.appendChild(collapseIcon);
-        
+
         // Add close icon
         const closeIcon = document.createElement('div');
         closeIcon.innerHTML = '&#10006;'; // X symbol
@@ -84,12 +84,12 @@ class ControlPanel {
         closeIcon.style.userSelect = 'none';
         closeIcon.style.marginLeft = '8px';
         closeIcon.title = 'Close';
-        
+
         // Add click handler to hide the panel
         closeIcon.addEventListener('click', (e) => {
             e.stopPropagation(); // Prevent dragging
             this.hide();
-            
+
             // Find the toggle for this panel in the Solar System Controls
             const planetName = this.title.split(' ')[0].toLowerCase();
             const toggle = document.getElementById(`${planetName}-controls-toggle`);
@@ -97,9 +97,9 @@ class ControlPanel {
                 toggle.checked = false;
             }
         });
-        
+
         iconsContainer.appendChild(closeIcon);
-        
+
         // Add icons container to header
         header.appendChild(iconsContainer);
 
@@ -119,7 +119,7 @@ class ControlPanel {
 
         // Add to document
         document.body.appendChild(this.consolePane);
-        
+
         // Add collapse/expand functionality
         collapseIcon.addEventListener('click', (e) => {
             e.stopPropagation(); // Prevent dragging when clicking the icon
@@ -143,7 +143,7 @@ class ControlPanel {
             this.consolePane.style.left = `${currentLeft}px`;
         });
     }
-    
+
     makeDraggable(element, dragHandle) {
         let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
 
@@ -174,7 +174,7 @@ class ControlPanel {
             document.onmousemove = null;
         }
     }
-    
+
     show() {
         if (this.consolePane) {
             this.consolePane.style.display = 'block';

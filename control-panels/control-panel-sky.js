@@ -7,6 +7,9 @@ class SkyControlPanel extends PlanetControlPanel {
     constructor(sky) {
         super(sky); // Call parent constructor
 
+        // Create rotation controls section for Sky
+        this.createSkyRotationSection();
+
         // Override the title to verify implementation
         this.consolePane.querySelector('h3').textContent = 'Sky Controls';
 

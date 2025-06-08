@@ -2,7 +2,10 @@
  * Mercury model creator
  */
 class Mercury extends Planet {
-    // Static data for Mercury
+
+    static NAME = 'Mercury';
+    static ID   = 'mercury';
+
     static factData = {
         diameter: 4879.4, // km
         axialTilt: 0.034, // degrees (almost no tilt)
@@ -50,11 +53,11 @@ class Mercury extends Planet {
         get orbitalPeriod() {
             // Mercury orbits in 88 days vs Earth's 365.25 days (ratio ~0.241)
             // So Mercury should take 0.241x the time to orbit compared to Earth
-            return 60 * (Mercury.factData.orbitalPeriod / Planet.earthData.orbitalPeriod);
+            return 60 * (Mercury.factData.orbitalPeriod / Planet.referenceData.orbitalPeriod);
         },
         get maxOrbitalPeriod() {
             // Maintain the same ratio for max speed
-            return 6 * (Mercury.factData.orbitalPeriod / Planet.earthData.orbitalPeriod);
+            return 6 * (Mercury.factData.orbitalPeriod / Planet.referenceData.orbitalPeriod);
         },
         rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
         maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
@@ -64,6 +67,9 @@ class Mercury extends Planet {
 
     constructor() {
         super(Mercury.factData, Mercury.nonScaleModelData, Mercury.scaleModelData, Mercury.scaleModelData);
+
+        this.name = Mercury.NAME;
+        this.id   = Mercury.ID;
 
         this.createSphere('textures/Mercury-texture.jpg');
         this.createAxis(0xff00ff); // Gray color for Mercury's axis

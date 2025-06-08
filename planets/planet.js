@@ -2,6 +2,10 @@
  * Base Planet class for all planets in the solar system
  */
 class Planet {
+
+    static ID   = 'planet';
+    static NAME = 'Planet';
+
     // Correct orbit scale
     static scaleDownDiameterFactor = 1;
     static scaleDownOrbitFactor = 1000;
@@ -16,7 +20,7 @@ class Planet {
     static orbitOpacity = 0.3;
 
     // Earth reference data for relative calculations
-    static earthData = {
+    static referenceData = {
         rotationPeriod: 23.93, // hours
         orbitalPeriod: 365.25, // days
     };
@@ -24,8 +28,8 @@ class Planet {
     // Calculate relative periods based on Earth as reference
     static calculateRelativePeriods(rotationPeriod, orbitalPeriod) {
         // Calculate planet-to-Earth ratios
-        const rotationRatio = rotationPeriod / this.earthData.rotationPeriod;
-        const orbitalRatio = orbitalPeriod / this.earthData.orbitalPeriod;
+        const rotationRatio = rotationPeriod / Planet.referenceData.rotationPeriod;
+        const orbitalRatio = orbitalPeriod / Planet.referenceData.orbitalPeriod;
 
         return {
             rotation: rotationRatio,
@@ -40,6 +44,9 @@ class Planet {
         this.noScaleModeData = noScaleModeData;
         this.sizeScaleModeData = sizeScaleModeData;
         this.distanceScaleModeData = distanceScaleModeData;
+
+        this.name = Planet.NAME;
+        this.id   = Planet.ID;
 
         // Location markers
         this.locationMarkers = [];

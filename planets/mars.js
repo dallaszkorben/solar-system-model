@@ -2,6 +2,10 @@
  * Mars model creator
  */
 class Mars extends Planet {
+
+    static NAME = 'Mars';
+    static ID   = 'mars';
+
     // Static data for Mars
     static factData = {
         diameter: 6779.0, // km
@@ -10,7 +14,7 @@ class Mars extends Planet {
         rotationPeriod: 24.6, // hours
         orbitalPeriod: 687 // days
     };
-    
+
     // Location data
     static locationData = [
         { name: 'Perseverance', latitude: 18.4447, longitude: 77.4508, color: 0x00ffff }
@@ -55,11 +59,11 @@ class Mars extends Planet {
         get orbitalPeriod() {
             // Mars orbits in 687 days vs Earth's 365.25 days (ratio ~1.88)
             // So Mars should take 1.88x longer to orbit than Earth
-            return 60 * (Mars.factData.orbitalPeriod / Planet.earthData.orbitalPeriod);
+            return 60 * (Mars.factData.orbitalPeriod / Planet.referenceData.orbitalPeriod);
         },
         get maxOrbitalPeriod() {
             // Maintain the same ratio for max speed
-            return 6 * (Mars.factData.orbitalPeriod / Planet.earthData.orbitalPeriod);
+            return 6 * (Mars.factData.orbitalPeriod / Planet.referenceData.orbitalPeriod);
         },
         rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
         maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
@@ -69,6 +73,9 @@ class Mars extends Planet {
 
     constructor() {
         super(Mars.factData, Mars.nonScaleModelData, Mars.scaleModelData, Mars.scaleModelData);
+
+        this.name = Mars.NAME;
+        this.id   = Mars.ID;
 
         this.createSphere('textures/Mars-texture.jpg');
         this.createAxis(0xff4500); // Orange-red color for Mars
@@ -81,19 +88,19 @@ class Mars extends Planet {
         ]);
         this.applyTilt();
         this.createOrbit();
-        
+
         // Create location markers
         this.locationMarkers = [];
         this.createLocationMarkers();
     }
-    
+
     createLocationMarkers() {
         Mars.locationData.forEach(location => {
             const marker = new LocationMarker(this, location.name, location.latitude, location.longitude, location.color);
             this.locationMarkers.push(marker);
         });
     }
-    
+
     setLocationMarkersVisible(visible) {
         if (this.locationMarkers) {
             this.locationMarkers.forEach(marker => marker.setVisible(visible));

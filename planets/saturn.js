@@ -11,7 +11,9 @@
  */
 class Saturn extends Planet {
 
-    // Static data for Saturn
+    static NAME = 'Saturn';
+    static ID   = 'saturn';
+
     static factData = {
         diameter: 116460.0, // km
         axialTilt: 26.73, // degrees
@@ -64,11 +66,11 @@ class Saturn extends Planet {
         get orbitalPeriod() {
             // Saturn orbits in 10759.22 days vs Earth's 365.25 days (ratio ~29.46)
             // So Saturn should take 29.46x longer to orbit than Earth
-            return 60 * (Saturn.factData.orbitalPeriod / Planet.earthData.orbitalPeriod);
+            return 60 * (Saturn.factData.orbitalPeriod / Planet.referenceData.orbitalPeriod);
         },
         get maxOrbitalPeriod() {
             // Maintain the same ratio for max speed
-            return 6 * (Saturn.factData.orbitalPeriod / Planet.earthData.orbitalPeriod);
+            return 6 * (Saturn.factData.orbitalPeriod / Planet.referenceData.orbitalPeriod);
         },
         rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
         maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
@@ -78,6 +80,9 @@ class Saturn extends Planet {
 
     constructor() {
         super(Saturn.factData, Saturn.nonScaleModelData, Saturn.scaleModelData, Saturn.scaleModelData);
+
+        this.name = Saturn.NAME;
+        this.id   = Saturn.ID;
 
         // Ring visibility property
         this.ringsVisible = true;

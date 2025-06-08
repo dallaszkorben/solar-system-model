@@ -3,7 +3,9 @@
  */
 class Earth extends Planet {
 
-    // Static data for Earth
+    static ID   = 'earth';
+    static NAME = 'Earth';
+
     static factData = {
         diameter: 12742.0, // km
         axialTilt: 23.4, // degrees
@@ -11,7 +13,7 @@ class Earth extends Planet {
         rotationPeriod: 23.93, // hours
         orbitalPeriod: 365.25, // days
     };
-    
+
     // Location data
     static locationData = [
         { name: 'Kiruna', latitude: 67.8558, longitude: 20.2253, color: 0x00ff00 },
@@ -94,7 +96,11 @@ class Earth extends Planet {
     };
 
     constructor() {
+
         super(Earth.factData, Earth.noScaleModeData, Earth.sizeScaleModeData, Earth.distanceScaleModeData);
+
+        this.name = Earth.NAME;
+        this.id   = Earth.ID;
 
         this.createSphere('textures/Earth-texture.jpg');
         this.createAxis();
@@ -117,52 +123,52 @@ class Earth extends Planet {
             { name: '', season: 'autumn', angle: Math.PI*3/2 }
         ];
         this.createSeasonLabels(seasons);
-        
+
         // Create location markers
         this.locationMarkers = [];
         this.createLocationMarkers();
     }
-    
+
     createLocationMarkers() {
         Earth.locationData.forEach(location => {
             const marker = new LocationMarker(this, location.name, location.latitude, location.longitude, location.color);
             this.locationMarkers.push(marker);
         });
     }
-    
+
     setLocationMarkersVisible(visible) {
         if (this.locationMarkers) {
             this.locationMarkers.forEach(marker => marker.setVisible(visible));
         }
     }
-    
+
     // This method has been moved to the Planet base class
     // makeDraggableElement is now inherited from Planet
 
     // Create a north pole axis that extends to the sky
     createNorthPoleAxis() {
         const skyRadius = 20000000; // Large enough to reach the sky
-        
+
         // Create a line geometry from Earth's north pole surface to the sky
         const points = [];
         points.push(new THREE.Vector3(0, this.radius, 0)); // Start at north pole on surface
         points.push(new THREE.Vector3(0, skyRadius, 0)); // Extend to sky
-        
+
         const geometry = new THREE.BufferGeometry().setFromPoints(points);
-        
+
         // Use LineBasicMaterial for constant width regardless of distance
         const material = new THREE.LineBasicMaterial({
             color: 0xff0000, // Red color
             linewidth: 3, // Thicker line
             depthTest: false // Ensure it's always visible
         });
-        
+
         this.northPoleAxis = new THREE.Line(geometry, material);
         this.northPoleAxis.renderOrder = 1000; // Ensure it renders on top
         this.northPoleAxis.visible = false; // Hidden by default
         this.group.add(this.northPoleAxis);
     }
-    
+
     // Add Earth-specific location markers toggle
     addLocationMarkersToggle() {
         // Find the visibility section

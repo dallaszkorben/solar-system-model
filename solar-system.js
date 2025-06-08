@@ -4,16 +4,16 @@
 class SolarSystem {
 
     static celestialBodies = {
-        sky:     {name: 'Sky',        instantiate: new Sky(),     planetControlPanelClass: SkyControlPanel    },
-        sun:     {name: 'Sun',        instantiate: new Sun(),     planetControlPanelClass: PlanetControlPanel },
-        mercury: {name: 'Mercury',    instantiate: new Mercury(), planetControlPanelClass: PlanetControlPanel },
-        venus:   {name: 'Venus',      instantiate: new Venus(),   planetControlPanelClass: PlanetControlPanel },
-        earth:   {name: 'Earth',      instantiate: new Earth(),   planetControlPanelClass: PlanetControlPanel },
-        mars:    {name: 'Mars',       instantiate: new Mars(),    planetControlPanelClass: PlanetControlPanel },
-        jupiter: {name: 'Jupiter',    instantiate: new Jupiter(), planetControlPanelClass: PlanetControlPanel },
-        saturn:  {name: 'Saturn',     instantiate: new Saturn(),  planetControlPanelClass: PlanetControlPanel },
-        uranus:  {name: 'Uranus',     instantiate: new Uranus(),  planetControlPanelClass: PlanetControlPanel },
-        neptune: {name: 'Neptune',    instantiate: new Neptune(), planetControlPanelClass: PlanetControlPanel },
+        sky:     {id: Sky.ID,     name: Sky.NAME,     instantiate: new Sky(),     planetControlPanelClass: SkyControlPanel    },
+        sun:     {id: Sun.ID,     name: Sun.NAME,     instantiate: new Sun(),     planetControlPanelClass: PlanetControlPanel },
+        mercury: {id: Mercury.ID, name: Mercury.NAME, instantiate: new Mercury(), planetControlPanelClass: PlanetControlPanel },
+        venus:   {id: Venus.ID,   name: Venus.NAME,   instantiate: new Venus(),   planetControlPanelClass: PlanetControlPanel },
+        earth:   {id: Earth.ID,   name: Earth.NAME,   instantiate: new Earth(),   planetControlPanelClass: PlanetControlPanel },
+        mars:    {id: Mars.ID,    name: Mars.NAME,    instantiate: new Mars(),    planetControlPanelClass: PlanetControlPanel },
+        jupiter: {id: Jupiter.ID, name: Jupiter.NAME, instantiate: new Jupiter(), planetControlPanelClass: PlanetControlPanel },
+        saturn:  {id: Saturn.ID,  name: Saturn.NAME,  instantiate: new Saturn(),  planetControlPanelClass: PlanetControlPanel },
+        uranus:  {id: Uranus.ID,  name: Uranus.NAME,  instantiate: new Uranus(),  planetControlPanelClass: PlanetControlPanel },
+        neptune: {id: Neptune.ID, name: Neptune.NAME, instantiate: new Neptune(), planetControlPanelClass: PlanetControlPanel },
     }
 
     constructor() {
@@ -140,11 +140,6 @@ class SolarSystem {
 
         const now = Date.now();
 
-        // Update sky rotation
-        if (this.sky) {
-            this.sky.update(now);
-        }
-
         // Update all planets
         if (this.planetObjs) {
             Object.values(this.planetObjs).forEach(planet => {
@@ -172,31 +167,6 @@ class SolarSystem {
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
     }
-
-    // Method to set the sky rotation speed
-    setSkyRotationSpeed(speed) {
-        if (this.sky) {
-            this.sky.setRotationSpeed(speed);
-        }
-    }
-
-    // Method to get a planet by name
-    getPlanetByName(name) {
-        if (this.planetObjs && this.planetObjs[name]) {
-            return this.planetObjs[name];
-        }
-        return null;
-    }
-
-    // Method to hide planet control panel
-    hidePlanetControlPanel(planetName) {
-        const planet = this.getPlanetByName(planetName);
-        if (planet && planet.controlPanel) {
-            planet.controlPanel.hide();
-        }
-    }
-
-
 
     // Method to enable/disable rotation for all planets
     setAllRotationEnabled(enabled) {

@@ -2,7 +2,10 @@
  * Jupiter model creator
  */
 class Jupiter extends Planet {
-    // Static data for Jupiter
+
+    static NAME = 'Jupiter';
+    static ID   = 'jupiter';
+
     static factData = {
         diameter: 139820.0, // km
         axialTilt: 3.13, // degrees
@@ -50,11 +53,11 @@ class Jupiter extends Planet {
         get orbitalPeriod() {
             // Jupiter orbits in 4332.59 days vs Earth's 365.25 days (ratio ~11.86)
             // So Jupiter should take 11.86x longer to orbit than Earth
-            return 60 * (Jupiter.factData.orbitalPeriod / Planet.earthData.orbitalPeriod);
+            return 60 * (Jupiter.factData.orbitalPeriod / Planet.referenceData.orbitalPeriod);
         },
         get maxOrbitalPeriod() {
             // Maintain the same ratio for max speed
-            return 6 * (Jupiter.factData.orbitalPeriod / Planet.earthData.orbitalPeriod);
+            return 6 * (Jupiter.factData.orbitalPeriod / Planet.referenceData.orbitalPeriod);
         },
         rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
         maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
@@ -64,6 +67,9 @@ class Jupiter extends Planet {
 
     constructor() {
         super(Jupiter.factData, Jupiter.nonScaleModelData, Jupiter.scaleModelData, Jupiter.scaleModelData);
+
+        this.name = Jupiter.NAME;
+        this.id   = Jupiter.ID;
 
         this.createSphere('textures/Jupiter-texture.jpg');
         this.createAxis(0xffaa00); // Orange color for Jupiter's axis
