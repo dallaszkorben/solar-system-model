@@ -34,31 +34,6 @@ class Saturn extends Planet {
     // Ring thickness configuration (not part of factual data)
     static ringThickness = 0.05; // Thickness as a fraction of planet radius
 
-    static scaleModelData = {
-        diameter: Saturn.factData.diameter/Planet.scaleDownDiameterFactor, // scaled diameter in the model
-        orbitRadius: Saturn.factData.orbitRadius/Planet.scaleDownOrbitFactor + Planet.shiftOrbit, // scaled orbit radius
-        get rotationPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Saturn.factData.rotationPeriod, Saturn.factData.orbitalPeriod);
-            return 10 * relativePeriods.rotation;
-        },
-        get maxRotationPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Saturn.factData.rotationPeriod, Saturn.factData.orbitalPeriod);
-            return 1 * relativePeriods.rotation;
-        },
-        get orbitalPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Saturn.factData.rotationPeriod, Saturn.factData.orbitalPeriod);
-            return 600 * relativePeriods.orbit;
-        },
-        get maxOrbitalPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Saturn.factData.rotationPeriod, Saturn.factData.orbitalPeriod);
-            return 60 * relativePeriods.orbit;
-        },
-        rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
-        maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
-        orbitSpeed: function() { return (2 * Math.PI) / (this.orbitalPeriod * 60); },
-        maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
-    };
-
     static nonScaleModelData = {
         diameter: Saturn.factData.diameter/3, // visually appealing diameter
         orbitRadius: 350000, // visually appealing orbit radius
@@ -85,8 +60,58 @@ class Saturn extends Planet {
         maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
     };
 
+    static sizeScaleModeData = {
+        diameter: Planet.referenceData.diameter/Planet.scaleDownDiameterFactor, // size=1
+        orbitRadius: Saturn.factData.orbitRadius/Planet.scaleDownOrbitFactor + Planet.shiftOrbit, //Earth.orbitRadius / 2000, // scaled orbit radius
+        get rotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Saturn.factData.rotationPeriod, Saturn.factData.orbitalPeriod);
+            return 10 * relativePeriods.rotation;
+        },
+        get maxRotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Saturn.factData.rotationPeriod, Saturn.factData.orbitalPeriod);
+            return 1 * relativePeriods.rotation;
+        },
+        get orbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Saturn.factData.rotationPeriod, Saturn.factData.orbitalPeriod);
+            return 600 * relativePeriods.orbit;
+        },
+        get maxOrbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Saturn.factData.rotationPeriod, Saturn.factData.orbitalPeriod);
+            return 60 * relativePeriods.orbit;
+        },
+        rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
+        maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
+        orbitSpeed: function() { return (2 * Math.PI) / (this.orbitalPeriod * 60); },
+        maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
+    };
+
+    static distanceScaleModeData = {
+        diameter: Planet.referenceData.diameter/Planet.scaleDownDiameterFactor, // size=1
+        orbitRadius: Saturn.factData.orbitRadius/Planet.scaleDownOrbitFactor,
+        get rotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Saturn.factData.rotationPeriod, Saturn.factData.orbitalPeriod);
+            return 10 * relativePeriods.rotation;
+        },
+        get maxRotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Saturn.factData.rotationPeriod, Saturn.factData.orbitalPeriod);
+            return 1 * relativePeriods.rotation;
+        },
+        get orbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Saturn.factData.rotationPeriod, Saturn.factData.orbitalPeriod);
+            return 600 * relativePeriods.orbit;
+        },
+        get maxOrbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Saturn.factData.rotationPeriod, Saturn.factData.orbitalPeriod);
+            return 60 * relativePeriods.orbit;
+        },
+        rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
+        maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
+        orbitSpeed: function() { return (2 * Math.PI) / (this.orbitalPeriod * 60); },
+        maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
+    };
+
     constructor() {
-        super(Saturn.factData, Saturn.nonScaleModelData, Saturn.scaleModelData, Saturn.scaleModelData);
+        super(Saturn.factData, Saturn.nonScaleModelData, Saturn.sizeScaleModeData, Saturn.distanceScaleModeData);
 
         this.name = Saturn.NAME;
         this.id   = Saturn.ID;
@@ -105,13 +130,6 @@ class Saturn extends Planet {
         this.createRings();
         this.applyTilt();
         this.createOrbit();
-    }
-
-    // Override applyTilt to ensure rings tilt with the planet
-    applyTilt() {
-        super.applyTilt();
-        // No additional rotation needed for rings as they're already in the equatorial plane
-        // and will tilt with the planet group
     }
 
     setRingMaterial(material) {

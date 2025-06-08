@@ -8,7 +8,7 @@ class Planet {
 
     // Correct orbit scale
     static scaleDownDiameterFactor = 1;
-    static scaleDownOrbitFactor = 1000;
+    static scaleDownOrbitFactor = 2000;
     static shiftOrbit = 0;
 
     // Default empty location data
@@ -21,8 +21,11 @@ class Planet {
 
     // Earth reference data for relative calculations
     static referenceData = {
-        rotationPeriod: 23.93, // hours
-        orbitalPeriod: 365.25, // days
+        rotationPeriod: 23.93,      // hours
+        orbitalPeriod: 365.25,      // days
+        diameter: 12742.0,          // km
+        axialTilt: 23.93,           // degrees
+        orbitRadius: 149600000.0,   // km (average distance from Sun)
     };
 
     // Calculate relative periods based on Earth as reference
@@ -187,11 +190,28 @@ class Planet {
         const cylinderMaterial = new THREE.MeshBasicMaterial({
             color: color,
             depthTest: true,
-//            depthWrite: false
         });
         this.axis = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
         this.axis.renderOrder = 1;
         this.group.add(this.axis);
+    }
+
+    updateAxis() {
+        // Store current visibility state
+        const wasVisible = this.axis ? this.axis.visible : false;
+
+        // Remove existing axis
+        if (this.axis) {
+            this.group.remove(this.axis);
+        }
+
+        // Create new axis with current diameter
+        this.createAxis();
+
+        // Restore visibility state
+        if (this.axis) {
+            this.axis.visible = wasVisible;
+        }
     }
 
     createLatitudeCircles(latitudes) {
@@ -333,18 +353,10 @@ class Planet {
             this.rotationSpeed = this.defaultRotationSpeed * factor;
         }
 
-        // If factor is greater than 0, ensure rotation is enabled
-        if (factor > 0) {
-            this.rotationEnabled = true;
-        }
-    }
-
-    /**
-     * Sets the orbit enabled state
-     * @param {boolean} enabled - Whether orbit should be enabled
-     */
-    setOrbitEnabled(enabled) {
-        this.orbitEnabled = enabled;
+//        // If factor is greater than 0, ensure rotation is enabled
+//        if (factor > 0) {
+//            this.rotationEnabled = true;
+//        }
     }
 
     /**
@@ -363,10 +375,18 @@ class Planet {
             this.orbitSpeed = this.defaultOrbitSpeed * factor;
         }
 
-        // If factor is greater than 0, ensure orbit is enabled
-        if (factor > 0) {
-            this.orbitEnabled = true;
-        }
+//        // If factor is greater than 0, ensure orbit is enabled
+//        if (factor > 0) {
+//            this.orbitEnabled = true;
+//        }
+    }
+
+    /**
+     * Sets the orbit enabled state
+     * @param {boolean} enabled - Whether orbit should be enabled
+     */
+    setOrbitEnabled(enabled) {
+        this.orbitEnabled = enabled;
     }
 
     /**
@@ -757,6 +777,29 @@ class Planet {
         this.ringsVisible = true;
     }
 
+    updateRings() {
+
+        // Only proceed if the planet has rings
+        if (!this.hasRing()) {
+            return;
+        }
+
+        // Store current visibility state
+        const wasVisible = this.rings ? this.rings.visible : false;
+
+        // Remove existing rings
+        if (this.rings) {
+            this.group.remove(this.rings);
+        }
+
+        // Create new rings with current planet size
+        this.createRings();
+
+        // Restore visibility state
+        if (this.rings) {
+            this.rings.visible = wasVisible;
+        }
+    }
 
     // Add this method to the Planet class
     hasRing() {
@@ -771,12 +814,9 @@ class Planet {
         }
     }
 
-
-
-
-//    hasRing(){
-//        return false;
-//    }
+    hasRing(){
+        return false;
+    }
 
     getRingBasicMaterial(){
         return null;

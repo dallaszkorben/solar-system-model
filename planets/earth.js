@@ -27,56 +27,6 @@ class Earth extends Planet {
         { name: 'Budapest', latitude: 47.4979, longitude: 19.0402, color: 0xff0000 }
     ];
 
-    static sizeScaleModeData = {
-        diameter: Earth.factData.diameter/Planet.scaleDownDiameterFactor, // scaled diameter in the model
-        orbitRadius: Earth.factData.orbitRadius/Planet.scaleDownOrbitFactor + Planet.shiftOrbit, //Earth.orbitRadius / 2000, // scaled orbit radius
-        get rotationPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Earth.factData.rotationPeriod, Earth.factData.orbitalPeriod);
-            return 10 * relativePeriods.rotation;
-        },
-        get maxRotationPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Earth.factData.rotationPeriod, Earth.factData.orbitalPeriod);
-            return 1 * relativePeriods.rotation;
-        },
-        get orbitalPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Earth.factData.rotationPeriod, Earth.factData.orbitalPeriod);
-            return 600 * relativePeriods.orbit;
-        },
-        get maxOrbitalPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Earth.factData.rotationPeriod, Earth.factData.orbitalPeriod);
-            return 60 * relativePeriods.orbit;
-        },
-        rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
-        maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
-        orbitSpeed: function() { return (2 * Math.PI) / (this.orbitalPeriod * 60); },
-        maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
-    };
-
-    static distanceScaleModeData = {
-        diameter: Earth.factData.diameter/Planet.scaleDownDiameterFactor, // scaled diameter in the model
-        orbitRadius: Earth.factData.orbitRadius/Planet.scaleDownOrbitFactor + Planet.shiftOrbit, //Earth.orbitRadius / 2000, // scaled orbit radius
-        get rotationPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Earth.factData.rotationPeriod, Earth.factData.orbitalPeriod);
-            return 10 * relativePeriods.rotation;
-        },
-        get maxRotationPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Earth.factData.rotationPeriod, Earth.factData.orbitalPeriod);
-            return 1 * relativePeriods.rotation;
-        },
-        get orbitalPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Earth.factData.rotationPeriod, Earth.factData.orbitalPeriod);
-            return 600 * relativePeriods.orbit;
-        },
-        get maxOrbitalPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Earth.factData.rotationPeriod, Earth.factData.orbitalPeriod);
-            return 60 * relativePeriods.orbit;
-        },
-        rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
-        maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
-        orbitSpeed: function() { return (2 * Math.PI) / (this.orbitalPeriod * 60); },
-        maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
-    };
-
     static noScaleModeData = {
         diameter: Earth.factData.diameter, // visually appealing diameter
         orbitRadius: 74800, // visually appealing orbit radius
@@ -101,6 +51,58 @@ class Earth extends Planet {
         orbitSpeed: function() { return (2 * Math.PI) / (this.orbitalPeriod * 60); },
         maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
     };
+
+    static sizeScaleModeData = {
+        diameter: Planet.referenceData.diameter/Planet.scaleDownDiameterFactor, // size=1
+        orbitRadius: Earth.factData.orbitRadius/Planet.scaleDownOrbitFactor + Planet.shiftOrbit, //Earth.orbitRadius / 2000, // scaled orbit radius
+        get rotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Earth.factData.rotationPeriod, Earth.factData.orbitalPeriod);
+            return 10 * relativePeriods.rotation;
+        },
+        get maxRotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Earth.factData.rotationPeriod, Earth.factData.orbitalPeriod);
+            return 1 * relativePeriods.rotation;
+        },
+        get orbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Earth.factData.rotationPeriod, Earth.factData.orbitalPeriod);
+            return 600 * relativePeriods.orbit;
+        },
+        get maxOrbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Earth.factData.rotationPeriod, Earth.factData.orbitalPeriod);
+            return 60 * relativePeriods.orbit;
+        },
+        rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
+        maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
+        orbitSpeed: function() { return (2 * Math.PI) / (this.orbitalPeriod * 60); },
+        maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
+    };
+
+    static distanceScaleModeData = {
+        diameter: Planet.referenceData.diameter/Planet.scaleDownDiameterFactor, // size=1
+        orbitRadius: Earth.factData.orbitRadius/Planet.scaleDownOrbitFactor,
+        get rotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Earth.factData.rotationPeriod, Earth.factData.orbitalPeriod);
+            return 10 * relativePeriods.rotation;
+        },
+        get maxRotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Earth.factData.rotationPeriod, Earth.factData.orbitalPeriod);
+            return 1 * relativePeriods.rotation;
+        },
+        get orbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Earth.factData.rotationPeriod, Earth.factData.orbitalPeriod);
+            return 600 * relativePeriods.orbit;
+        },
+        get maxOrbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Earth.factData.rotationPeriod, Earth.factData.orbitalPeriod);
+            return 60 * relativePeriods.orbit;
+        },
+        rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
+        maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
+        orbitSpeed: function() { return (2 * Math.PI) / (this.orbitalPeriod * 60); },
+        maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
+    };
+
+
 
     constructor() {
 

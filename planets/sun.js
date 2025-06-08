@@ -22,28 +22,10 @@ class Sun extends Planet {
         orbitalPeriod: 0,           // Sun doesn't orbit anything
     };
 
-    static scaleModelData = {
-        diameter: Sun.factData.diameter/Planet.scaleDownDiameterFactor/100,    // scaled diameter
-        orbitRadius: 0,                     // Sun doesn't orbit anything
-        get rotationPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Sun.factData.rotationPeriod, 1); // Use 1 as orbital period since Sun doesn't orbit
-            return 10 * relativePeriods.rotation;
-        },
-        get maxRotationPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Sun.factData.rotationPeriod, 1);
-            return 1 * relativePeriods.rotation;
-        },
-        orbitalPeriod: 0, // Sun doesn't orbit anything
-        maxOrbitalPeriod: 0, // Sun doesn't orbit anything
-        rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
-        maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
-        orbitSpeed: function() { return 0; }, // Sun doesn't orbit
-        maxOrbitSpeed: function() { return 0; }, // Sun doesn't orbit
-    };
 
     static nonScaleModelData = {
         diameter: Sun.factData.diameter/30.0, // visually appealing diameter
-        orbitRadius: 0,                     // Sun doesn't orbit anything
+        orbitRadius: 0,                       // Sun doesn't orbit anything
         get rotationPeriod() {
             const relativePeriods = Planet.calculateRelativePeriods(Sun.factData.rotationPeriod, 1);
             return 28 * relativePeriods.rotation;
@@ -60,8 +42,58 @@ class Sun extends Planet {
         maxOrbitSpeed: function() { return 0; }, // Sun doesn't orbit
     };
 
+    static sizeScaleModeData = {
+        diameter: Planet.referenceData.diameter/Planet.scaleDownDiameterFactor, // size=Earth=1
+        orbitRadius: 0,
+        get rotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Sun.factData.rotationPeriod, Sun.factData.orbitalPeriod);
+            return 10 * relativePeriods.rotation;
+        },
+        get maxRotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Sun.factData.rotationPeriod, Sun.factData.orbitalPeriod);
+            return 1 * relativePeriods.rotation;
+        },
+        get orbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Sun.factData.rotationPeriod, Sun.factData.orbitalPeriod);
+            return 600 * relativePeriods.orbit;
+        },
+        get maxOrbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Sun.factData.rotationPeriod, Sun.factData.orbitalPeriod);
+            return 60 * relativePeriods.orbit;
+        },
+        rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
+        maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
+        orbitSpeed: function() { return 0; },
+        maxOrbitSpeed: function() { return 0; },
+    };
+
+    static distanceScaleModeData = {
+        diameter: Planet.referenceData.diameter/Planet.scaleDownDiameterFactor, // size=Earth=1
+        orbitRadius: 0,
+        get rotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Sun.factData.rotationPeriod, Sun.factData.orbitalPeriod);
+            return 10 * relativePeriods.rotation;
+        },
+        get maxRotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Sun.factData.rotationPeriod, Sun.factData.orbitalPeriod);
+            return 1 * relativePeriods.rotation;
+        },
+        get orbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Sun.factData.rotationPeriod, Sun.factData.orbitalPeriod);
+            return 600 * relativePeriods.orbit;
+        },
+        get maxOrbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Sun.factData.rotationPeriod, Sun.factData.orbitalPeriod);
+            return 60 * relativePeriods.orbit;
+        },
+        rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
+        maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
+        orbitSpeed: function() { return 0; },
+        maxOrbitSpeed: function() { return 0; },
+    };
+
     constructor() {
-        super(Sun.factData, Sun.nonScaleModelData, Sun.scaleModelData, Sun.scaleModelData);
+        super(Sun.factData, Sun.nonScaleModelData, Sun.sizeScaleModeData, Sun.distanceScaleModeData);
 
         this.name = Sun.NAME;
         this.id   = Sun.ID;

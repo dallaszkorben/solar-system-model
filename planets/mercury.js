@@ -21,31 +21,6 @@ class Mercury extends Planet {
         orbitalPeriod: 88.0,            // days
     };
 
-    static scaleModelData = {
-        diameter: Mercury.factData.diameter/Planet.scaleDownDiameterFactor, // scaled diameter in the model
-        orbitRadius: Mercury.factData.orbitRadius/Planet.scaleDownOrbitFactor + Planet.shiftOrbit, // scaled orbit radius
-        get rotationPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Mercury.factData.rotationPeriod, Mercury.factData.orbitalPeriod);
-            return 10 * relativePeriods.rotation;
-        },
-        get maxRotationPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Mercury.factData.rotationPeriod, Mercury.factData.orbitalPeriod);
-            return 1 * relativePeriods.rotation;
-        },
-        get orbitalPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Mercury.factData.rotationPeriod, Mercury.factData.orbitalPeriod);
-            return 600 * relativePeriods.orbit;
-        },
-        get maxOrbitalPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Mercury.factData.rotationPeriod, Mercury.factData.orbitalPeriod);
-            return 60 * relativePeriods.orbit;
-        },
-        rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
-        maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
-        orbitSpeed: function() { return (2 * Math.PI) / (this.orbitalPeriod * 60); },
-        maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
-    };
-
     static nonScaleModelData = {
         diameter: Mercury.factData.diameter, // visually appealing diameter
         orbitRadius: 37400, // visually appealing orbit radius (half of Earth's)
@@ -72,8 +47,58 @@ class Mercury extends Planet {
         maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
     };
 
+    static sizeScaleModeData = {
+        diameter: Planet.referenceData.diameter/Planet.scaleDownDiameterFactor, // size=1
+        orbitRadius: Mercury.factData.orbitRadius/Planet.scaleDownOrbitFactor + Planet.shiftOrbit, //Earth.orbitRadius / 2000, // scaled orbit radius
+        get rotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Mercury.factData.rotationPeriod, Mercury.factData.orbitalPeriod);
+            return 10 * relativePeriods.rotation;
+        },
+        get maxRotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Mercury.factData.rotationPeriod, Mercury.factData.orbitalPeriod);
+            return 1 * relativePeriods.rotation;
+        },
+        get orbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Mercury.factData.rotationPeriod, Mercury.factData.orbitalPeriod);
+            return 600 * relativePeriods.orbit;
+        },
+        get maxOrbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Mercury.factData.rotationPeriod, Mercury.factData.orbitalPeriod);
+            return 60 * relativePeriods.orbit;
+        },
+        rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
+        maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
+        orbitSpeed: function() { return (2 * Math.PI) / (this.orbitalPeriod * 60); },
+        maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
+    };
+
+    static distanceScaleModeData = {
+        diameter: Planet.referenceData.diameter/Planet.scaleDownDiameterFactor, // size=1
+        orbitRadius: Mercury.factData.orbitRadius/Planet.scaleDownOrbitFactor,
+        get rotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Mercury.factData.rotationPeriod, Mercury.factData.orbitalPeriod);
+            return 10 * relativePeriods.rotation;
+        },
+        get maxRotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Mercury.factData.rotationPeriod, Mercury.factData.orbitalPeriod);
+            return 1 * relativePeriods.rotation;
+        },
+        get orbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Mercury.factData.rotationPeriod, Mercury.factData.orbitalPeriod);
+            return 600 * relativePeriods.orbit;
+        },
+        get maxOrbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Mercury.factData.rotationPeriod, Mercury.factData.orbitalPeriod);
+            return 60 * relativePeriods.orbit;
+        },
+        rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
+        maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
+        orbitSpeed: function() { return (2 * Math.PI) / (this.orbitalPeriod * 60); },
+        maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
+    };
+
     constructor() {
-        super(Mercury.factData, Mercury.nonScaleModelData, Mercury.scaleModelData, Mercury.scaleModelData);
+        super(Mercury.factData, Mercury.nonScaleModelData, Mercury.sizeScaleModeData, Mercury.distanceScaleModeData);
 
         this.name = Mercury.NAME;
         this.id   = Mercury.ID;

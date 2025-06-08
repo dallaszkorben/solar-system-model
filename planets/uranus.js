@@ -35,31 +35,6 @@ class Uranus extends Planet {
     // Ring thickness configuration (not part of factual data)
     static ringThickness = 0.05; // Thickness as a fraction of planet radius
 
-    static scaleModelData = {
-        diameter: Uranus.factData.diameter/Planet.scaleDownDiameterFactor/3, // scaled diameter in the model
-        orbitRadius: Uranus.factData.orbitRadius/Planet.scaleDownOrbitFactor + Planet.shiftOrbit, // scaled orbit radius
-        get rotationPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Uranus.factData.rotationPeriod, Uranus.factData.orbitalPeriod);
-            return 10 * relativePeriods.rotation;
-        },
-        get maxRotationPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Uranus.factData.rotationPeriod, Uranus.factData.orbitalPeriod);
-            return 1 * relativePeriods.rotation;
-        },
-        get orbitalPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Uranus.factData.rotationPeriod, Uranus.factData.orbitalPeriod);
-            return 600 * relativePeriods.orbit;
-        },
-        get maxOrbitalPeriod() {
-            const relativePeriods = Planet.calculateRelativePeriods(Uranus.factData.rotationPeriod, Uranus.factData.orbitalPeriod);
-            return 60 * relativePeriods.orbit;
-        },
-        rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
-        maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
-        orbitSpeed: function() { return (2 * Math.PI) / (this.orbitalPeriod * 60); },
-        maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
-    };
-
     static nonScaleModelData = {
         diameter: Uranus.factData.diameter/3, // visually appealing diameter
         orbitRadius: 500000, // visually appealing orbit radius
@@ -86,8 +61,58 @@ class Uranus extends Planet {
         maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
     };
 
+    static sizeScaleModeData = {
+        diameter: Planet.referenceData.diameter/Planet.scaleDownDiameterFactor, // size=1
+        orbitRadius: Uranus.factData.orbitRadius/Planet.scaleDownOrbitFactor + Planet.shiftOrbit, //Earth.orbitRadius / 2000, // scaled orbit radius
+        get rotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Uranus.factData.rotationPeriod, Uranus.factData.orbitalPeriod);
+            return 10 * relativePeriods.rotation;
+        },
+        get maxRotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Uranus.factData.rotationPeriod, Uranus.factData.orbitalPeriod);
+            return 1 * relativePeriods.rotation;
+        },
+        get orbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Uranus.factData.rotationPeriod, Uranus.factData.orbitalPeriod);
+            return 600 * relativePeriods.orbit;
+        },
+        get maxOrbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Uranus.factData.rotationPeriod, Uranus.factData.orbitalPeriod);
+            return 60 * relativePeriods.orbit;
+        },
+        rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
+        maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
+        orbitSpeed: function() { return (2 * Math.PI) / (this.orbitalPeriod * 60); },
+        maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
+    };
+
+    static distanceScaleModeData = {
+        diameter: Planet.referenceData.diameter/Planet.scaleDownDiameterFactor, // size=1
+        orbitRadius: Uranus.factData.orbitRadius/Planet.scaleDownOrbitFactor,
+        get rotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Uranus.factData.rotationPeriod, Uranus.factData.orbitalPeriod);
+            return 10 * relativePeriods.rotation;
+        },
+        get maxRotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Uranus.factData.rotationPeriod, Uranus.factData.orbitalPeriod);
+            return 1 * relativePeriods.rotation;
+        },
+        get orbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Uranus.factData.rotationPeriod, Uranus.factData.orbitalPeriod);
+            return 600 * relativePeriods.orbit;
+        },
+        get maxOrbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Uranus.factData.rotationPeriod, Uranus.factData.orbitalPeriod);
+            return 60 * relativePeriods.orbit;
+        },
+        rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
+        maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
+        orbitSpeed: function() { return (2 * Math.PI) / (this.orbitalPeriod * 60); },
+        maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
+    };
+
     constructor() {
-        super(Uranus.factData, Uranus.nonScaleModelData, Uranus.scaleModelData, Uranus.scaleModelData);
+        super(Uranus.factData, Uranus.nonScaleModelData, Uranus.sizeScaleModeData, Uranus.distanceScaleModeData);
 
         this.name = Uranus.NAME;
         this.id   = Uranus.ID;

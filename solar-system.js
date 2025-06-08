@@ -236,27 +236,6 @@ class SolarSystem {
         }
     }
 
-
-
-//
-//
-//
-//
-//    // Method to set visibility of all orbit lines
-//    setAllOrbitLinesVisible(visible) {
-//        Object.values(this.planetObjs).forEach(planet => {
-//            if (planet.orbitLine) {
-//                planet.setOrbitLineVisibility(visible);
-////                planet.orbitLine.visible = visible;
-//            }
-//        });
-//    }
-//
-//
-//
-
-
-
     // Method to set opacity of all orbit lines
     setOrbitLinesOpacity(opacity) {
         if (this.planetObjs) {
@@ -318,6 +297,8 @@ class SolarSystem {
             object.orbitalPeriod = modeData.orbitalPeriod;
             object.maxOrbitalPeriod = modeData.maxOrbitalPeriod;
 
+
+
             // Update speeds
             object.defaultRotationSpeed = modeData.rotationSpeed(); // Store default rotation speed
             object.defaultOrbitSpeed = modeData.orbitSpeed(); // Store default orbit speed
@@ -329,6 +310,12 @@ class SolarSystem {
             object.maxRotationSpeed = modeData.maxRotationSpeed();
             object.orbitSpeed = modeData.orbitSpeed();
             object.maxOrbitSpeed = modeData.maxOrbitSpeed();
+
+            // Aligne axis size
+            object.updateAxis();
+
+            // Aligne Ring
+            object.updateRings();
 
             // Update orbit position if applicable
             if (object.group && object.orbitLine) {
@@ -349,8 +336,9 @@ class SolarSystem {
                     new THREE.Float32BufferAttribute(vertices, 3)
                 );
 
-                // Update object position
+                // Update object position - ONLY if it's not the Sun
                 object.group.position.x = object.orbitRadius;
+
             }
 
             // Update sphere size if applicable
