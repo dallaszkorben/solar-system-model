@@ -43,7 +43,7 @@ class Sun extends Planet {
     };
 
     static sizeScaleModeData = {
-        diameter: Planet.referenceData.diameter/Planet.scaleDownDiameterFactor, // size=Earth=1
+        diameter: Sun.factData.diameter/Planet.scaleDownDiameterFactor,
         orbitRadius: 0,
         get rotationPeriod() {
             const relativePeriods = Planet.calculateRelativePeriods(Sun.factData.rotationPeriod, Sun.factData.orbitalPeriod);
@@ -68,7 +68,7 @@ class Sun extends Planet {
     };
 
     static distanceScaleModeData = {
-        diameter: Planet.referenceData.diameter/Planet.scaleDownDiameterFactor, // size=Earth=1
+        diameter: Planet.referenceData.diameter, // size=Earth=1
         orbitRadius: 0,
         get rotationPeriod() {
             const relativePeriods = Planet.calculateRelativePeriods(Sun.factData.rotationPeriod, Sun.factData.orbitalPeriod);

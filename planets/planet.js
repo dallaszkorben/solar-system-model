@@ -7,9 +7,9 @@ class Planet {
     static NAME = 'Planet';
 
     // Correct orbit scale
-    static scaleDownDiameterFactor = 1;
+    static scaleDownDiameterFactor = 20;
     static scaleDownOrbitFactor = 2000;
-    static shiftOrbit = 0;
+    static shiftOrbit = 10000;
 
     // Default empty location data
     static locationData = [];
@@ -101,7 +101,6 @@ class Planet {
     }
 
     createSphere(texturePath) {
-        try {
             console.log(`Creating sphere with texture: ${texturePath}`);
             const geometry = new THREE.SphereGeometry(this.radius, 256, 256);
             const textureLoader = new THREE.TextureLoader();
@@ -160,26 +159,14 @@ class Planet {
             this.basicMaterial = basicMaterial;
 
             console.log(`Sphere created for texture: ${texturePath}`);
-        } catch (error) {
-            console.error(`Error creating sphere with texture ${texturePath}:`, error);
 
-            // Create a fallback sphere with a solid color if texture loading fails
-            try {
-                const geometry = new THREE.SphereGeometry(this.radius, 64, 32);
-                const standardMaterial = new THREE.MeshStandardMaterial({ color: 0x888888 }); // Gray fallback color
-                const basicMaterial = new THREE.MeshBasicMaterial({ color: 0x888888 }); // Gray fallback color
+    }
 
-                // Use the appropriate material based on day/night effect setting
-                const material = this.dayNightEffectEnabled ? standardMaterial : basicMaterial;
-
-                this.sphere = new THREE.Mesh(geometry, material);
-                this.group.add(this.sphere);
-                this.standardMaterial = standardMaterial;
-                this.basicMaterial = basicMaterial;
-                console.log(`Created fallback sphere for ${texturePath}`);
-            } catch (fallbackError) {
-                console.error('Failed to create fallback sphere:', fallbackError);
-            }
+    updateSphere(){
+        if (this.sphere) {
+            const newGeometry = new THREE.SphereGeometry(this.radius, 64, 32);
+            this.sphere.geometry.dispose();
+            this.sphere.geometry = newGeometry;
         }
     }
 
@@ -197,6 +184,7 @@ class Planet {
     }
 
     updateAxis() {
+
         // Store current visibility state
         const wasVisible = this.axis ? this.axis.visible : false;
 
@@ -213,6 +201,27 @@ class Planet {
             this.axis.visible = wasVisible;
         }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     createLatitudeCircles(latitudes) {
         const segments = 64;
@@ -352,11 +361,6 @@ class Planet {
             // Otherwise, calculate new rotation speed based on default and factor
             this.rotationSpeed = this.defaultRotationSpeed * factor;
         }
-
-//        // If factor is greater than 0, ensure rotation is enabled
-//        if (factor > 0) {
-//            this.rotationEnabled = true;
-//        }
     }
 
     /**
@@ -374,11 +378,6 @@ class Planet {
             // Otherwise, calculate new orbit speed based on default and factor
             this.orbitSpeed = this.defaultOrbitSpeed * factor;
         }
-
-//        // If factor is greater than 0, ensure orbit is enabled
-//        if (factor > 0) {
-//            this.orbitEnabled = true;
-//        }
     }
 
     /**
@@ -840,4 +839,20 @@ class Planet {
             this.locationMarkers.forEach(marker => marker.setVisible(visible));
         }
     }
+
+    /**
+     * Updates location markers to match the current planet size
+     */
+    updateLocationMarkers() {
+        // Only proceed if the planet has location markers
+        if (!this.locationMarkers || this.locationMarkers.length === 0) {
+            return;
+        }
+
+        // Update each marker
+        this.locationMarkers.forEach(marker => {
+            marker.updateMarker();
+        });
+    }
+
 }

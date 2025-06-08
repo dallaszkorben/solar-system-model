@@ -48,8 +48,8 @@ class Jupiter extends Planet {
     };
 
     static sizeScaleModeData = {
-        diameter: Planet.referenceData.diameter/Planet.scaleDownDiameterFactor, // size=1
-        orbitRadius: Jupiter.factData.orbitRadius/Planet.scaleDownOrbitFactor + Planet.shiftOrbit, //Earth.orbitRadius / 2000, // scaled orbit radius
+        diameter: Jupiter.factData.diameter/Planet.scaleDownDiameterFactor,
+        orbitRadius: Mars.sizeScaleModeData.orbitRadius + Planet.shiftOrbit,
         get rotationPeriod() {
             const relativePeriods = Planet.calculateRelativePeriods(Jupiter.factData.rotationPeriod, Jupiter.factData.orbitalPeriod);
             return 10 * relativePeriods.rotation;
@@ -73,7 +73,7 @@ class Jupiter extends Planet {
     };
 
     static distanceScaleModeData = {
-        diameter: Planet.referenceData.diameter/Planet.scaleDownDiameterFactor, // size=1
+        diameter: Planet.referenceData.diameter, // size=1
         orbitRadius: Jupiter.factData.orbitRadius/Planet.scaleDownOrbitFactor,
         get rotationPeriod() {
             const relativePeriods = Planet.calculateRelativePeriods(Jupiter.factData.rotationPeriod, Jupiter.factData.orbitalPeriod);

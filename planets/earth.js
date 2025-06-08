@@ -53,8 +53,8 @@ class Earth extends Planet {
     };
 
     static sizeScaleModeData = {
-        diameter: Planet.referenceData.diameter/Planet.scaleDownDiameterFactor, // size=1
-        orbitRadius: Earth.factData.orbitRadius/Planet.scaleDownOrbitFactor + Planet.shiftOrbit, //Earth.orbitRadius / 2000, // scaled orbit radius
+        diameter: Earth.factData.diameter/Planet.scaleDownDiameterFactor,
+        orbitRadius: Venus.sizeScaleModeData.orbitRadius + Planet.shiftOrbit,
         get rotationPeriod() {
             const relativePeriods = Planet.calculateRelativePeriods(Earth.factData.rotationPeriod, Earth.factData.orbitalPeriod);
             return 10 * relativePeriods.rotation;
@@ -78,7 +78,7 @@ class Earth extends Planet {
     };
 
     static distanceScaleModeData = {
-        diameter: Planet.referenceData.diameter/Planet.scaleDownDiameterFactor, // size=1
+        diameter: Planet.referenceData.diameter, // size=1
         orbitRadius: Earth.factData.orbitRadius/Planet.scaleDownOrbitFactor,
         get rotationPeriod() {
             const relativePeriods = Planet.calculateRelativePeriods(Earth.factData.rotationPeriod, Earth.factData.orbitalPeriod);

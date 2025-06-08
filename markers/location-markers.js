@@ -10,11 +10,26 @@ class LocationMarker {
         this.color = color;
         this.marker = null;
 
-        // Create the marker with size as 1% of the planet's diameter
-        this.markerSize = this.planet.diameter * 0.01;
+        this.updateMarker()
+    }
 
+    updateMarker() {
+        // Remove existing marker if it exists
+        if (this.marker) {
+            this.planet.sphere.remove(this.marker);
+            this.marker = null;
+        }
+
+        // Create the marker with size as 1% of the planet's diameter
+        this.updateMarkerSize();
+
+        // Create new marker with updated size
         this.createMarker();
         this.positionMarker();
+    }
+
+    updateMarkerSize() {
+        this.markerSize = this.planet.diameter * 0.01;
     }
 
     createMarker() {

@@ -62,8 +62,8 @@ class Uranus extends Planet {
     };
 
     static sizeScaleModeData = {
-        diameter: Planet.referenceData.diameter/Planet.scaleDownDiameterFactor, // size=1
-        orbitRadius: Uranus.factData.orbitRadius/Planet.scaleDownOrbitFactor + Planet.shiftOrbit, //Earth.orbitRadius / 2000, // scaled orbit radius
+        diameter: Uranus.factData.diameter/Planet.scaleDownDiameterFactor,
+        orbitRadius: Saturn.sizeScaleModeData.orbitRadius + Planet.shiftOrbit,
         get rotationPeriod() {
             const relativePeriods = Planet.calculateRelativePeriods(Uranus.factData.rotationPeriod, Uranus.factData.orbitalPeriod);
             return 10 * relativePeriods.rotation;
@@ -87,7 +87,7 @@ class Uranus extends Planet {
     };
 
     static distanceScaleModeData = {
-        diameter: Planet.referenceData.diameter/Planet.scaleDownDiameterFactor, // size=1
+        diameter: Planet.referenceData.diameter, // size=1
         orbitRadius: Uranus.factData.orbitRadius/Planet.scaleDownOrbitFactor,
         get rotationPeriod() {
             const relativePeriods = Planet.calculateRelativePeriods(Uranus.factData.rotationPeriod, Uranus.factData.orbitalPeriod);

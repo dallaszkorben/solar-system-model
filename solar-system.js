@@ -311,11 +311,16 @@ class SolarSystem {
             object.orbitSpeed = modeData.orbitSpeed();
             object.maxOrbitSpeed = modeData.maxOrbitSpeed();
 
-            // Aligne axis size
+            // Align Axis Size
             object.updateAxis();
 
-            // Aligne Ring
+            // Align Ring
             object.updateRings();
+
+            // Align Planet size
+            object.updateSphere();
+
+            object.updateLocationMarkers();
 
             // Update orbit position if applicable
             if (object.group && object.orbitLine) {
@@ -339,13 +344,6 @@ class SolarSystem {
                 // Update object position - ONLY if it's not the Sun
                 object.group.position.x = object.orbitRadius;
 
-            }
-
-            // Update sphere size if applicable
-            if (object.sphere) {
-                const newGeometry = new THREE.SphereGeometry(object.radius, 64, 32);
-                object.sphere.geometry.dispose();
-                object.sphere.geometry = newGeometry;
             }
         }
     }

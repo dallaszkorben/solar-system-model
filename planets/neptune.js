@@ -48,8 +48,8 @@ class Neptune extends Planet {
     };
 
     static sizeScaleModeData = {
-        diameter: Planet.referenceData.diameter/Planet.scaleDownDiameterFactor, // size=1
-        orbitRadius: Neptune.factData.orbitRadius/Planet.scaleDownOrbitFactor + Planet.shiftOrbit, //Earth.orbitRadius / 2000, // scaled orbit radius
+        diameter: Neptune.factData.diameter/Planet.scaleDownDiameterFactor,
+        orbitRadius: Uranus.sizeScaleModeData.orbitRadius + Planet.shiftOrbit,
         get rotationPeriod() {
             const relativePeriods = Planet.calculateRelativePeriods(Neptune.factData.rotationPeriod, Neptune.factData.orbitalPeriod);
             return 10 * relativePeriods.rotation;
@@ -73,7 +73,7 @@ class Neptune extends Planet {
     };
 
     static distanceScaleModeData = {
-        diameter: Planet.referenceData.diameter/Planet.scaleDownDiameterFactor, // size=1
+        diameter: Planet.referenceData.diameter, // size=1
         orbitRadius: Neptune.factData.orbitRadius/Planet.scaleDownOrbitFactor,
         get rotationPeriod() {
             const relativePeriods = Planet.calculateRelativePeriods(Neptune.factData.rotationPeriod, Neptune.factData.orbitalPeriod);
