@@ -6,12 +6,19 @@ class Mercury extends Planet {
     static NAME = 'Mercury';
     static ID   = 'mercury';
 
+    // Planet rotations in degree
+    static axialTilt = {
+        x: 0,
+        y: 0,
+        z: 0.034,
+    }
+
     static factData = {
-        diameter: 4879.4, // km
-        axialTilt: 0.034, // degrees (almost no tilt)
-        orbitRadius: 57909050.0, // km (average distance from Sun)
-        rotationPeriod: 1407.6, // hours (58.6 days)
-        orbitalPeriod: 88.0, // days
+        diameter: 4879.4,               // km
+        axialTilt: Mercury.axialTilt,   // degrees (almost no tilt)
+        orbitRadius: 57909050.0,        // km (average distance from Sun)
+        rotationPeriod: 1407.6,         // hours (58.6 days)
+        orbitalPeriod: 88.0,            // days
     };
 
     static scaleModelData = {

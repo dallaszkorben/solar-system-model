@@ -15,14 +15,21 @@ class Uranus extends Planet {
     static NAME = 'Uranus';
     static ID   = 'uranus';
 
+    // Planet rotations in degree
+    static axialTilt = {
+        x: 0,
+        y: 0,
+        z: 97.77,
+    }
+
     static factData = {
-        diameter: 50724.0, // km
-        axialTilt: 97.77, // degrees - Uranus has an extreme axial tilt
-        orbitRadius: 2876679082.0, // km (average distance from Sun)
-        rotationPeriod: 17.24, // hours
-        orbitalPeriod: 30688.5, // days
-        ringInnerRadius: 38000, // km
-        ringOuterRadius: 98000, // km
+        diameter: 50724.0,              // km
+        axialTilt: Uranus.axialTilt,    // degrees - Uranus has an extreme axial tilt
+        orbitRadius: 2876679082.0,      // km (average distance from Sun)
+        rotationPeriod: 17.24,          // hours
+        orbitalPeriod: 30688.5,         // days
+        ringInnerRadius: 38000,         // km
+        ringOuterRadius: 98000,         // km
     };
 
     // Ring thickness configuration (not part of factual data)

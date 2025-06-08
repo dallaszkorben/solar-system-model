@@ -285,7 +285,10 @@ class Planet {
     }
 
     applyTilt() {
-        this.group.rotation.z = THREE.MathUtils.degToRad(this.axialTilt);
+        this.group.rotation.x = THREE.MathUtils.degToRad(this.axialTilt.x);
+        this.group.rotation.y = THREE.MathUtils.degToRad(this.axialTilt.y);
+        this.group.rotation.z = THREE.MathUtils.degToRad(this.axialTilt.z);
+
     }
 
     /**

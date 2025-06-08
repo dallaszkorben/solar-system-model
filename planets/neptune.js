@@ -6,12 +6,19 @@ class Neptune extends Planet {
     static NAME = 'Neptune';
     static ID   = 'neptune';
 
+    // Planet rotations in degree
+    static axialTilt = {
+        x: 0,
+        y: 0,
+        z: 28.32,
+    }
+
     static factData = {
-        diameter: 49528.0, // km
-        axialTilt: 28.32, // degrees
-        orbitRadius: 4503443661.0, // km (average distance from Sun)
-        rotationPeriod: 16.11, // hours
-        orbitalPeriod: 60195.0, // days
+        diameter: 49528.0,              // km
+        axialTilt: Neptune.axialTilt,   // degrees
+        orbitRadius: 4503443661.0,      // km (average distance from Sun)
+        rotationPeriod: 16.11,          // hours
+        orbitalPeriod: 60195.0,         // days
     };
 
     static scaleModelData = {

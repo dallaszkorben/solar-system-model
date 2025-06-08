@@ -6,12 +6,19 @@ class Earth extends Planet {
     static ID   = 'earth';
     static NAME = 'Earth';
 
+    // Planet rotations in degree
+    static axialTilt = {
+        x: 0,
+        y: 0,
+        z: 23.93
+    }
+
     static factData = {
-        diameter: 12742.0, // km
-        axialTilt: 23.4, // degrees
-        orbitRadius: 149600000.0, // km (average distance from Sun)
-        rotationPeriod: 23.93, // hours
-        orbitalPeriod: 365.25, // days
+        diameter: 12742.0,          // km
+        axialTilt: Earth.axialTilt, // degrees
+        orbitRadius: 149600000.0,   // km (average distance from Sun)
+        rotationPeriod: 23.93,      // hours
+        orbitalPeriod: 365.25,      // days
     };
 
     // Location data

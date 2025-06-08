@@ -2,11 +2,12 @@
  * PlanetControlPanel class for controlling individual planets
  */
 class PlanetControlPanel extends ControlPanel {
+
+    static defaultAxisVisibility = true;
+
     constructor(planet) {
         super(`${planet.name} Controls`, { top: '20px', right: '20px' });
         this.planet = planet;
-
-        this.defaultAxisVisibility = true;
 
         // Create visibility controls section
         this.createVisibilitySection();
@@ -15,13 +16,23 @@ class PlanetControlPanel extends ControlPanel {
         this.hide();
     }
 
+    getDefaultAxisVisibility(){
+        return PlanetControlPanel.defaultAxisVisibility;
+    }
+
     setPlanetVisibility(enable){
 
         this.planet.setVisibility(enable);
 
-        // Also update the main visibility toggle in the solar system panel
-        const mainToggle = document.getElementById(`${this.planet.ID}-visibility-toggle`);
-        if (mainToggle) {
+        // Update the planet's visibility on the Planet Controls panel
+        const panelToggle = document.getElementById(`${this.planet.id}-panel-visibility-toggle`);
+        if (panelToggle && panelToggle.checked !== enable) {
+            panelToggle.checked = enable;
+        }
+
+        // Update the main visibility toggle in the Solar System Control panel
+        const mainToggle = document.getElementById(`${this.planet.id}-visibility-toggle`);
+        if (mainToggle && mainToggle.checked !== enable) {
             mainToggle.checked = enable;
         }
     }
@@ -47,12 +58,12 @@ class PlanetControlPanel extends ControlPanel {
         }
 
         // Add axis toggle
-        this.addAxisToggle();
+        this.addAxisToggle(this.getDefaultAxisVisibility());
 
 
 // !!!! TODO: must be changed
         // Add North Pole Axis toggle for Earth only
-        if (this.planet.ID === 'earth') {
+        if (this.planet.id === 'earth') {
             this.addNorthPoleAxisToggle();
         }
 
@@ -84,7 +95,7 @@ class PlanetControlPanel extends ControlPanel {
         const toggle = document.createElement('input');
         toggle.type = 'checkbox';
         toggle.checked = true; // Initially visible
-        toggle.id = `${this.planet.ID}-panel-visibility-toggle`;
+        toggle.id = `${this.planet.id}-panel-visibility-toggle`;
 
 
 // !!! TODO: Must be investigated, DOES NOT WORK
@@ -158,7 +169,7 @@ class PlanetControlPanel extends ControlPanel {
     /**
      * Add axis toggle
      */
-    addAxisToggle() {
+    addAxisToggle(visibility) {
         const container = document.createElement('div');
         container.style.marginBottom = '10px';
         container.style.display = 'flex';
@@ -177,7 +188,7 @@ class PlanetControlPanel extends ControlPanel {
         toggle.type = 'checkbox';
 
         // Add event listener
-        toggle.checked = this.defaultAxisVisibility;
+        toggle.checked = visibility; //this.defaultAxisVisibility;
         toggle.addEventListener('change', (e) => {
             if (this.planet.axis) {
                 this.planet.axis.visible = e.target.checked;
@@ -292,126 +303,5 @@ class PlanetControlPanel extends ControlPanel {
         this.consoleContent.appendChild(container);
     }
 
-    /**
-     * Add rotation slider with value display and reset button
-     * @param {string} label - The label for the slider
-     * @param {string} id - The ID for the slider
-     * @param {number} defaultDegrees - The default value in degrees
-     */
-    addRotationSlider(label, id, defaultDegrees = 0) {
-        // Create container
-        const container = document.createElement('div');
-        container.style.marginBottom = '15px';
 
-        // Add label
-        const sliderLabel = document.createElement('label');
-        sliderLabel.textContent = `${label} rotate: `;
-        sliderLabel.style.display = 'block';
-        sliderLabel.style.marginBottom = '5px';
-        container.appendChild(sliderLabel);
-
-        // Create controls container for slider, value field and reset button
-        const controlsContainer = document.createElement('div');
-        controlsContainer.style.display = 'flex';
-        controlsContainer.style.alignItems = 'center';
-        controlsContainer.style.gap = '10px';
-
-        // Create slider using degrees
-        const slider = document.createElement('input');
-        slider.type = 'range';
-        slider.min = '-180';
-        slider.max = '180';
-        slider.step = '1.0'; // 1 degree per step
-        slider.value = defaultDegrees.toString(); // Set to the provided default value
-        slider.style.flexGrow = '1';
-        slider.id = `sky-${id}-rotation-slider`;
-
-        // Create value field
-        const valueField = document.createElement('input');
-        valueField.type = 'text';
-        valueField.value = `${defaultDegrees}°`;
-        valueField.readOnly = true;
-        valueField.style.width = '40px';
-        valueField.style.textAlign = 'right';
-        valueField.id = `sky-${id}-rotation-value`;
-
-        // Create reset button
-        const resetButton = document.createElement('img');
-        resetButton.src = 'icons/reset.png';
-        resetButton.style.width = '24px';
-        resetButton.style.height = '24px';
-        resetButton.style.cursor = 'pointer';
-        resetButton.title = "Reset to default position";
-        resetButton.id = `sky-${id}-rotation-reset`;
-
-        // Add event listener for slider
-        slider.addEventListener('input', () => {
-            // Get degrees from slider
-            const degrees = parseFloat(slider.value);
-
-            // Convert to radians
-            const radians = (degrees * Math.PI) / 180;
-
-            // Display value in degrees
-            valueField.value = `${degrees}°`;
-
-            // Apply rotation to the sky
-            switch(id) {
-                case 'pitch':
-                    this.planet.setPitchRotation(radians);
-                    break;
-                case 'yaw':
-                    this.planet.setYawRotation(radians);
-                    break;
-                case 'roll':
-                    this.planet.setRollRotation(radians);
-                    break;
-            }
-        });
-
-        // Add event listener for reset button
-        resetButton.addEventListener('click', () => {
-            slider.value = defaultDegrees.toString(); // Reset to default value
-            valueField.value = `${defaultDegrees}°`;
-
-            // Reset rotation to default
-            const radians = (defaultDegrees * Math.PI) / 180;
-            switch(id) {
-                case 'pitch':
-                    this.planet.setPitchRotation(radians);
-                    break;
-                case 'yaw':
-                    this.planet.setYawRotation(radians);
-                    break;
-                case 'roll':
-                    this.planet.setRollRotation(radians);
-                    break;
-            }
-        });
-
-        // Add components to controls container
-        controlsContainer.appendChild(slider);
-        controlsContainer.appendChild(valueField);
-        controlsContainer.appendChild(resetButton);
-
-        // Add controls container to main container
-        container.appendChild(controlsContainer);
-
-        // Add to control panel
-        this.consoleContent.appendChild(container);
-
-        // Apply initial rotation based on default value
-        const radians = (defaultDegrees * Math.PI) / 180;
-        switch(id) {
-            case 'pitch':
-                this.planet.setPitchRotation(radians);
-                break;
-            case 'yaw':
-                this.planet.setYawRotation(radians);
-                break;
-            case 'roll':
-                this.planet.setRollRotation(radians);
-                break;
-        }
-    }
 }

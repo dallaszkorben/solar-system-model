@@ -6,12 +6,19 @@ class Jupiter extends Planet {
     static NAME = 'Jupiter';
     static ID   = 'jupiter';
 
+    // Planet rotations in degree
+    static axialTilt = {
+        x: 0,
+        y: 0,
+        z: 3.13,
+    }
+
     static factData = {
-        diameter: 139820.0, // km
-        axialTilt: 3.13, // degrees
-        orbitRadius: 778600000.0, // km (average distance from Sun)
-        rotationPeriod: 9.93, // hours
-        orbitalPeriod: 4332.59, // days
+        diameter: 139820.0,             // km
+        axialTilt: Jupiter.axialTilt,   // degrees
+        orbitRadius: 778600000.0,       // km (average distance from Sun)
+        rotationPeriod: 9.93,           // hours
+        orbitalPeriod: 4332.59,         // days
     };
 
     static scaleModelData = {

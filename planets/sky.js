@@ -7,14 +7,21 @@ class Sky extends Planet {
     static NAME = 'Sky';
     static ID   = 'sky';
 
+    // Planet rotations in degree
+    static axialTilt = {
+        x: 0,
+        y: 0,
+        z: 23.93,   // Same as Earth
+    }
+
+    // Create minimal fact data for the sky with Earth's axial tilt
+    static factData = {
+        axialTilt: Sky.axialTilt,   //23.4, // Same tilt as Earth
+        orbitRadius: 0              // No orbit
+    };
+
     constructor() {
             console.log('Creating Sky object...');
-
-            // Create minimal fact data for the sky with Earth's axial tilt
-            const factData = {
-                axialTilt: 0, //23.4, // Same tilt as Earth
-                orbitRadius: 0 // No orbit
-            };
 
             // No-scale mode data
             const noScaleModeData = {
@@ -37,14 +44,8 @@ class Sky extends Planet {
             const distanceScaleModeData = { ...noScaleModeData };
 
 
-
-
-
-
-
-
             // Call parent constructor
-            super(factData, noScaleModeData, sizeScaleModeData, distanceScaleModeData);
+            super(Sky.factData, noScaleModeData, sizeScaleModeData, distanceScaleModeData);
 
             this.name = Sky.NAME;
             this.id   = Sky.ID;
@@ -53,31 +54,17 @@ class Sky extends Planet {
             // Global variables
             //
 
-            // Store these values as object properties for the control panel to use
-            this.defaultPitchDegrees = 0;
-            this.defaultYawDegrees = 0;
-            this.defaultRollDegrees = Earth.factData.axialTilt;
-
             // Brightness control properties
             this.maxStarBrightness = 2.0;
             this.defaultStarBrightness = 0.5;
             this.defaultConstellationBrightness = 0.5;
-
-            //
-            //
-            //
-
-
 
 
             // Create the sky sphere with our custom method
             console.log('Loading sky textures...');
             this.createSkySphere();
 
-            // Rotate the sky sphere
-            this.setPitchRotation(THREE.MathUtils.degToRad(this.defaultPitchDegrees));
-            this.setYawRotation(THREE.MathUtils.degToRad(this.defaultYawDegrees));
-            this.setRollRotation(THREE.MathUtils.degToRad(this.defaultRollDegrees));
+            this.applyTilt();
 
             // Create rotation axis (but don't show it by default)
             this.createAxis(0xff0000);
@@ -185,6 +172,8 @@ class Sky extends Planet {
                 console.error('Error loading star texture:', error);
             }
         );
+
+
     }
 
     // Override the update method to use customRotationSpeed
@@ -257,53 +246,6 @@ class Sky extends Planet {
         this.group.add(this.axis);
 
         console.log("Created rotation axis for sky (initially hidden)");
-    }
-
-    // Method to show the rotation axis
-    showRotationAxis() {
-        if (this.axis) {
-            this.axis.visible = true;
-            console.log("Sky axis visibility set to true");
-        }
-    }
-
-    // Method to hide the rotation axis
-    hideRotationAxis() {
-        if (this.axis) {
-            this.axis.visible = false;
-        }
-    }
-
-    // Method to toggle rotation axis visibility
-    toggleRotationAxis() {
-        if (this.axis) {
-            this.axis.visible = !this.axis.visible;
-            return this.axis.visible;
-        }
-        return false;
-    }
-
-    // Method to show the equator (latitude circles)
-    showEquator() {
-        if (this.latitudeCircles) {
-            this.latitudeCircles.visible = true;
-        }
-    }
-
-    // Method to hide the equator (latitude circles)
-    hideEquator() {
-        if (this.latitudeCircles) {
-            this.latitudeCircles.visible = false;
-        }
-    }
-
-    // Method to toggle equator visibility
-    toggleEquator() {
-        if (this.latitudeCircles) {
-            this.latitudeCircles.visible = !this.latitudeCircles.visible;
-            return this.latitudeCircles.visible;
-        }
-        return false;
     }
 
     // Set stars brightness

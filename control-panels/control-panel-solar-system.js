@@ -179,15 +179,14 @@ class SolarSystemControlPanel extends ControlPanel {
         toggle2.checked = false;
         toggle2.id = `${body.id}-controls-toggle`;
 
-// Add event listener for controls toggle
-toggle2.addEventListener('change', (e) => {
-    if (e.target.checked) {
-        this.controlPanels[body.id].show();
-    } else {
-        this.controlPanels[body.id].hide();
-    }
-});
-
+        // Add event listener for Control Panel toggle
+        toggle2.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                this.controlPanels[body.id].show();
+            } else {
+                this.controlPanels[body.id].hide();
+            }
+        });
 
         // Create slider span for second switch
         const sliderSpan2 = document.createElement('span');

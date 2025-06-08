@@ -6,11 +6,18 @@ class Sun extends Planet {
     static NAME = 'Sun';
     static ID   = 'sun';
 
+    // Planet rotations in degree
+    static axialTilt = {
+        x: 0,
+        y: 0,
+        z: 7.25
+    }
+
     // Static data for Sun
     static factData = {
         diameter: 1391400.0,        // km
         rotationPeriod: 28 * 24,    // converted to hours (28 days)
-        axialTilt: 7.25,            // degrees
+        axialTilt: Sun.axialTilt,   // degrees
         orbitRadius: 0,             // Sun doesn't orbit anything
         orbitalPeriod: 0,           // Sun doesn't orbit anything
     };

@@ -14,14 +14,21 @@ class Saturn extends Planet {
     static NAME = 'Saturn';
     static ID   = 'saturn';
 
+    // Planet rotations in degree
+    static axialTilt = {
+        x: 0,
+        y: 0,
+        z: 26.73,
+    }
+
     static factData = {
-        diameter: 116460.0, // km
-        axialTilt: 26.73, // degrees
-        orbitRadius: 1433500000.0, // km (average distance from Sun)
-        rotationPeriod: 10.7, // hours
-        orbitalPeriod: 10759.22, // days
-        ringInnerRadius: 74500, // km
-        ringOuterRadius: 140000, // km
+        diameter: 116460.0,             // km
+        axialTilt: Saturn.axialTilt,    // degrees
+        orbitRadius: 1433500000.0,      // km (average distance from Sun)
+        rotationPeriod: 10.7,           // hours
+        orbitalPeriod: 10759.22,        // days
+        ringInnerRadius: 74500,         // km
+        ringOuterRadius: 140000,        // km
     };
 
     // Ring thickness configuration (not part of factual data)

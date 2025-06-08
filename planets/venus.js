@@ -6,12 +6,19 @@ class Venus extends Planet {
     static NAME = 'Venus';
     static ID   = 'venus';
 
+    // Planet rotations in degree
+    static axialTilt = {
+        x: 0,
+        y: 0,
+        z: 177.36,
+    }
+
     static factData = {
-        diameter: 12104.0, // km
-        axialTilt: 177.36, // degrees (retrograde rotation)
-        orbitRadius: 108200000.0, // km (average distance from Sun)
-        rotationPeriod: 5832.5, // hours (243 days, retrograde)
-        orbitalPeriod: 224.7, // days
+        diameter: 12104.0,          // km
+        axialTilt: Venus.axialTilt, // degrees (retrograde rotation)
+        orbitRadius: 108200000.0,   // km (average distance from Sun)
+        rotationPeriod: 5832.5,     // hours (243 days, retrograde)
+        orbitalPeriod: 224.7,       // days
         variable: 54100 * 1.2,
     };
 
@@ -107,11 +114,11 @@ class Venus extends Planet {
     }
 
     static getTropic(){
-        return Venus.factData.axialTilt;
+        return Venus.factData.axialTilt.z;
     }
 
     static getPolar(){
-        return 90 - Venus.factData.axialTilt;
+        return 90 - Venus.factData.axialTilt.z;
     }
 
 

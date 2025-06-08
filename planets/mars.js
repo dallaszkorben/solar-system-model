@@ -6,13 +6,19 @@ class Mars extends Planet {
     static NAME = 'Mars';
     static ID   = 'mars';
 
-    // Static data for Mars
+    // Planet rotations in degree
+    static axialTilt = {
+        x: 0,
+        y: 0,
+        z: 25.19,
+    }
+
     static factData = {
-        diameter: 6779.0, // km
-        axialTilt: 25.19, // degrees
-        orbitRadius: 227900000.0, // km (average distance from Sun)
-        rotationPeriod: 24.6, // hours
-        orbitalPeriod: 687 // days
+        diameter: 6779.0,           // km
+        axialTilt: Mars.axialTilt,  // degrees
+        orbitRadius: 227900000.0,   // km (average distance from Sun)
+        rotationPeriod: 24.6,       // hours
+        orbitalPeriod: 687          // days
     };
 
     // Location data

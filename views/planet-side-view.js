@@ -258,7 +258,7 @@ class PlanetSideView extends BaseView {
         );
 
         // Apply the planet's axial tilt (rotation around Z-axis)
-        const tiltRadians = THREE.MathUtils.degToRad(this.targetPlanet.axialTilt);
+        const tiltRadians = THREE.MathUtils.degToRad(this.targetPlanet.axialTilt.z);
         const tiltMatrix = new THREE.Matrix4().makeRotationZ(tiltRadians);
         basePosition.applyMatrix4(tiltMatrix);
 
