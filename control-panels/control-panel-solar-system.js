@@ -2,6 +2,15 @@
  * SolarSystemControlPanel class for controlling the solar system
  */
 class SolarSystemControlPanel extends ControlPanel {
+
+    static elementIds = {
+        planetVisibilitySwitch: '-planet-visibility-toggle',
+        obrbitVisibilitySwitch: 'global-orbit-visibility-toggle'
+
+    }
+
+
+
     static scaleModeValues = {
         noScale: 'no-scale',
         sizeScale: 'size-scale',
@@ -22,6 +31,7 @@ class SolarSystemControlPanel extends ControlPanel {
         this.createVisibilityControlSection();
         this.createRotationControlsSection();
         this.createOrbitControlsSection();
+        this.createOrbitVisibilitySection();
         this.createGeneralControlSection();
     }
 
@@ -146,7 +156,7 @@ class SolarSystemControlPanel extends ControlPanel {
         const toggle1 = document.createElement('input');
         toggle1.type = 'checkbox';
         toggle1.checked = true; // Default ON
-        toggle1.id = `${body.id}-visibility-toggle`;
+        toggle1.id = `${body.id}${SolarSystemControlPanel.elementIds.planetVisibilitySwitch}`;
 
         // Add event listener for visibility toggle
         toggle1.addEventListener('change', () => {
@@ -426,7 +436,7 @@ class SolarSystemControlPanel extends ControlPanel {
     }
 
 
-    createGeneralControlSection() {
+    createOrbitVisibilitySection() {
         // Create a separate section for Orbit Visibility
         const orbitVisibilityHeader = document.createElement('h4');
         orbitVisibilityHeader.textContent = 'Orbit Visibility';
@@ -475,7 +485,7 @@ class SolarSystemControlPanel extends ControlPanel {
             if (this.solarSystem) {
                 this.solarSystem.setOrbitLinesOpacity(Planet.orbitOpacity);
                 orbitVisibilityToggle.checked = true;
-                this.solarSystem.setAllOrbitLinesVisible(true);
+                this.setAllOrbitLinesVisible(true);
             }
         });
 
@@ -487,12 +497,12 @@ class SolarSystemControlPanel extends ControlPanel {
         const orbitVisibilityToggle = document.createElement('input');
         orbitVisibilityToggle.type = 'checkbox';
         orbitVisibilityToggle.checked = true; // Default ON
-        orbitVisibilityToggle.id = 'global-orbit-visibility-toggle';
+        orbitVisibilityToggle.id = SolarSystemControlPanel.elementIds.obrbitVisibilitySwitch;
 
         // Add event listener for orbit visibility toggle
         orbitVisibilityToggle.addEventListener('change', () => {
             if (this.solarSystem) {
-                this.solarSystem.setAllOrbitLinesVisible(orbitVisibilityToggle.checked);
+                this.setAllOrbitLinesVisible(orbitVisibilityToggle.checked);
             }
         });
 
@@ -521,17 +531,20 @@ class SolarSystemControlPanel extends ControlPanel {
                 // If slider is moved from 0, enable the visibility toggle
                 if (opacity > 0 && !orbitVisibilityToggle.checked) {
                     orbitVisibilityToggle.checked = true;
-                    this.solarSystem.setAllOrbitLinesVisible(true);
+                    this.setAllOrbitLinesVisible(true);
                 }
 
                 // If slider is set to 0, make orbits invisible but don't change the toggle
                 if (opacity === 0) {
-                    this.solarSystem.setAllOrbitLinesVisible(false);
+                    this.setAllOrbitLinesVisible(false);
                 }
             }
         });
 
         this.consoleContent.appendChild(orbitOpacityContainer);
+    }
+
+    createGeneralControlSection(){
 
         // Create a separate section for General Control
         const generalHeader = document.createElement('h4');
@@ -580,4 +593,13 @@ class SolarSystemControlPanel extends ControlPanel {
         dayNightContainer.appendChild(dayNightSwitchLabel);
         this.consoleContent.appendChild(dayNightContainer);
     }
+
+// ---
+
+    setAllOrbitLinesVisible(visible){
+        Object.entries(this.controlPanels).forEach(([key, controlPanel]) => {
+            controlPanel.setOrbitLineVisibility(visible);
+        });
+    }
+
 }

@@ -236,16 +236,26 @@ class SolarSystem {
         }
     }
 
-    // Method to set visibility of all orbit lines
-    setAllOrbitLinesVisible(visible) {
-        if (this.planetObjs) {
-            Object.values(this.planetObjs).forEach(planet => {
-                if (planet.orbitLine) {
-                    planet.orbitLine.visible = visible;
-                }
-            });
-        }
-    }
+
+
+//
+//
+//
+//
+//    // Method to set visibility of all orbit lines
+//    setAllOrbitLinesVisible(visible) {
+//        Object.values(this.planetObjs).forEach(planet => {
+//            if (planet.orbitLine) {
+//                planet.setOrbitLineVisibility(visible);
+////                planet.orbitLine.visible = visible;
+//            }
+//        });
+//    }
+//
+//
+//
+
+
 
     // Method to set opacity of all orbit lines
     setOrbitLinesOpacity(opacity) {

@@ -442,13 +442,13 @@ class Planet {
             this.sphere.visible = true;
         }
         if (this.axis) {
-            this.axis.visible = true;
+            this.axis.visible = this.axis.wasVisible || false;
         }
         if (this.latitudeCircles) {
             this.latitudeCircles.visible = this.latitudeCircles.wasVisible || false;
         }
         if (this.orbitLine) {
-            this.orbitLine.visible = true;
+            this.orbitLine.visible = this.orbitLine.wasVisible || false;
         }
         if (this.seasonLabels) {
             this.seasonLabels.visible = this.seasonLabels.wasVisible || false;
@@ -469,6 +469,7 @@ class Planet {
             this.sphere.visible = false;
         }
         if (this.axis) {
+            this.axis.wasVisible = this.axis.visible;
             this.axis.visible = false;
         }
         if (this.latitudeCircles) {
@@ -477,6 +478,7 @@ class Planet {
             this.latitudeCircles.visible = false;
         }
         if (this.orbitLine) {
+            this.orbitLine.wasVisible = this.orbitLine.visible;
             this.orbitLine.visible = false;
         }
         if (this.seasonLabels) {

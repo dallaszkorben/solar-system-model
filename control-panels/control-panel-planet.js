@@ -3,6 +3,13 @@
  */
 class PlanetControlPanel extends ControlPanel {
 
+    static elementIds = {
+        planetVisibilitySwitch: '-panel-planet-visibility-toggle',
+        obrbitVisibilitySwitch: '-panel-orbit-visibiliti-toggle'
+    }
+
+
+
     static defaultAxisVisibility = true;
 
     constructor(planet) {
@@ -20,22 +27,47 @@ class PlanetControlPanel extends ControlPanel {
         return PlanetControlPanel.defaultAxisVisibility;
     }
 
+
+//---
+
+
     setPlanetVisibility(enable){
 
         this.planet.setVisibility(enable);
 
         // Update the planet's visibility on the Planet Controls panel
-        const panelToggle = document.getElementById(`${this.planet.id}-panel-visibility-toggle`);
+        const panelToggle = document.getElementById(`${this.planet.id}${PlanetControlPanel.elementIds.planetVisibilitySwitch}`);
         if (panelToggle && panelToggle.checked !== enable) {
             panelToggle.checked = enable;
         }
 
         // Update the main visibility toggle in the Solar System Control panel
-        const mainToggle = document.getElementById(`${this.planet.id}-visibility-toggle`);
+        const mainToggle = document.getElementById(`${this.planet.id}${SolarSystemControlPanel.elementIds.planetVisibilitySwitch}`);
         if (mainToggle && mainToggle.checked !== enable) {
             mainToggle.checked = enable;
         }
     }
+
+    setOrbitLineVisibility(enable) {
+        if (this.planet.orbitLine) {
+            this.planet.orbitLine.visible = enable;
+        }
+
+        // Update the orbit line toggle in the Planet Controls panel
+        const panelToggle = document.getElementById(`${this.planet.id}${PlanetControlPanel.elementIds.obrbitVisibilitySwitch}`);
+        if (panelToggle && panelToggle.checked !== enable) {
+            panelToggle.checked = enable;
+        }
+
+        // Update the orbit line toggle in the Solar System Control panel if it exists
+        const mainToggle = document.getElementById(SolarSystemControlPanel.elementIds.obrbitVisibilitySwitch);
+        if (mainToggle && mainToggle.checked !== enable) {
+            mainToggle.checked = enable;
+        }
+    }
+
+
+//---
 
     /**
      * Create visibility controls section
@@ -95,7 +127,7 @@ class PlanetControlPanel extends ControlPanel {
         const toggle = document.createElement('input');
         toggle.type = 'checkbox';
         toggle.checked = true; // Initially visible
-        toggle.id = `${this.planet.id}-panel-visibility-toggle`;
+        toggle.id = `${this.planet.id}${PlanetControlPanel.elementIds.planetVisibilitySwitch}`;
 
 
 // !!! TODO: Must be investigated, DOES NOT WORK
@@ -141,13 +173,14 @@ class PlanetControlPanel extends ControlPanel {
         const toggle = document.createElement('input');
         toggle.type = 'checkbox';
         toggle.checked = true; // Initially visible
-        toggle.id = `${this.planet.ID}-panel-orbit-toggle`;
+        toggle.id = `${this.planet.id}${PlanetControlPanel.elementIds.obrbitVisibilitySwitch}`;
 
         // Add event listener
         toggle.addEventListener('change', (e) => {
-            if (this.planet.orbitLine) {
-                this.planet.orbitLine.visible = e.target.checked;
-            }
+            this.setOrbitLineVisibility(e.target.checked);
+//            if (this.planet.orbitLine) {
+//                this.planet.orbitLine.visible = e.target.checked;
+//            }
         });
 
         // Create slider span

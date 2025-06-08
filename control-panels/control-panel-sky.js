@@ -25,73 +25,78 @@ class SkyControlPanel extends PlanetControlPanel {
     setPlanetVisibility(enable){
         super.setPlanetVisibility(enable);
 
-               // Update the Starry Sky toggle in the Solar System Controls panel
-                const starryToggle = document.getElementById('starry-sky-visibility-toggle');
-                if (starryToggle) {
-                    starryToggle.checked = enable;
-                }
+        // Update the Starry Sky toggle in the Solar System Controls panel
+        const starryToggle = document.getElementById(`sky${SolarSystemControlPanel.elementsId.planetVisibilitySwitch}`);
+        if (starryToggle) {
+            starryToggle.checked = enable;
+        }
 
-                // Tell the Sky object to update the scene background
-                if (this.planet) {
+        // Tell the Sky object to update the scene background
+        if (this.planet) {
 
-                    // Update the toggle in Solar System Controls panel
-                    const starryToggle = document.getElementById('starry-sky-visibility-toggle');
-                    if (starryToggle && starryToggle.checked !== enable) {
-                        starryToggle.checked = enable;
+            // Update the toggle in Solar System Controls panel
+            const starryToggle = document.getElementById(`sky${SolarSystemControlPanel.elementsId.planetVisibilitySwitch}`);
+            if (starryToggle && starryToggle.checked !== enable) {
+                starryToggle.checked = enable;
+            }
+        }
+
+        // Update Stars and Constellations brightness sliders
+        const starsContainer = document.getElementById('sky-stars-container');
+        const constellationsContainer = document.getElementById('sky-constellations-container');
+
+        if (starsContainer) {
+
+            // Grey out the entire container when disabled
+            starsContainer.style.opacity = enable ? '1' : '0.5';
+
+            // Disable all interactive elements in the container
+            const interactiveElements = starsContainer.querySelectorAll('input, img');
+            interactiveElements.forEach(element => {
+                element.disabled = !enable;
+
+                // Set cursor style based on element state
+                if (element.tagName === 'IMG') {
+                    element.style.cursor = enable ? 'pointer' : 'default';
+                    if (!enable) {
+                        element.style.pointerEvents = 'none';
+                    } else {
+                        element.style.pointerEvents = 'auto';
+                    }
+                } else if (element.tagName === 'INPUT') {
+                    if (element.type === 'range' || element.type === 'checkbox') {
+                        element.style.cursor = enable ? 'pointer' : 'default';
                     }
                 }
+            });
+        }
 
-                // Update Stars and Constellations brightness sliders
-                const starsContainer = document.getElementById('sky-stars-container');
-                const constellationsContainer = document.getElementById('sky-constellations-container');
+        if (constellationsContainer) {
 
-                if (starsContainer) {
-                    // Grey out the entire container when disabled
-                    starsContainer.style.opacity = enable ? '1' : '0.5';
+            // Grey out the entire container when disabled
+            constellationsContainer.style.opacity = enable ? '1' : '0.5';
 
-                    // Disable all interactive elements in the container
-                    const interactiveElements = starsContainer.querySelectorAll('input, img');
-                    interactiveElements.forEach(element => {
-                        element.disabled = !enable;
-                        // Set cursor style based on element state
-                        if (element.tagName === 'IMG') {
-                            element.style.cursor = enable ? 'pointer' : 'default';
-                            if (!enable) {
-                                element.style.pointerEvents = 'none';
-                            } else {
-                                element.style.pointerEvents = 'auto';
-                            }
-                        } else if (element.tagName === 'INPUT') {
-                            if (element.type === 'range' || element.type === 'checkbox') {
-                                element.style.cursor = enable ? 'pointer' : 'default';
-                            }
-                        }
-                    });
+            // Disable all interactive elements in the container
+            const interactiveElements = constellationsContainer.querySelectorAll('input, img');
+            interactiveElements.forEach(element => {
+                element.disabled = !enable;
+
+                // Set cursor style based on element state
+                if (element.tagName === 'IMG') {
+                    element.style.cursor = enable ? 'pointer' : 'default';
+
+                    if (!enable) {
+                        element.style.pointerEvents = 'none';
+                    } else {
+                        element.style.pointerEvents = 'auto';
+                    }
+                } else if (element.tagName === 'INPUT') {
+                    if (element.type === 'range' || element.type === 'checkbox') {
+                        element.style.cursor = enable ? 'pointer' : 'default';
+                    }
                 }
-
-                if (constellationsContainer) {
-                    // Grey out the entire container when disabled
-                    constellationsContainer.style.opacity = enable ? '1' : '0.5';
-
-                    // Disable all interactive elements in the container
-                    const interactiveElements = constellationsContainer.querySelectorAll('input, img');
-                    interactiveElements.forEach(element => {
-                        element.disabled = !enable;
-                        // Set cursor style based on element state
-                        if (element.tagName === 'IMG') {
-                            element.style.cursor = enable ? 'pointer' : 'default';
-                            if (!enable) {
-                                element.style.pointerEvents = 'none';
-                            } else {
-                                element.style.pointerEvents = 'auto';
-                            }
-                        } else if (element.tagName === 'INPUT') {
-                            if (element.type === 'range' || element.type === 'checkbox') {
-                                element.style.cursor = enable ? 'pointer' : 'default';
-                            }
-                        }
-                    });
-                }
+            });
+        }
     }
 
     /**
@@ -148,7 +153,7 @@ class SkyControlPanel extends PlanetControlPanel {
         const toggle = document.createElement('input');
         toggle.type = 'checkbox';
         toggle.checked = true; // Initially visible
-        toggle.id = 'sky-panel-visibility-toggle';
+        toggle.id = `sky${PlanetControlPanel.elementIds.planetVisibilitySwitch}`;
 
         // Add event listener
         toggle.addEventListener('change', (e) => {
@@ -174,44 +179,6 @@ class SkyControlPanel extends PlanetControlPanel {
         // Add to control panel
         this.consoleContent.appendChild(container);
     }
-
-//    createSkyRotationSection(){
-//
-//        // Override the title to verify implementation
-//        this.consolePane.querySelector('h3').textContent = 'Sky Controls';
-//
-//        // Initialize the toggle state based on the actual sky visibility
-//        const skyToggle = document.getElementById('sky-panel-visibility-toggle');
-//        if (skyToggle && sky && sky.getObject()) {
-//            skyToggle.checked = sky.getObject().visible;
-//
-//            // Update dependent controls based on actual visibility
-//            const starsContainer = document.getElementById('sky-stars-container');
-//            const constellationsContainer = document.getElementById('sky-constellations-container');
-//
-//            if (starsContainer) {
-//                starsContainer.style.opacity = sky.getObject().visible ? '1' : '0.5';
-//                const interactiveElements = starsContainer.querySelectorAll('input, img');
-//                interactiveElements.forEach(element => {
-//                    element.disabled = !sky.getObject().visible;
-//                    if (element.tagName === 'IMG') {
-//                        element.style.cursor = sky.getObject().visible ? 'pointer' : 'default';
-//                    }
-//                });
-//            }
-//
-//            if (constellationsContainer) {
-//                constellationsContainer.style.opacity = sky.getObject().visible ? '1' : '0.5';
-//                const interactiveElements = constellationsContainer.querySelectorAll('input, img');
-//                interactiveElements.forEach(element => {
-//                    element.disabled = !sky.getObject().visible;
-//                    if (element.tagName === 'IMG') {
-//                        element.style.cursor = sky.getObject().visible ? 'pointer' : 'default';
-//                    }
-//                });
-//            }
-//        }
-//    }
 
     /**
      * Override parent method to create Sky rotation controls section

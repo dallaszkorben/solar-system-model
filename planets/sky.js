@@ -172,8 +172,6 @@ class Sky extends Planet {
                 console.error('Error loading star texture:', error);
             }
         );
-
-
     }
 
     // Override the update method to use customRotationSpeed
@@ -268,69 +266,6 @@ class Sky extends Planet {
         if (this.constellationSphere && this.constellationSphere.material) {
             this.constellationSphere.material.opacity = brightness;
             this.constellationSphere.material.needsUpdate = true;
-        }
-    }
-
-    // Override setVisibility to also control constellation sphere and axis visibility
-    setVisibility(visible) {
-        // Call parent method to handle main sphere visibility
-        super.setVisibility(visible);
-
-        // Update the Stars toggle state
-        const starsToggle = document.getElementById('sky-stars-toggle');
-        if (starsToggle) {
-            // Disable the toggle if main visibility is off
-            starsToggle.disabled = !visible;
-
-            // If main visibility is on, sphere visibility is controlled by Stars toggle
-            if (visible && this.sphere) {
-                this.sphere.visible = starsToggle.checked;
-
-                // Ensure render order is maintained
-                this.sphere.renderOrder = -1000;
-            }
-        }
-
-        // Also control constellation sphere visibility
-        if (this.constellationSphere) {
-            // Update the Constellations toggle state
-            const constellationToggle = document.getElementById('sky-constellations-toggle');
-            if (constellationToggle) {
-                // Disable the toggle if main visibility is off
-                constellationToggle.disabled = !visible;
-
-                // If main visibility is off, hide constellation
-                if (!visible) {
-                    this.constellationSphere.visible = false;
-                } else {
-                    // If main visibility is on, constellation visibility is controlled by its toggle
-                    this.constellationSphere.visible = constellationToggle.checked;
-
-                    // Ensure render order is maintained
-                    this.constellationSphere.renderOrder = -999;
-                }
-            } else {
-                // If toggle doesn't exist, just hide constellation when main visibility is off
-                if (!visible) {
-                    this.constellationSphere.visible = false;
-                }
-            }
-        }
-
-        // Ensure axis visibility matches its toggle state
-        if (this.axis) {
-            const axisToggle = document.getElementById('sky-panel-axis-toggle');
-            if (axisToggle) {
-                this.axis.visible = visible && axisToggle.checked;
-            }
-        }
-
-        // Ensure latitude circles visibility matches its toggle state
-        if (this.latitudeCircles) {
-            const latitudeToggle = document.getElementById('sky-panel-latitude-toggle');
-            if (latitudeToggle) {
-                this.latitudeCircles.visible = visible && latitudeToggle.checked;
-            }
         }
     }
 }
