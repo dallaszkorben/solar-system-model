@@ -238,11 +238,11 @@ class SolarSystemControlPanel extends ControlPanel {
                 id: SolarSystemControlPanel.elementIds.rotationSpeedSlider
             },
             resetButton: {
-                title: "Reset to default speed",
+                tooltip: "Reset to default speed",
                 resetValue: 1.0
             },
             toggle: {
-                title: "Enable All Rotation",
+                tooltip: "Enable All Rotation",
                 checked: false,
                 id: SolarSystemControlPanel.elementIds.rotationSpeedSwitch
             },
@@ -417,11 +417,11 @@ class SolarSystemControlPanel extends ControlPanel {
                 id: SolarSystemControlPanel.elementIds.orbitSpeedSlider
             },
             resetButton: {
-                title: "Reset to default speed",
+                tooltip: "Reset to default speed",
                 resetValue: 1.0
             },
             toggle: {
-                title: "Enable All Orbits",
+                tooltip: "Enable All Orbits",
                 checked: false,
                 id: SolarSystemControlPanel.elementIds.orbitSpeedSwitch
             },
@@ -473,11 +473,11 @@ class SolarSystemControlPanel extends ControlPanel {
                 id: SolarSystemControlPanel.elementIds.orbitOpacitySlider
             },
             resetButton: {
-                title: "Reset to default opacity",
+                tooltip: "Reset to default opacity",
                 resetValue: Planet.orbitOpacity
             },
             toggle: {
-                title: "Show/Hide Orbit Line",
+                tooltip: "Show/Hide Orbit Line",
                 checked: true,
                 id: SolarSystemControlPanel.elementIds.obrbitVisibilitySwitch
             },

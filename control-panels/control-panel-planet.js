@@ -199,11 +199,12 @@ class PlanetControlPanel extends ControlPanel {
         // Add rotation speed control
         this.addRotationSpeedControl();
 
+        // Orbit line visibility control
         this.addOrbitSpeedControl();
 
         // Add orbit line toggle if planet has orbit
         if (this.planet.orbitRadius > 0) {
-            this.addOrbitLineToggle();
+            this.addOrbitLineControl();
         }
 
         // Add axis toggle
@@ -283,11 +284,11 @@ class PlanetControlPanel extends ControlPanel {
                 id: `${this.planet.id}${PlanetControlPanel.elementIds.rotationSpeedSlider}`
             },
             resetButton: {
-                title: "Reset to default speed",
+                tooltip: "Reset to default speed",
                 resetValue: 1.0
             },
             toggle: {
-                title: "Enable Rotation",
+                tooltip: "Enable Rotation",
                 checked: this.planet.rotationEnabled,
                 id: `${this.planet.id}${PlanetControlPanel.elementIds.rotationSpeedSwitch}`
             },
@@ -337,11 +338,11 @@ class PlanetControlPanel extends ControlPanel {
                 id: `${this.planet.id}${PlanetControlPanel.elementIds.orbitSpeedSlider}`
             },
             resetButton: {
-                title: "Reset to default speed",
+                tooltip: "Reset to default speed",
                 resetValue: 1.0
             },
             toggle: {
-                title: "Enable Orbit",
+                tooltip: "Enable Orbit",
                 checked: this.planet.orbitEnabled,
                 id: `${this.planet.id}${PlanetControlPanel.elementIds.orbitSpeedSwitch}`
             },
@@ -378,114 +379,178 @@ class PlanetControlPanel extends ControlPanel {
     }
 
     /**
-     * Add orbit visibility controls with slider, reset button and toggle
+     * Add orbit line controls with slider, reset button and toggle
      */
-    addOrbitLineToggle() {
-        const container = document.createElement('div');
-        container.style.marginBottom = '15px';
+    addOrbitLineControl() {
+        const container = this.createSliderControllerComponent({
+            label: 'Orbit Line: ',
+            slider: {
+                min: '0',
+                max: '1',
+                step: '0.01',
+                value: this.planet.orbitOpacity.toString(),
+                id: `${this.planet.id}${PlanetControlPanel.elementIds.orbitOpacitySlider}`
+            },
+            resetButton: {
+                tooltip: "Reset to default opacity",
+                resetValue: Planet.orbitOpacity
+            },
+            toggle: {
+                tooltip: "Show/Hide Orbit Line",
+                checked: true,
+                id: `${this.planet.id}${PlanetControlPanel.elementIds.obrbitVisibilitySwitch}`
+            },
+            onSliderChange: (slider, toggle) => {
+                const opacity = parseFloat(slider.value);
 
-        // Add label
-        const orbitLabel = document.createElement('label');
-        orbitLabel.textContent = 'Orbit Line: ';
-        orbitLabel.style.display = 'block';
-        orbitLabel.style.marginBottom = '5px';
-        container.appendChild(orbitLabel);
+                if (this.planet.orbitLine && this.planet.orbitLine.material) {
+                    this.planet.orbitLine.material.opacity = opacity;
+                    this.planet.orbitLine.material.needsUpdate = true;
+                    this.planet.orbitOpacity = opacity;
+                }
 
-        // Create controls container for slider, reset button and toggle
-        const controlsContainer = document.createElement('div');
-        controlsContainer.style.display = 'flex';
-        controlsContainer.style.alignItems = 'center';
-        controlsContainer.style.gap = '10px';
+                // If slider is moved from 0, enable the visibility toggle
+                if (opacity > 0 && !toggle.checked) {
+                    toggle.checked = true;
+                    this.setOrbitLineVisibility(true);
+                }
 
-        // Create slider
-        const slider = document.createElement('input');
-        slider.type = 'range';
-        slider.min = '0';
-        slider.max = '1';
-        slider.step = '0.01';
-        slider.value = this.planet.orbitOpacity.toString();
-        slider.style.flexGrow = '1';
-        slider.id = `${this.planet.id}${PlanetControlPanel.elementIds.orbitOpacitySlider}`;
+                // If slider is set to 0, make orbit invisible but don't change the toggle
+                if (opacity === 0) {
+                    this.setOrbitLineVisibility(false);
+                }
+            },
+            onReset: (slider, toggle, resetValue) => {
+                slider.value = resetValue.toString();
 
-        // Create reset button
-        const resetButton = document.createElement('img');
-        resetButton.src = 'icons/reset.png';
-        resetButton.style.width = '24px';
-        resetButton.style.height = '24px';
-        resetButton.style.cursor = 'pointer';
-        resetButton.title = "Reset to default opacity";
+                if (this.planet.orbitLine && this.planet.orbitLine.material) {
+                    this.planet.orbitLine.material.opacity = resetValue;
+                    this.planet.orbitLine.material.needsUpdate = true;
+                    this.planet.orbitOpacity = resetValue;
+                }
 
-        // Create switch container
-        const switchLabel = document.createElement('label');
-        switchLabel.className = 'switch';
-        switchLabel.title = "Show/Hide Orbit Line";
-
-        // Create toggle input
-        const toggle = document.createElement('input');
-        toggle.type = 'checkbox';
-        toggle.checked = true; // Initially visible
-        toggle.id = `${this.planet.id}${PlanetControlPanel.elementIds.obrbitVisibilitySwitch}`;
-
-        // Create slider span
-        const sliderSpan = document.createElement('span');
-        sliderSpan.className = 'slider';
-
-        // Assemble the switch
-        switchLabel.appendChild(toggle);
-        switchLabel.appendChild(sliderSpan);
-
-        // Add event listener for slider
-        slider.addEventListener('input', () => {
-            const opacity = parseFloat(slider.value);
-
-            if (this.planet.orbitLine && this.planet.orbitLine.material) {
-                this.planet.orbitLine.material.opacity = opacity;
-                this.planet.orbitLine.material.needsUpdate = true;
-                this.planet.orbitOpacity = opacity;
-            }
-
-            // If slider is moved from 0, enable the visibility toggle
-            if (opacity > 0 && !toggle.checked) {
                 toggle.checked = true;
                 this.setOrbitLineVisibility(true);
-            }
-
-            // If slider is set to 0, make orbit invisible but don't change the toggle
-            if (opacity === 0) {
-                this.setOrbitLineVisibility(false);
-            }
+            },
+            onToggleChange: (checked) => {
+                this.setOrbitLineVisibility(checked);
+            },
+            parent: this.consoleContent
         });
 
-        // Add event listener for reset button
-        resetButton.addEventListener('click', () => {
-            slider.value = Planet.orbitOpacity.toString();
-
-            if (this.planet.orbitLine && this.planet.orbitLine.material) {
-                this.planet.orbitLine.material.opacity = Planet.orbitOpacity;
-                this.planet.orbitLine.material.needsUpdate = true;
-                this.planet.orbitOpacity = Planet.orbitOpacity;
-            }
-
-            toggle.checked = true;
-            this.setOrbitLineVisibility(true);
-        });
-
-        // Add event listener for toggle
-        toggle.addEventListener('change', (e) => {
-            this.setOrbitLineVisibility(e.target.checked);
-        });
-
-        // Add components to controls container
-        controlsContainer.appendChild(slider);
-        controlsContainer.appendChild(resetButton);
-        controlsContainer.appendChild(switchLabel);
-
-        // Add controls container to main container
-        container.appendChild(controlsContainer);
-
-        // Add to control panel
-        this.consoleContent.appendChild(container);
+        return container;
     }
+
+
+//    /**
+//     * Add orbit visibility controls with slider, reset button and toggle
+//     */
+//    addOrbitLineToggle() {
+//        const container = document.createElement('div');
+//        container.style.marginBottom = '15p//x';
+//
+//        // Add label
+//        const orbitLabel = document.createElement('label');
+//        orbitLabel.textContent = 'Orbit Line: ';
+//        orbitLabel.style.display = 'block';
+//        orbitLabel.style.marginBottom = '5px';
+//        container.appendChild(orbitLabel);
+//
+//        // Create controls container for slider, reset button and toggle
+//        const controlsContainer = document.createElement('div');
+//        controlsContainer.style.display = 'flex';
+//        controlsContainer.style.alignItems = 'center';
+//        controlsContainer.style.gap = '10px';
+//
+//        // Create slider
+//        const slider = document.createElement('input');
+//        slider.type = 'range';
+//        slider.min = '0';
+//        slider.max = '1';
+//        slider.step = '0.01';
+//        slider.value = this.planet.orbitOpacity.toString();
+//        slider.style.flexGrow = '1';
+//        slider.id = `${this.planet.id}${PlanetControlPanel.elementIds.orbitOpacitySlider}`;
+//
+//        // Create reset button
+//        const resetButton = document.createElement('img');
+//        resetButton.src = 'icons/reset.png';
+//        resetButton.style.width = '24px';
+//        resetButton.style.height = '24px';
+//        resetButton.style.cursor = 'pointer';
+//        resetButton.title = "Reset to default opacity";
+//
+//        // Create switch container
+//        const switchLabel = document.createElement('label');
+//        switchLabel.className = 'switch';
+//        switchLabel.title = "Show/Hide Orbit Line";
+//
+//        // Create toggle input
+//        const toggle = document.createElement('input');
+//        toggle.type = 'checkbox';
+//        toggle.checked = true; // Initially visible
+//        toggle.id = `${this.planet.id}${PlanetControlPanel.elementIds.obrbitVisibilitySwitch}`;
+//
+//        // Create slider span
+//        const sliderSpan = document.createElement('span');
+//        sliderSpan.className = 'slider';
+//
+//        // Assemble the switch
+//        switchLabel.appendChild(toggle);
+//        switchLabel.appendChild(sliderSpan);
+//
+//        // Add event listener for slider
+//        slider.addEventListener('input', () => {
+//            const opacity = parseFloat(slider.value);
+//
+//            if (this.planet.orbitLine && this.planet.orbitLine.material) {
+//                this.planet.orbitLine.material.opacity = opacity;
+//                this.planet.orbitLine.material.needsUpdate = true;
+//                this.planet.orbitOpacity = opacity;
+//            }
+//
+//            // If slider is moved from 0, enable the visibility toggle
+//            if (opacity > 0 && !toggle.checked) {
+//                toggle.checked = true;
+//                this.setOrbitLineVisibility(true);
+//            }
+//
+//            // If slider is set to 0, make orbit invisible but don't change the toggle
+//            if (opacity === 0) {
+//                this.setOrbitLineVisibility(false);
+//            }
+//        });
+//
+//        // Add event listener for reset button
+//        resetButton.addEventListener('click', () => {
+//            slider.value = Planet.orbitOpacity.toString();
+//
+//            if (this.planet.orbitLine && this.planet.orbitLine.material) {
+//                this.planet.orbitLine.material.opacity = Planet.orbitOpacity;
+//                this.planet.orbitLine.material.needsUpdate = true;
+//                this.planet.orbitOpacity = Planet.orbitOpacity;
+//            }
+//
+//            toggle.checked = true;
+//            this.setOrbitLineVisibility(true);
+//        });
+//
+//        // Add event listener for toggle
+//        toggle.addEventListener('change', (e) => {
+//            this.setOrbitLineVisibility(e.target.checked);
+//        });
+//
+//        // Add components to controls container
+//        controlsContainer.appendChild(slider);
+//        controlsContainer.appendChild(resetButton);
+//        controlsContainer.appendChild(switchLabel);
+//
+//        // Add controls container to main container
+//        container.appendChild(controlsContainer);
+//
+//        // Add to control panel
+//        this.consoleContent.appendChild(container);
+//    }
 
 
     /**

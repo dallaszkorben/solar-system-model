@@ -204,10 +204,10 @@ class ControlPanel {
      * @param {string} config.slider.value - Initial value for slider
      * @param {string} config.slider.id - ID for the slider element
      * @param {Object} config.resetButton - Reset button configuration
-     * @param {string} config.resetButton.title - Tooltip for reset button
+     * @param {string} config.resetButton.tooltip - Tooltip for reset button
      * @param {number} config.resetButton.resetValue - Value to set when reset button is clicked
      * @param {Object} config.toggle - Toggle switch configuration
-     * @param {string} config.toggle.title - Tooltip for toggle switch
+     * @param {string} config.toggle.tooltip - Tooltip for toggle switch
      * @param {boolean} config.toggle.checked - Initial state of toggle
      * @param {string} config.toggle.id - ID for the toggle element
      * @param {Function} config.onSliderChange - Function to call when slider value changes
@@ -248,12 +248,12 @@ class ControlPanel {
         resetButton.style.width = '24px';
         resetButton.style.height = '24px';
         resetButton.style.cursor = 'pointer';
-        resetButton.title = config.resetButton.title;
+        resetButton.title = config.resetButton.tooltip;
 
         // Create switch container
         const switchLabel = document.createElement('label');
         switchLabel.className = 'switch';
-        switchLabel.title = config.toggle.title;
+        switchLabel.title = config.toggle.tooltip;
 
         // Create toggle input
         const toggle = document.createElement('input');
