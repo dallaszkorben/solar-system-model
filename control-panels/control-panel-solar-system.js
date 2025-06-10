@@ -5,7 +5,8 @@ class SolarSystemControlPanel extends ControlPanel {
 
     static elementIds = {
         planetVisibilitySwitch: '-planet-visibility-toggle',
-        obrbitVisibilitySwitch: 'global-orbit-visibility-toggle'
+        obrbitVisibilitySwitch: 'global-orbit-visibility-toggle',
+        orbitObacitySlider:     'global-orbit-opacity-slider',
 
     }
 
@@ -161,12 +162,7 @@ class SolarSystemControlPanel extends ControlPanel {
         // Add event listener for visibility toggle
         toggle1.addEventListener('change', () => {
             if (this.solarSystem && this.solarSystem.planetObjs && this.solarSystem.planetObjs[body.id]) {
-//                this.solarSystem.planetObjs[planetName].setVisibility(toggle1.checked);
-//                this.solarSystem.controlPanels[planetName].setVisibility(toggle1.checked);
                 this.controlPanels[body.id].setPlanetVisibility(toggle1.checked);
-
-
-
             }
         });
 
@@ -261,9 +257,9 @@ class SolarSystemControlPanel extends ControlPanel {
         rotationResetButton.addEventListener('click', () => {
             rotationSlider.value = '1.0';
             if (this.solarSystem) {
-                this.solarSystem.setGlobalRotationSpeed(1.0);
+                this.setAllRotationSpeed(1.0);
                 rotationToggle.checked = false;
-                this.solarSystem.setAllRotationEnabled(false);
+                this.setAllRotationEnabled(false);
             }
         });
 
@@ -280,7 +276,7 @@ class SolarSystemControlPanel extends ControlPanel {
         // Add event listener for rotation toggle
         rotationToggle.addEventListener('change', () => {
             if (this.solarSystem) {
-                this.solarSystem.setAllRotationEnabled(rotationToggle.checked);
+                this.setAllRotationEnabled(rotationToggle.checked);
             }
         });
 
@@ -307,7 +303,7 @@ class SolarSystemControlPanel extends ControlPanel {
                 const speedFactor = parseFloat(rotationSlider.value);
 
                 // Update rotation speed for all planets
-                this.solarSystem.setGlobalRotationSpeed(speedFactor);
+                this.setAllRotationSpeed(speedFactor);
 
                 // If slider is moved from 0, enable the rotation toggle
                 if (speedFactor > 0 && !rotationToggle.checked) {
@@ -316,7 +312,7 @@ class SolarSystemControlPanel extends ControlPanel {
 
                 // If slider is set to 0, disable rotation but don't change the toggle
                 if (speedFactor === 0) {
-                    this.solarSystem.setAllRotationEnabled(false);
+                    this.setAllRotationEnabled(false);
                 }
             }
         });
@@ -469,7 +465,7 @@ class SolarSystemControlPanel extends ControlPanel {
         orbitOpacitySlider.step = '0.01';
         orbitOpacitySlider.value = Planet.orbitOpacity; // Default opacity
         orbitOpacitySlider.style.flexGrow = '1';
-        orbitOpacitySlider.id = 'orbit-opacity-slider';
+        orbitOpacitySlider.id = SolarSystemControlPanel.orbitObacitySlider;
 
         // Create reset button
         const orbitOpacityResetButton = document.createElement('img');
@@ -483,7 +479,7 @@ class SolarSystemControlPanel extends ControlPanel {
         orbitOpacityResetButton.addEventListener('click', () => {
             orbitOpacitySlider.value = Planet.orbitOpacity;
             if (this.solarSystem) {
-                this.solarSystem.setOrbitLinesOpacity(Planet.orbitOpacity);
+                this.setAllOrbitLinesOpacity(Planet.orbitOpacity);
                 orbitVisibilityToggle.checked = true;
                 this.setAllOrbitLinesVisible(true);
             }
@@ -526,7 +522,7 @@ class SolarSystemControlPanel extends ControlPanel {
         orbitOpacitySlider.addEventListener('input', () => {
             if (this.solarSystem) {
                 const opacity = parseFloat(orbitOpacitySlider.value);
-                this.solarSystem.setOrbitLinesOpacity(opacity);
+                this.setAllOrbitLinesOpacity(opacity);
 
                 // If slider is moved from 0, enable the visibility toggle
                 if (opacity > 0 && !orbitVisibilityToggle.checked) {
@@ -594,12 +590,34 @@ class SolarSystemControlPanel extends ControlPanel {
         this.consoleContent.appendChild(dayNightContainer);
     }
 
-// ---
+// --- Effects on all planets ---
+
+    setAllRotationEnabled(enable) {
+        Object.entries(this.controlPanels).forEach(([key, controlPanel]) => {
+            controlPanel.setRotationEnabled(enable);
+        });
+    }
+
+    setAllRotationSpeed(speedFactor) {
+        Object.entries(this.controlPanels).forEach(([key, controlPanel]) => {
+            controlPanel.setRotationSpeed(speedFactor);
+        });
+    }
+
+    // ---
 
     setAllOrbitLinesVisible(visible){
         Object.entries(this.controlPanels).forEach(([key, controlPanel]) => {
             controlPanel.setOrbitLineVisibility(visible);
         });
     }
+
+    setAllOrbitLinesOpacity(opacity) {
+        Object.entries(this.controlPanels).forEach(([key, controlPanel]) => {
+            controlPanel.setOrbitLineOpacity(opacity);
+        });
+    }
+
+// ---
 
 }

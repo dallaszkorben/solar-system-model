@@ -103,7 +103,7 @@ class Sun extends Planet {
         this.orbitSpeed = 0;
 
         this.createSphere('textures/Sun-texture.jpg');
-        this.createAxis(0xff8800); // Orange color for Sun's axis
+        this.createAxis(0xff0000); // Orange color for Sun's axis
         this.createLatitudeCircles([
             { name: 'Solar Equator', angle: 0, color: 0x00ffff, widthScale: 1.0 }
         ]);
@@ -393,30 +393,6 @@ class Sun extends Planet {
             // Control the directional light visibility directly
             if (solarSystem.sunLight) {
                 solarSystem.sunLight.visible = isVisible;
-            }
-
-            // Get the current day/night toggle state
-            const dayNightToggle = document.getElementById('global-day-night-toggle');
-            const dayNightEnabled = dayNightToggle ? dayNightToggle.checked : true;
-
-            if (!isVisible) {
-                // Store the current day/night state
-                this.previousDayNightState = dayNightEnabled;
-
-                // When sun is hidden, always force planets to use basic material
-                // This will make them visible regardless of day/night setting
-                solarSystem.setAllDayNightEffectEnabled(solarSystem.dayNightEffectEnabled);
-            } else {
-                // Sun is now visible
-                if (this.previousDayNightState) {
-                    // If day/night was previously enabled, restore it
-                    if (dayNightToggle) {
-                        dayNightToggle.checked = true;
-                    }
-                    solarSystem.setAllDayNightEffectEnabled(true);
-                }
-
-                this.previousDayNightState = false;
             }
         }
     }

@@ -171,8 +171,8 @@ class Planet {
     }
 
     createAxis(color = 0xff0000) {
-        const axisLength = this.diameter * 1.1;
-        const cylinderRadius = 100;
+        const axisLength = this.diameter * 1.2;
+        const cylinderRadius = this.diameter / 100;
         const cylinderGeometry = new THREE.CylinderGeometry(cylinderRadius, cylinderRadius, axisLength, 16);
         const cylinderMaterial = new THREE.MeshBasicMaterial({
             color: color,

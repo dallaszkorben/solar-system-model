@@ -106,7 +106,7 @@ class Jupiter extends Planet {
         this.id   = Jupiter.ID;
 
         this.createSphere('textures/Jupiter-texture.jpg');
-        this.createAxis(0xffaa00); // Orange color for Jupiter's axis
+        this.createAxis(0xff0000); // Orange color for Jupiter's axis
         this.createLatitudeCircles([
             { name: 'Equator', angle: 0, color: 0xff0000, widthScale: 1.0 },
             { name: 'North Tropic', angle: 3.13, color: 0xff8800, widthScale: 0.6 },

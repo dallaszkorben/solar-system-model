@@ -121,7 +121,7 @@ class Saturn extends Planet {
         this.rings = null;
 
         this.createSphere('textures/Saturn-texture.jpg');
-        this.createAxis(0xffcc00); // Yellow-orange color for Saturn's axis
+        this.createAxis(0xff0000); // Yellow-orange color for Saturn's axis
         this.createLatitudeCircles([
             { name: 'Equator', angle: 0, color: 0xff0000, widthScale: 1.0 },
             { name: 'North Tropic', angle: 26.73, color: 0xff8800, widthScale: 0.6 },

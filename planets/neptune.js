@@ -104,7 +104,7 @@ class Neptune extends Planet {
         this.id   = Neptune.ID;
 
         this.createSphere('textures/Neptune-texture.jpg');
-        this.createAxis(0x0066ff); // Blue color for Neptune's axis
+        this.createAxis(0xff0000); // Blue color for Neptune's axis
         this.createLatitudeCircles([
             { name: 'Equator', angle: 0, color: 0xff0000, widthScale: 1.0 },
             { name: 'North Tropic', angle: 28.32, color: 0xff8800, widthScale: 0.6 },

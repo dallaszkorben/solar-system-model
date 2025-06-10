@@ -5,7 +5,7 @@ class SolarSystem {
 
     static celestialBodies = {
         sky:     {id: Sky.ID,     name: Sky.NAME,     instantiate: new Sky(),     planetControlPanelClass: SkyControlPanel    },
-        sun:     {id: Sun.ID,     name: Sun.NAME,     instantiate: new Sun(),     planetControlPanelClass: PlanetControlPanel },
+        sun:     {id: Sun.ID,     name: Sun.NAME,     instantiate: new Sun(),     planetControlPanelClass: SunControlPanel    },
         mercury: {id: Mercury.ID, name: Mercury.NAME, instantiate: new Mercury(), planetControlPanelClass: PlanetControlPanel },
         venus:   {id: Venus.ID,   name: Venus.NAME,   instantiate: new Venus(),   planetControlPanelClass: PlanetControlPanel },
         earth:   {id: Earth.ID,   name: Earth.NAME,   instantiate: new Earth(),   planetControlPanelClass: PlanetControlPanel },
@@ -160,21 +160,10 @@ class SolarSystem {
         this.renderer.render(this.scene, this.camera);
     }
 
-
-
     onWindowResize() {
         this.camera.aspect = window.innerWidth / window.innerHeight;
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
-    }
-
-    // Method to enable/disable rotation for all planets
-    setAllRotationEnabled(enabled) {
-        if (this.planetObjs) {
-            Object.values(this.planetObjs).forEach(planet => {
-                planet.setRotationEnabled(enabled);
-            });
-        }
     }
 
     // Method to set global rotation speed factor (0-10)
@@ -233,19 +222,6 @@ class SolarSystem {
         // If factor is greater than 0, ensure orbit is enabled
         if (factor > 0) {
             this.setAllOrbitEnabled(true);
-        }
-    }
-
-    // Method to set opacity of all orbit lines
-    setOrbitLinesOpacity(opacity) {
-        if (this.planetObjs) {
-            Object.values(this.planetObjs).forEach(planet => {
-                if (planet.orbitLine && planet.orbitLine.material) {
-                    planet.orbitOpacity = opacity; // Update the planet's orbitOpacity property
-                    planet.orbitLine.material.opacity = opacity;
-                    planet.orbitLine.material.needsUpdate = true; // Important: Tell Three.js to update the material
-                }
-            });
         }
     }
 
