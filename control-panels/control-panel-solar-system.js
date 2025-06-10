@@ -5,10 +5,17 @@ class SolarSystemControlPanel extends ControlPanel {
 
     static elementIds = {
         planetVisibilitySwitch: '-planet-visibility-toggle',
-        obrbitVisibilitySwitch: 'global-orbit-visibility-toggle',
-        orbitObacitySlider:     'global-orbit-opacity-slider',
 
+        rotationSpeedSlider:    'global-rotation-speed-slider',
+        rotationSpeedSwitch:    'global-rotation-speed-toggle',
+
+        orbitSpeedSlider:       'global-orbit-speed-slider',
+        orbitSpeedSwitch:       'global-orbit-speed-toggle',
+
+        orbitOpacitySlider:     'global-orbit-opacity-slider',
+        obrbitVisibilitySwitch: 'global-orbit-visibility-toggle',
     }
+
 
 
 
@@ -25,14 +32,14 @@ class SolarSystemControlPanel extends ControlPanel {
         // Make solarSystem globally accessible for cross-panel communication
         window.solarSystem = solarSystem;
 
-        this.controlPanels = {}
+        this.controlPanels = {};
 
         // Create sections from the old version
         this.createScaleModeSection();
-        this.createVisibilityControlSection();
-        this.createRotationControlsSection();
-        this.createOrbitControlsSection();
-        this.createOrbitVisibilitySection();
+        this.addCelectialBodiesVisibilityControl();
+        this.addRotationSpeedControl();
+        this.addOrbitSpeedControl();
+        this.addOrbitVisibilityControl();
         this.createGeneralControlSection();
     }
 
@@ -97,7 +104,7 @@ class SolarSystemControlPanel extends ControlPanel {
         this.consoleContent.appendChild(scaleModeContainer);
     }
 
-    createVisibilityControlSection() {
+    addCelectialBodiesVisibilityControl() {
         // Create section header
         const sectionHeader = document.createElement('h4');
         sectionHeader.textContent = 'Visibility Control';
@@ -108,7 +115,7 @@ class SolarSystemControlPanel extends ControlPanel {
 
         // Add toggles for each celestial body
         Object.entries(SolarSystem.celestialBodies).forEach(([key, body]) => {
-            this.addToggle(body);
+            this.createCelestialBodyControl(body);
         });
 
         // Instantiate all celestial body control panels - But not shown yet
@@ -121,7 +128,7 @@ class SolarSystemControlPanel extends ControlPanel {
         });
     }
 
-    addToggle(body) {
+    createCelestialBodyControl(body) {
         const toggleContainer = document.createElement('div');
         toggleContainer.style.marginBottom = '10px';
         toggleContainer.style.display = 'flex';
@@ -209,7 +216,10 @@ class SolarSystemControlPanel extends ControlPanel {
         this.consoleContent.appendChild(toggleContainer);
     }
 
-    createRotationControlsSection() {
+    /**
+     * Add rotation speed controls with slider, reset button and toggle
+     */
+    addRotationSpeedControl() {
         // Create section header
         const rotationHeader = document.createElement('h4');
         rotationHeader.textContent = 'Rotation Controls';
@@ -218,109 +228,177 @@ class SolarSystemControlPanel extends ControlPanel {
         rotationHeader.style.paddingBottom = '5px';
         this.consoleContent.appendChild(rotationHeader);
 
-        // Add rotation speed slider with reset button and toggle
-        const rotationSliderContainer = document.createElement('div');
-        rotationSliderContainer.style.marginBottom = '15px';
+        const container = this.createSliderControllerComponent({
+            label: 'Global Rotation Speed: ',
+            slider: {
+                min: '0',
+                max: Planet.maxRotationFactor,
+                step: '0.01',
+                value: '1.0',
+                id: SolarSystemControlPanel.elementIds.rotationSpeedSlider
+            },
+            resetButton: {
+                title: "Reset to default speed",
+                resetValue: 1.0
+            },
+            toggle: {
+                title: "Enable All Rotation",
+                checked: false,
+                id: SolarSystemControlPanel.elementIds.rotationSpeedSwitch
+            },
+            onSliderChange: (slider, toggle) => {
+                if (this.solarSystem) {
+                    const speedFactor = parseFloat(slider.value);
 
-        // Add label for the slider
-        const rotationSliderLabel = document.createElement('label');
-        rotationSliderLabel.textContent = 'Global Rotation Speed: ';
-        rotationSliderLabel.style.display = 'block';
-        rotationSliderLabel.style.marginBottom = '5px';
-        rotationSliderContainer.appendChild(rotationSliderLabel);
+                    // Update rotation speed for all planets
+                    this.setAllRotationSpeed(speedFactor);
 
-        // Create controls container for slider, reset button and toggle
-        const rotationControlsContainer = document.createElement('div');
-        rotationControlsContainer.style.display = 'flex';
-        rotationControlsContainer.style.alignItems = 'center';
-        rotationControlsContainer.style.gap = '10px';
+                    // If slider is moved from 0, enable the rotation toggle
+                    if (speedFactor > 0 && !toggle.checked) {
+                        toggle.checked = true;
+                    }
 
-        // Create slider
-        const rotationSlider = document.createElement('input');
-        rotationSlider.type = 'range';
-        rotationSlider.min = '0';
-        rotationSlider.max = Planet.maxRotationFactor;
-        rotationSlider.step = '0.01';
-        rotationSlider.value = '1.0'; //default
-        rotationSlider.style.flexGrow = '1';
-        rotationSlider.id = 'global-rotation-speed-slider';
-
-        // Create reset button
-        const rotationResetButton = document.createElement('img');
-        rotationResetButton.src = 'icons/reset.png';
-        rotationResetButton.style.width = '24px';
-        rotationResetButton.style.height = '24px';
-        rotationResetButton.style.cursor = 'pointer';
-        rotationResetButton.title = "Reset to default speed";
-
-        // Add event listener for reset button
-        rotationResetButton.addEventListener('click', () => {
-            rotationSlider.value = '1.0';
-            if (this.solarSystem) {
-                this.setAllRotationSpeed(1.0);
-                rotationToggle.checked = false;
-                this.setAllRotationEnabled(false);
-            }
-        });
-
-        // Create switch container
-        const rotationSwitchLabel = document.createElement('label');
-        rotationSwitchLabel.className = 'switch';
-        rotationSwitchLabel.title = "Enable All Rotation";
-
-        const rotationToggle = document.createElement('input');
-        rotationToggle.type = 'checkbox';
-        rotationToggle.checked = false; // Default OFF
-        rotationToggle.id = 'global-rotation-toggle';
-
-        // Add event listener for rotation toggle
-        rotationToggle.addEventListener('change', () => {
-            if (this.solarSystem) {
-                this.setAllRotationEnabled(rotationToggle.checked);
-            }
-        });
-
-        // Create slider span
-        const rotationSliderSpan = document.createElement('span');
-        rotationSliderSpan.className = 'slider';
-
-        // Assemble the switch
-        rotationSwitchLabel.appendChild(rotationToggle);
-        rotationSwitchLabel.appendChild(rotationSliderSpan);
-
-        // Add components to controls container
-        rotationControlsContainer.appendChild(rotationSlider);
-        rotationControlsContainer.appendChild(rotationResetButton);
-        rotationControlsContainer.appendChild(rotationSwitchLabel);
-
-        // Add controls container to slider container
-        rotationSliderContainer.appendChild(rotationControlsContainer);
-
-        // Add event listener for rotation speed slider
-        rotationSlider.addEventListener('input', () => {
-            if (this.solarSystem) {
-                // Use slider value directly as the speed factor
-                const speedFactor = parseFloat(rotationSlider.value);
-
-                // Update rotation speed for all planets
-                this.setAllRotationSpeed(speedFactor);
-
-                // If slider is moved from 0, enable the rotation toggle
-                if (speedFactor > 0 && !rotationToggle.checked) {
-                    rotationToggle.checked = true;
+                    // If slider is set to 0, disable rotation but don't change the toggle
+                    if (speedFactor === 0) {
+                        this.setAllRotationEnabled(false);
+                    }
                 }
-
-                // If slider is set to 0, disable rotation but don't change the toggle
-                if (speedFactor === 0) {
+            },
+            onReset: (slider, toggle, resetValue) => {
+                slider.value = resetValue.toString();
+                if (this.solarSystem) {
+                    this.setAllRotationSpeed(resetValue);
+                    toggle.checked = false;
                     this.setAllRotationEnabled(false);
                 }
-            }
+            },
+            onToggleChange: (checked) => {
+                if (this.solarSystem) {
+                    this.setAllRotationEnabled(checked);
+                }
+            },
+            parent: this.consoleContent
         });
 
-        this.consoleContent.appendChild(rotationSliderContainer);
+        return container;
     }
 
-    createOrbitControlsSection() {
+
+//    createRotationControlsSection() {
+//        // Create section header
+//        const rotationHeader = document.createElement('h4');
+//        rotationHeader.textContent = 'Rotation Controls';
+//        rotationHeader.style.margin = '15px 0 10px 0';
+//        rotationHeader.style.borderBottom = '1px solid #555';
+//        rotationHeader.style.paddingBottom = '5px';
+//        this.consoleContent.appendChild(rotationHeader);
+//
+//        // Add rotation speed slider with reset button and toggle
+//        const rotationSliderContainer = document.createElement('div');
+//        rotationSliderContainer.style.marginBottom = '15px';
+//
+//        // Add label for the slider
+//        const rotationSliderLabel = document.createElement('label');
+//        rotationSliderLabel.textContent = 'Global Rotation Speed: ';
+//        rotationSliderLabel.style.display = 'block';
+//        rotationSliderLabel.style.marginBottom = '5px';
+//        rotationSliderContainer.appendChild(rotationSliderLabel);
+//
+//        // Create controls container for slider, reset button and toggle
+//        const rotationControlsContainer = document.createElement('div');
+//        rotationControlsContainer.style.display = 'flex';
+//        rotationControlsContainer.style.alignItems = 'center';
+//        rotationControlsContainer.style.gap = '10px';
+//
+//        // Create slider
+//        const rotationSlider = document.createElement('input');
+//        rotationSlider.type = 'range';
+//        rotationSlider.min = '0';
+//        rotationSlider.max = Planet.maxRotationFactor;
+//        rotationSlider.step = '0.01';
+//        rotationSlider.value = '1.0'; //default
+//        rotationSlider.style.flexGrow = '1';
+//        rotationSlider.id =  SolarSystemControlPanel.elementIds.rotationSpeedSlider;
+//
+//        // Create reset button
+//        const rotationResetButton = document.createElement('img');
+//        rotationResetButton.src = 'icons/reset.png';
+//        rotationResetButton.style.width = '24px';
+//        rotationResetButton.style.height = '24px';
+//        rotationResetButton.style.cursor = 'pointer';
+//        rotationResetButton.title = "Reset to default speed";
+//
+//        // Add event listener for reset button
+//        rotationResetButton.addEventListener('click', () => {
+//            rotationSlider.value = '1.0';
+//            if (this.solarSystem) {
+//                this.setAllRotationSpeed(1.0);
+//                rotationToggle.checked = false;
+//                this.setAllRotationEnabled(false);
+//            }
+//        });
+//
+//        // Create switch container
+//        const rotationSwitchLabel = document.createElement('label');
+//        rotationSwitchLabel.className = 'switch';
+//        rotationSwitchLabel.title = "Enable All Rotation";
+//
+//        const rotationToggle = document.createElement('input');
+//        rotationToggle.type = 'checkbox';
+//        rotationToggle.checked = false; // Default OFF
+//        rotationToggle.id = SolarSystemControlPanel.elementIds.rotationSpeedSwitch;
+//
+//        // Add event listener for rotation toggle
+//        rotationToggle.addEventListener('change', () => {
+//            if (this.solarSystem) {
+//                this.setAllRotationEnabled(rotationToggle.checked);
+//            }
+//        });
+//
+//        // Create slider span
+//        const rotationSliderSpan = document.createElement('span');
+//        rotationSliderSpan.className = 'slider';
+//
+//        // Assemble the switch
+//        rotationSwitchLabel.appendChild(rotationToggle);
+//        rotationSwitchLabel.appendChild(rotationSliderSpan);
+//
+//        // Add components to controls container
+//        rotationControlsContainer.appendChild(rotationSlider);
+//        rotationControlsContainer.appendChild(rotationResetButton);
+//        rotationControlsContainer.appendChild(rotationSwitchLabel);
+//
+//        // Add controls container to slider container
+//        rotationSliderContainer.appendChild(rotationControlsContainer);
+//
+//        // Add event listener for rotation speed slider
+//        rotationSlider.addEventListener('input', () => {
+//            if (this.solarSystem) {
+//                // Use slider value directly as the speed factor
+//                const speedFactor = parseFloat(rotationSlider.value);
+//
+//                // Update rotation speed for all planets
+//                this.setAllRotationSpeed(speedFactor);
+//
+//                // If slider is moved from 0, enable the rotation toggle
+//                if (speedFactor > 0 && !rotationToggle.checked) {
+//                    rotationToggle.checked = true;
+//                }
+//
+//                // If slider is set to 0, disable rotation but don't change the toggle
+//                if (speedFactor === 0) {
+//                    this.setAllRotationEnabled(false);
+//                }
+//            }
+//        });
+//
+//        this.consoleContent.appendChild(rotationSliderContainer);
+//    }
+
+    /**
+     * Add orbit speed controls with slider, reset button and toggle
+     */
+    addOrbitSpeedControl() {
         // Create section header
         const orbitHeader = document.createElement('h4');
         orbitHeader.textContent = 'Orbit Controls';
@@ -329,216 +407,113 @@ class SolarSystemControlPanel extends ControlPanel {
         orbitHeader.style.paddingBottom = '5px';
         this.consoleContent.appendChild(orbitHeader);
 
-        // Add orbit speed slider with reset button and toggle
-        const orbitSliderContainer = document.createElement('div');
-        orbitSliderContainer.style.marginBottom = '15px';
+        const container = this.createSliderControllerComponent({
+            label: 'Global Orbit Speed: ',
+            slider: {
+                min: '0',
+                max: Planet.maxOrbitFactor,
+                step: '0.1',
+                value: '1.0',
+                id: SolarSystemControlPanel.elementIds.orbitSpeedSlider
+            },
+            resetButton: {
+                title: "Reset to default speed",
+                resetValue: 1.0
+            },
+            toggle: {
+                title: "Enable All Orbits",
+                checked: false,
+                id: SolarSystemControlPanel.elementIds.orbitSpeedSwitch
+            },
+            onSliderChange: (slider, toggle) => {
+                if (this.solarSystem) {
+                    const speedFactor = parseFloat(slider.value);
 
-        // Add label for the slider
-        const orbitSliderLabel = document.createElement('label');
-        orbitSliderLabel.textContent = 'Global Orbit Speed: ';
-        orbitSliderLabel.style.display = 'block';
-        orbitSliderLabel.style.marginBottom = '5px';
-        orbitSliderContainer.appendChild(orbitSliderLabel);
+                    this.setAllOrbitSpeed(speedFactor);
 
-        // Create controls container for slider, reset button and toggle
-        const orbitControlsContainer = document.createElement('div');
-        orbitControlsContainer.style.display = 'flex';
-        orbitControlsContainer.style.alignItems = 'center';
-        orbitControlsContainer.style.gap = '10px';
+                    // If slider is moved from 0, enable the orbit toggle
+                    if (speedFactor > 0 && !toggle.checked) {
+                        toggle.checked = true;
+                    }
 
-        // Create slider
-        const orbitSlider = document.createElement('input');
-        orbitSlider.type = 'range';
-        orbitSlider.min = '0';
-        orbitSlider.max = Planet.maxOrbitFactor;
-        orbitSlider.value = '1.0';
-        orbitSlider.step = '0.1';
-        orbitSlider.style.flexGrow = '1';
-        orbitSlider.id = 'global-orbit-speed-slider';
-
-        // Create reset button
-        const orbitResetButton = document.createElement('img');
-        orbitResetButton.src = 'icons/reset.png';
-        orbitResetButton.style.width = '24px';
-        orbitResetButton.style.height = '24px';
-        orbitResetButton.style.cursor = 'pointer';
-        orbitResetButton.title = "Reset to default speed";
-
-        // Add event listener for reset button
-        orbitResetButton.addEventListener('click', () => {
-            orbitSlider.value = '1.0';
-            if (this.solarSystem) {
-                this.solarSystem.setGlobalOrbitSpeed(1.0);
-                orbitToggle.checked = false;
-                this.solarSystem.setAllOrbitEnabled(false);
-            }
-        });
-
-        // Create switch container
-        const orbitSwitchLabel = document.createElement('label');
-        orbitSwitchLabel.className = 'switch';
-        orbitSwitchLabel.title = "Enable All Orbits";
-
-        const orbitToggle = document.createElement('input');
-        orbitToggle.type = 'checkbox';
-        orbitToggle.checked = false; // Default OFF
-        orbitToggle.id = 'global-orbit-toggle';
-
-        // Add event listener for orbit toggle
-        orbitToggle.addEventListener('change', () => {
-            if (this.solarSystem) {
-                this.solarSystem.setAllOrbitEnabled(orbitToggle.checked);
-            }
-        });
-
-        // Create slider span
-        const orbitSliderSpan = document.createElement('span');
-        orbitSliderSpan.className = 'slider';
-
-        // Assemble the switch
-        orbitSwitchLabel.appendChild(orbitToggle);
-        orbitSwitchLabel.appendChild(orbitSliderSpan);
-
-        // Add components to controls container
-        orbitControlsContainer.appendChild(orbitSlider);
-        orbitControlsContainer.appendChild(orbitResetButton);
-        orbitControlsContainer.appendChild(orbitSwitchLabel);
-
-        // Add controls container to slider container
-        orbitSliderContainer.appendChild(orbitControlsContainer);
-
-        // Add event listener for orbit speed slider
-        orbitSlider.addEventListener('input', () => {
-            if (this.solarSystem) {
-                // Use slider value directly as the speed factor
-                const speedFactor = parseFloat(orbitSlider.value);
-
-                // Update orbit speed for all planets
-                this.solarSystem.setGlobalOrbitSpeed(speedFactor);
-
-                // If slider is moved from 0, enable the orbit toggle
-                if (speedFactor > 0 && !orbitToggle.checked) {
-                    orbitToggle.checked = true;
+                    // If slider is set to 0, disable orbit but don't change the toggle
+                    if (speedFactor === 0) {
+                        this.setAllOrbitEnabled(false);
+                    }
                 }
-
-                // If slider is set to 0, disable orbit but don't change the toggle
-                if (speedFactor === 0) {
-                    this.solarSystem.setAllOrbitEnabled(false);
+            },
+            onReset: (slider, toggle, resetValue) => {
+                slider.value = resetValue.toString();
+                if (this.solarSystem) {
+                    this.setAllOrbitSpeed(resetValue);
+                    toggle.checked = false;
+                    this.setAllOrbitEnabled(false);
                 }
-            }
+            },
+            onToggleChange: (checked) => {
+                this.setAllOrbitEnabled(checked);
+            },
+            parent: this.consoleContent
         });
 
-        this.consoleContent.appendChild(orbitSliderContainer);
+        return container;
     }
 
+    /**
+     * Add orbit visibility controls with slider, reset button and toggle
+     */
+    addOrbitVisibilityControl() {
+        const container = this.createSliderControllerComponent({
+            label: 'Orbit Line: ',
+            slider: {
+                min: '0',
+                max: '1',
+                step: '0.01',
+                value: Planet.orbitOpacity,
+                id: SolarSystemControlPanel.elementIds.orbitOpacitySlider
+            },
+            resetButton: {
+                title: "Reset to default opacity",
+                resetValue: Planet.orbitOpacity
+            },
+            toggle: {
+                title: "Show/Hide Orbit Line",
+                checked: true,
+                id: SolarSystemControlPanel.elementIds.obrbitVisibilitySwitch
+            },
+            onSliderChange: (slider, toggle) => {
+                const opacity = parseFloat(slider.value);
 
-    createOrbitVisibilitySection() {
-        // Create a separate section for Orbit Visibility
-        const orbitVisibilityHeader = document.createElement('h4');
-        orbitVisibilityHeader.textContent = 'Orbit Visibility';
-        orbitVisibilityHeader.style.margin = '15px 0 10px 0';
-        orbitVisibilityHeader.style.borderBottom = '1px solid #555';
-        orbitVisibilityHeader.style.paddingBottom = '5px';
-        this.consoleContent.appendChild(orbitVisibilityHeader);
-
-        // Add orbit opacity slider with reset button and visibility toggle
-        const orbitOpacityContainer = document.createElement('div');
-        orbitOpacityContainer.style.marginBottom = '15px';
-
-        const orbitOpacityLabel = document.createElement('label');
-        orbitOpacityLabel.textContent = 'Orbit Line Opacity: ';
-        orbitOpacityLabel.style.display = 'block';
-        orbitOpacityLabel.style.marginBottom = '5px';
-        orbitOpacityContainer.appendChild(orbitOpacityLabel);
-
-        // Create controls container for slider, reset button and toggle
-        const orbitOpacityControlsContainer = document.createElement('div');
-        orbitOpacityControlsContainer.style.display = 'flex';
-        orbitOpacityControlsContainer.style.alignItems = 'center';
-        orbitOpacityControlsContainer.style.gap = '10px';
-
-        // Create slider
-        const orbitOpacitySlider = document.createElement('input');
-        orbitOpacitySlider.type = 'range';
-        orbitOpacitySlider.min = '0';
-        orbitOpacitySlider.max = '1';
-        orbitOpacitySlider.step = '0.01';
-        orbitOpacitySlider.value = Planet.orbitOpacity; // Default opacity
-        orbitOpacitySlider.style.flexGrow = '1';
-        orbitOpacitySlider.id = SolarSystemControlPanel.orbitObacitySlider;
-
-        // Create reset button
-        const orbitOpacityResetButton = document.createElement('img');
-        orbitOpacityResetButton.src = 'icons/reset.png';
-        orbitOpacityResetButton.style.width = '24px';
-        orbitOpacityResetButton.style.height = '24px';
-        orbitOpacityResetButton.style.cursor = 'pointer';
-        orbitOpacityResetButton.title = "Reset to default opacity";
-
-        // Add event listener for reset button
-        orbitOpacityResetButton.addEventListener('click', () => {
-            orbitOpacitySlider.value = Planet.orbitOpacity;
-            if (this.solarSystem) {
-                this.setAllOrbitLinesOpacity(Planet.orbitOpacity);
-                orbitVisibilityToggle.checked = true;
-                this.setAllOrbitLinesVisible(true);
-            }
-        });
-
-        // Create switch container
-        const orbitVisibilitySwitchLabel = document.createElement('label');
-        orbitVisibilitySwitchLabel.className = 'switch';
-        orbitVisibilitySwitchLabel.title = "Show Orbit Lines";
-
-        const orbitVisibilityToggle = document.createElement('input');
-        orbitVisibilityToggle.type = 'checkbox';
-        orbitVisibilityToggle.checked = true; // Default ON
-        orbitVisibilityToggle.id = SolarSystemControlPanel.elementIds.obrbitVisibilitySwitch;
-
-        // Add event listener for orbit visibility toggle
-        orbitVisibilityToggle.addEventListener('change', () => {
-            if (this.solarSystem) {
-                this.setAllOrbitLinesVisible(orbitVisibilityToggle.checked);
-            }
-        });
-
-        // Create slider span
-        const orbitVisibilitySliderSpan = document.createElement('span');
-        orbitVisibilitySliderSpan.className = 'slider';
-
-        // Assemble the switch
-        orbitVisibilitySwitchLabel.appendChild(orbitVisibilityToggle);
-        orbitVisibilitySwitchLabel.appendChild(orbitVisibilitySliderSpan);
-
-        // Add components to controls container
-        orbitOpacityControlsContainer.appendChild(orbitOpacitySlider);
-        orbitOpacityControlsContainer.appendChild(orbitOpacityResetButton);
-        orbitOpacityControlsContainer.appendChild(orbitVisibilitySwitchLabel);
-
-        // Add controls container to opacity container
-        orbitOpacityContainer.appendChild(orbitOpacityControlsContainer);
-
-        // Add event listener for orbit opacity slider
-        orbitOpacitySlider.addEventListener('input', () => {
-            if (this.solarSystem) {
-                const opacity = parseFloat(orbitOpacitySlider.value);
+                // Use the solar system method to set all orbit lines opacity
                 this.setAllOrbitLinesOpacity(opacity);
 
                 // If slider is moved from 0, enable the visibility toggle
-                if (opacity > 0 && !orbitVisibilityToggle.checked) {
-                    orbitVisibilityToggle.checked = true;
+                if (opacity > 0 && !toggle.checked) {
+                    toggle.checked = true;
                     this.setAllOrbitLinesVisible(true);
                 }
 
-                // If slider is set to 0, make orbits invisible but don't change the toggle
+                // If slider is set to 0, make orbit invisible
                 if (opacity === 0) {
                     this.setAllOrbitLinesVisible(false);
                 }
-            }
+            },
+            onReset: (slider, toggle, resetValue) => {
+                slider.value = resetValue.toString();
+                this.setAllOrbitLinesOpacity(resetValue);
+                toggle.checked = true;
+                this.setAllOrbitLinesVisible(true);
+            },
+            onToggleChange: (checked) => {
+                this.setAllOrbitLinesVisible(checked);
+            },
+            parent: this.consoleContent
         });
 
-        this.consoleContent.appendChild(orbitOpacityContainer);
+        return container;
     }
+
+
 
     createGeneralControlSection(){
 
@@ -601,6 +576,20 @@ class SolarSystemControlPanel extends ControlPanel {
     setAllRotationSpeed(speedFactor) {
         Object.entries(this.controlPanels).forEach(([key, controlPanel]) => {
             controlPanel.setRotationSpeed(speedFactor);
+        });
+    }
+
+    // ---
+
+    setAllOrbitEnabled(enable) {
+        Object.entries(this.controlPanels).forEach(([key, controlPanel]) => {
+            controlPanel.setOrbitEnabled(enable);
+        });
+    }
+
+    setAllOrbitSpeed(speedFactor) {
+        Object.entries(this.controlPanels).forEach(([key, controlPanel]) => {
+            controlPanel.setOrbitSpeed(speedFactor);
         });
     }
 

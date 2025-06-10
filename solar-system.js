@@ -201,29 +201,7 @@ class SolarSystem {
 
 
 
-    // Method to enable/disable orbit for all planets
-    setAllOrbitEnabled(enabled) {
-        if (this.planetObjs) {
-            Object.values(this.planetObjs).forEach(planet => {
-                planet.setOrbitEnabled(enabled);
-            });
-        }
-    }
 
-    // Method to set global orbit speed factor (0-10)
-    setGlobalOrbitSpeed(factor) {
-        // Apply to all planets
-        if (this.planetObjs) {
-            Object.values(this.planetObjs).forEach(planet => {
-                planet.setGlobalOrbitSpeedFactor(factor);
-            });
-        }
-
-        // If factor is greater than 0, ensure orbit is enabled
-        if (factor > 0) {
-            this.setAllOrbitEnabled(true);
-        }
-    }
 
     // Method to set the scale mode state
     setScaleMode(state) {

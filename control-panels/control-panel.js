@@ -188,4 +188,123 @@ class ControlPanel {
             this.consoleVisible = false;
         }
     }
+
+
+// ---
+
+    /**
+     * Creates a control group with a slider, reset button, and toggle switch
+     *
+     * @param {Object} config - Configuration object for the control
+     * @param {string} config.label - Label text for the control
+     * @param {Object} config.slider - Slider configuration
+     * @param {string} config.slider.min - Minimum value for slider
+     * @param {string} config.slider.max - Maximum value for slider
+     * @param {string} config.slider.step - Step value for slider
+     * @param {string} config.slider.value - Initial value for slider
+     * @param {string} config.slider.id - ID for the slider element
+     * @param {Object} config.resetButton - Reset button configuration
+     * @param {string} config.resetButton.title - Tooltip for reset button
+     * @param {number} config.resetButton.resetValue - Value to set when reset button is clicked
+     * @param {Object} config.toggle - Toggle switch configuration
+     * @param {string} config.toggle.title - Tooltip for toggle switch
+     * @param {boolean} config.toggle.checked - Initial state of toggle
+     * @param {string} config.toggle.id - ID for the toggle element
+     * @param {Function} config.onSliderChange - Function to call when slider value changes
+     * @param {Function} config.onReset - Function to call when reset button is clicked
+     * @param {Function} config.onToggleChange - Function to call when toggle state changes
+     * @returns {HTMLElement} - The created container element
+     */
+    createSliderControllerComponent(config) {
+        const container = document.createElement('div');
+        container.style.marginBottom = '15px';
+
+        // Add label
+        const controlLabel = document.createElement('label');
+        controlLabel.textContent = config.label;
+        controlLabel.style.display = 'block';
+        controlLabel.style.marginBottom = '5px';
+        container.appendChild(controlLabel);
+
+        // Create controls container for slider, reset button and toggle
+        const controlsContainer = document.createElement('div');
+        controlsContainer.style.display = 'flex';
+        controlsContainer.style.alignItems = 'center';
+        controlsContainer.style.gap = '10px';
+
+        // Create slider
+        const slider = document.createElement('input');
+        slider.type = 'range';
+        slider.min = config.slider.min;
+        slider.max = config.slider.max;
+        slider.step = config.slider.step;
+        slider.value = config.slider.value;
+        slider.style.flexGrow = '1';
+        slider.id = config.slider.id;
+
+        // Create reset button
+        const resetButton = document.createElement('img');
+        resetButton.src = 'icons/reset.png';
+        resetButton.style.width = '24px';
+        resetButton.style.height = '24px';
+        resetButton.style.cursor = 'pointer';
+        resetButton.title = config.resetButton.title;
+
+        // Create switch container
+        const switchLabel = document.createElement('label');
+        switchLabel.className = 'switch';
+        switchLabel.title = config.toggle.title;
+
+        // Create toggle input
+        const toggle = document.createElement('input');
+        toggle.type = 'checkbox';
+        toggle.checked = config.toggle.checked;
+        toggle.id = config.toggle.id;
+
+        // Create slider span
+        const sliderSpan = document.createElement('span');
+        sliderSpan.className = 'slider';
+
+        // Assemble the switch
+        switchLabel.appendChild(toggle);
+        switchLabel.appendChild(sliderSpan);
+
+        // Add event listener for slider
+        slider.addEventListener('input', () => {
+            if (config.onSliderChange) {
+                config.onSliderChange(slider, toggle);
+            }
+        });
+
+        // Add event listener for reset button
+        resetButton.addEventListener('click', () => {
+            if (config.onReset) {
+                config.onReset(slider, toggle, config.resetButton.resetValue);
+            }
+        });
+
+        // Add event listener for toggle
+        toggle.addEventListener('change', (e) => {
+            if (config.onToggleChange) {
+                config.onToggleChange(e.target.checked, slider);
+            }
+        });
+
+        // Add components to controls container
+        controlsContainer.appendChild(slider);
+        controlsContainer.appendChild(resetButton);
+        controlsContainer.appendChild(switchLabel);
+
+        // Add controls container to main container
+        container.appendChild(controlsContainer);
+
+        // Add to control panel if parent is provided
+        if (config.parent) {
+            config.parent.appendChild(container);
+        }
+
+        return container;
+    }
+
+
 }

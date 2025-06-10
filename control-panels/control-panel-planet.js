@@ -5,14 +5,16 @@ class PlanetControlPanel extends ControlPanel {
 
     static elementIds = {
         planetVisibilitySwitch: '-panel-planet-visibility-toggle',
+
+        rotationSpeedSlider:    '-panel-rotation-speed-slider',
+        rotationSpeedSwitch:    '-panel-rotation-toggle',
+
+        orbitSpeedSlider:       '-panel-orbit-speed-slider',
+        orbitSpeedSwitch:       '-panel-orbit-toggle',
+
         obrbitVisibilitySwitch: '-panel-orbit-visibiliti-toggle',
         orbitOpacitySlider:     '-panel-orbit-opacity-slider',
-
-        rotationSpeedSlider:    '-rotation-speed-slider',
-        rotationSpeedSwitch:    '-rotation-toggle',
-    }
-
-
+    };
 
     static defaultAxisVisibility = true;
 
@@ -117,6 +119,66 @@ class PlanetControlPanel extends ControlPanel {
         }
     }
 
+    // ---
+
+    setOrbitEnabled(enable) {
+        // Store previous non-zero speed value if disabling
+        if (!enable && this.planet.globalOrbitSpeedFactor > 0) {
+            this.previousOrbitSpeed = this.planet.globalOrbitSpeedFactor;
+        }
+
+        // Update the planet's orbit state
+        this.planet.setOrbitEnabled(enable);
+
+        // Update the orbit toggle in the Planet Controls panel
+        const orbitToggle = document.getElementById(`${this.planet.id}${PlanetControlPanel.elementIds.orbitSpeedSwitch}`);
+        if (orbitToggle && orbitToggle.checked !== enable) {
+            orbitToggle.checked = enable;
+        }
+
+        // Update the orbit speed based on enable state
+        if (enable) {
+            // When enabling, restore previous speed (if available) or use default
+            const speedToSet = this.previousOrbitSpeed || 1.0;
+            this.setOrbitSpeed(speedToSet);
+        } else {
+            // When disabling, set actual speed to 0 but DON'T update slider value
+            this.planet.setGlobalOrbitSpeedFactor(0);
+        }
+    }
+
+    /**
+     * Sets the orbit speed and synchronizes sliders
+     * @param {number} speedFactor - Factor to multiply the default orbit speed by
+     */
+    setOrbitSpeed(speedFactor) {
+        // Store non-zero values for later use
+        if (speedFactor > 0) {
+            this.previousOrbitSpeed = speedFactor;
+        }
+
+        // Update the planet's orbit speed
+        this.planet.setGlobalOrbitSpeedFactor(speedFactor);
+
+        // Update the orbit speed slider in the Planet Controls panel
+        const speedSlider = document.getElementById(`${this.planet.id}${PlanetControlPanel.elementIds.orbitSpeedSlider}`);
+        if (speedSlider && speedSlider.value !== speedFactor.toString()) {
+            speedSlider.value = speedFactor.toString();
+        }
+
+        // Update the orbit toggle based on speed factor
+        const orbitToggle = document.getElementById(`${this.planet.id}${PlanetControlPanel.elementIds.orbitSpeedSwitch}`);
+        if (orbitToggle) {
+            if (speedFactor > 0 && !orbitToggle.checked) {
+                orbitToggle.checked = true;
+                this.planet.setOrbitEnabled(true);
+            } else if (speedFactor === 0 && orbitToggle.checked) {
+                orbitToggle.checked = false;
+                this.planet.setOrbitEnabled(false);
+            }
+        }
+    }
+
 //---
 
     /**
@@ -136,6 +198,8 @@ class PlanetControlPanel extends ControlPanel {
 
         // Add rotation speed control
         this.addRotationSpeedControl();
+
+        this.addOrbitSpeedControl();
 
         // Add orbit line toggle if planet has orbit
         if (this.planet.orbitRadius > 0) {
@@ -209,101 +273,108 @@ class PlanetControlPanel extends ControlPanel {
      * Add rotation speed controls with slider, reset button and toggle
      */
     addRotationSpeedControl() {
-        const container = document.createElement('div');
-        container.style.marginBottom = '15px';
+        const container = this.createSliderControllerComponent({
+            label: 'Rotation: ',
+            slider: {
+                min: '0',
+                max: Planet.maxRotationFactor,
+                step: '0.01',
+                value: this.planet.globalRotationSpeedFactor.toString(),
+                id: `${this.planet.id}${PlanetControlPanel.elementIds.rotationSpeedSlider}`
+            },
+            resetButton: {
+                title: "Reset to default speed",
+                resetValue: 1.0
+            },
+            toggle: {
+                title: "Enable Rotation",
+                checked: this.planet.rotationEnabled,
+                id: `${this.planet.id}${PlanetControlPanel.elementIds.rotationSpeedSwitch}`
+            },
+            onSliderChange: (slider, toggle) => {
+                const speedFactor = parseFloat(slider.value);
 
-        // Add label
-        const rotationLabel = document.createElement('label');
-        rotationLabel.textContent = 'Rotation: ';
-        rotationLabel.style.display = 'block';
-        rotationLabel.style.marginBottom = '5px';
-        container.appendChild(rotationLabel);
+                this.planet.setGlobalRotationSpeedFactor(speedFactor);
 
-        // Create controls container for slider, reset button and toggle
-        const controlsContainer = document.createElement('div');
-        controlsContainer.style.display = 'flex';
-        controlsContainer.style.alignItems = 'center';
-        controlsContainer.style.gap = '10px';
+                // If slider is moved from 0, enable the rotation toggle
+                if (speedFactor > 0 && !toggle.checked) {
+                    toggle.checked = true;
+                    this.setRotationEnabled(true);
+                }
 
-        // Create slider
-        const slider = document.createElement('input');
-        slider.type = 'range';
-        slider.min = '0';
-        slider.max = Planet.maxRotationFactor;
-        slider.step = '0.01';
-        slider.value = this.planet.globalRotationSpeedFactor.toString();
-        slider.style.flexGrow = '1';
-        slider.id = `${this.planet.id}${PlanetControlPanel.elementIds.rotationSpeedSlider}`;
-
-        // Create reset button
-        const resetButton = document.createElement('img');
-        resetButton.src = 'icons/reset.png';
-        resetButton.style.width = '24px';
-        resetButton.style.height = '24px';
-        resetButton.style.cursor = 'pointer';
-        resetButton.title = "Reset to default speed";
-
-        // Create switch container
-        const switchLabel = document.createElement('label');
-        switchLabel.className = 'switch';
-        switchLabel.title = "Enable Rotation";
-
-        // Create toggle input
-        const toggle = document.createElement('input');
-        toggle.type = 'checkbox';
-        toggle.checked = this.planet.rotationEnabled;
-        toggle.id = `${this.planet.id}${PlanetControlPanel.elementIds.rotationSpeedSwitch}`;
-
-        // Create slider span
-        const sliderSpan = document.createElement('span');
-        sliderSpan.className = 'slider';
-
-        // Assemble the switch
-        switchLabel.appendChild(toggle);
-        switchLabel.appendChild(sliderSpan);
-
-        // Add event listener for slider
-        slider.addEventListener('input', () => {
-            const speedFactor = parseFloat(slider.value);
-
-            this.planet.setGlobalRotationSpeedFactor(speedFactor);
-
-            // If slider is moved from 0, enable the rotation toggle
-            if (speedFactor > 0 && !toggle.checked) {
-                toggle.checked = true;
-                this.setRotationEnabled(true);
-            }
-
-            // If slider is set to 0, disable rotation but don't change the toggle
-            if (speedFactor === 0) {
+                // If slider is set to 0, disable rotation but don't change the toggle
+                if (speedFactor === 0) {
+                    toggle.checked = false;
+                    this.setRotationEnabled(false);
+                }
+            },
+            onReset: (slider, toggle, resetValue) => {
+                slider.value = resetValue.toString();
+                this.setRotationSpeed(resetValue);
                 toggle.checked = false;
                 this.setRotationEnabled(false);
-            }
+            },
+            onToggleChange: (checked) => {
+                this.setRotationEnabled(checked);
+            },
+            parent: this.consoleContent
         });
 
-        // Add event listener for reset button
-        resetButton.addEventListener('click', () => {
-            slider.value = '1.0';
-            this.setRotationSpeed(1.0);
-            toggle.checked = false;
-            this.setRotationEnabled(false);
+        return container;
+    }
+
+    /**
+     * Add orbit speed controls with slider, reset button and toggle
+     */
+    addOrbitSpeedControl() {
+        const container = this.createSliderControllerComponent({
+            label: 'Orbit: ',
+            slider: {
+                min: '0',
+                max: Planet.maxOrbitFactor,
+                step: '0.01',
+                value: this.planet.globalOrbitSpeedFactor.toString(),
+                id: `${this.planet.id}${PlanetControlPanel.elementIds.orbitSpeedSlider}`
+            },
+            resetButton: {
+                title: "Reset to default speed",
+                resetValue: 1.0
+            },
+            toggle: {
+                title: "Enable Orbit",
+                checked: this.planet.orbitEnabled,
+                id: `${this.planet.id}${PlanetControlPanel.elementIds.orbitSpeedSwitch}`
+            },
+            onSliderChange: (slider, toggle) => {
+                const speedFactor = parseFloat(slider.value);
+
+                this.planet.setGlobalOrbitSpeedFactor(speedFactor);
+
+                // If slider is moved from 0, enable the orbit toggle
+                if (speedFactor > 0 && !toggle.checked) {
+                    toggle.checked = true;
+                    this.setOrbitEnabled(true);
+                }
+
+                // If slider is set to 0, disable orbit but don't change the toggle
+                if (speedFactor === 0) {
+                    toggle.checked = false;
+                    this.setOrbitEnabled(false);
+                }
+            },
+            onReset: (slider, toggle, resetValue) => {
+                slider.value = resetValue.toString();
+                this.setOrbitSpeed(resetValue);
+                toggle.checked = false;
+                this.setOrbitEnabled(false);
+            },
+            onToggleChange: (checked) => {
+                this.setOrbitEnabled(checked);
+            },
+            parent: this.consoleContent
         });
 
-        // Add event listener for toggle
-        toggle.addEventListener('change', (e) => {
-            this.setRotationEnabled(e.target.checked);
-        });
-
-        // Add components to controls container
-        controlsContainer.appendChild(slider);
-        controlsContainer.appendChild(resetButton);
-        controlsContainer.appendChild(switchLabel);
-
-        // Add controls container to main container
-        container.appendChild(controlsContainer);
-
-        // Add to control panel
-        this.consoleContent.appendChild(container);
+        return container;
     }
 
     /**
