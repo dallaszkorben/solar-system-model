@@ -51,6 +51,9 @@ class Planet {
         this.name = Planet.NAME;
         this.id   = Planet.ID;
 
+        this.axis = null;
+
+
         // Location markers
         this.locationMarkers = [];
 
@@ -98,6 +101,8 @@ class Planet {
 
         // Add the side marker group to the orbit group
         this.orbitGroup.add(this.sideMarkerGroup);
+
+//        this.createSideMarker();
     }
 
     createSphere(texturePath) {
@@ -570,86 +575,37 @@ class Planet {
         return this.orbitGroup;
     }
 
-    /**
-     * Create a side marker for the planet
-     */
-    createSideMarker() {
-        this.sideMarker = new SideMarker(this);
-        this.setSideMarkerVisible(this.sideMarkerVisible);
-        this.setSideMarkerDistance(this.sideMarkerDistanceFactor);
-        this.setSideMarkerSize(this.sideMarkerSizeFactor);
-    }
 
-    /**
-     * Set the side marker's visibility
-     * @param {boolean} visible - Whether the side marker should be visible
-     */
-    setSideMarkerVisible(visible) {
-        this.sideMarkerVisible = visible;
-
-        if (!this.sideMarker && visible) {
-            this.createSideMarker();
-            return;
-        }
-
-        if (this.sideMarker) {
-            this.sideMarker.setVisible(visible);
-        }
-    }
-
-    /**
-     * Set the side marker's distance from the planet
-     * @param {number} distanceFactor - Distance as a factor of the planet's diameter
-     */
-    setSideMarkerDistance(distanceFactor) {
-        this.sideMarkerDistanceFactor = distanceFactor;
-
-        if (this.sideMarker) {
-            this.sideMarker.setMarkerDistance(distanceFactor);
-        }
-    }
-
-    /**
-     * Set the side marker's size
-     * @param {number} sizeFactor - Size as a factor of the planet's diameter
-     */
-    setSideMarkerSize(sizeFactor) {
-        this.sideMarkerSizeFactor = sizeFactor;
-
-        if (this.sideMarker) {
-            this.sideMarker.setMarkerSize(sizeFactor);
-        }
-    }
 
     /**
      * Set whether the camera should view from the side marker
      * @param {boolean} enabled - Whether to enable camera view from the side marker
      */
     setSideMarkerCameraView(enabled) {
-        if (!this.sideMarker && enabled) {
-            this.createSideMarker();
-        }
+//        if (!this.sideMarker && enabled) {
+//            this.createSideMarker();
+//        }
 
-        if (this.sideMarker) {
+//        if (this.sideMarker) {
             this.sideMarker.setCameraView(enabled);
 
             // Force immediate camera update
-            if (enabled && this.solarSystem && this.solarSystem.camera) {
-                this.sideMarker.updateCameraPosition();
-            }
-        }
+//            if (enabled && this.solarSystem && this.solarSystem.camera) {
+//                this.sideMarker.updateCameraPosition();
+//            }
+//        }
     }
 
     /**
      * Get the world position of the side marker
      * @returns {THREE.Vector3} The side marker's position in world coordinates
      */
-    getSideMarkerWorldPosition() {
-        if (this.sideMarker) {
-            return this.sideMarker.getWorldPosition();
-        }
-        return new THREE.Vector3();
-    }
+//    getSideMarkerWorldPosition() {
+//        if (this.sideMarker) {
+//            return this.sideMarker.getWorldPosition();
+//        }
+//        return new THREE.Vector3();
+//    }
 
     // Helper method to make elements draggable - moved from individual planet classes
     makeDraggableElement(element, handle) {
@@ -834,7 +790,7 @@ class Planet {
         // To be implemented by subclasses if they have location data
     }
 
-    setLocationMarkersVisible(visible) {
+    setLocalMarkersVisible(visible) {
         if (this.locationMarkers) {
             this.locationMarkers.forEach(marker => marker.setVisible(visible));
         }
@@ -854,5 +810,8 @@ class Planet {
             marker.updateMarker();
         });
     }
+
+
+
 
 }

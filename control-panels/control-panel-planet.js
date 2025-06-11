@@ -4,19 +4,26 @@
 class PlanetControlPanel extends ControlPanel {
 
     static elementIds = {
-        planetVisibilitySwitch: '-panel-planet-visibility-toggle',
+        planetVisibilitySwitch:     '-panel-planet-visibility-toggle',
 
-        rotationSpeedSlider:    '-panel-rotation-speed-slider',
-        rotationSpeedSwitch:    '-panel-rotation-toggle',
+        rotationSpeedSlider:        '-panel-rotation-speed-slider',
+        rotationSpeedSwitch:        '-panel-rotation-toggle',
 
-        orbitSpeedSlider:       '-panel-orbit-speed-slider',
-        orbitSpeedSwitch:       '-panel-orbit-toggle',
+        orbitSpeedSlider:           '-panel-orbit-speed-slider',
+        orbitSpeedSwitch:           '-panel-orbit-toggle',
 
-        obrbitVisibilitySwitch: '-panel-orbit-visibiliti-toggle',
-        orbitOpacitySlider:     '-panel-orbit-opacity-slider',
+        obrbitVisibilitySwitch:     '-panel-orbit-visibiliti-toggle',
+        orbitOpacitySlider:         '-panel-orbit-opacity-slider',
+
+        axisVisibilitySwitch:       '-panel-axis-visibility-toggle',
+        nortPoleAxisSwitch:         'earth-panel-north-pole-axis-toggle',
+        latitudeVisibilitySwitch:   '-panel-latitude-toggle',
+        localMarkerVisibilitySwitch:'-panel-local-marker-toggle',
     };
 
     static defaultAxisVisibility = true;
+    static defaultLocalMarkersVisibility = true;
+    static defaultSideMarkersVisibility = false;
 
     constructor(planet) {
         super(`${planet.name} Controls`, { top: '20px', right: '20px' });
@@ -29,10 +36,18 @@ class PlanetControlPanel extends ControlPanel {
         this.hide();
     }
 
+// TODO: check all default values
     getDefaultAxisVisibility(){
         return PlanetControlPanel.defaultAxisVisibility;
     }
 
+    getDefaultLocalMarkersVisibility(){
+        return PlanetControlPanel.defaultLocalMarkersVisibility;
+    }
+
+    getDefaultSideMarkersVisibility(){
+        return PlanetControlPanel.defaultSideMarkersVisibility;
+    }
 
 //--- bidirectional switches ---
 
@@ -179,6 +194,32 @@ class PlanetControlPanel extends ControlPanel {
         }
     }
 
+    setRotationAxisVisibility(visible){
+        if (this.planet && this.planet.axis) {
+            this.planet.axis.visible = visible;
+        }
+
+        // Update the rotation toggle in the Planet Controls panel
+        const axisVisibilityToggle = document.getElementById(`${this.planet.id}${PlanetControlPanel.elementIds.axisVisibilitySwitch}`);
+        if (axisVisibilityToggle && axisVisibilityToggle.checked !== visible) {
+            axisVisibilityToggle.checked = visible;
+        }
+    }
+
+    setLocalMarkersVisibility(visible){
+        this.planet.setLocalMarkersVisible(visible);
+
+        // Update the rotation toggle in the Planet Controls panel
+        const localMarkersVisibilityToggle = document.getElementById(`${this.planet.id}${PlanetControlPanel.elementIds.localMarkerVisibilitySwitch}`);
+        if (localMarkersVisibilityToggle && localMarkersVisibilityToggle.checked !== visible) {
+            localMarkersVisibilityToggle.checked = visible;
+        }
+    }
+
+    setSideMarkersVisibility(visible){
+        this.planet.setSideMarkerVisibility(visible);
+    }
+
 //---
 
     /**
@@ -210,7 +251,6 @@ class PlanetControlPanel extends ControlPanel {
         // Add axis toggle
         this.addAxisToggle(this.getDefaultAxisVisibility());
 
-
 // !!!! TODO: must be changed
         // Add North Pole Axis toggle for Earth only
         if (this.planet.id === 'earth') {
@@ -221,53 +261,25 @@ class PlanetControlPanel extends ControlPanel {
         if (this.planet.latitudeCircles) {
             this.addLatitudeCirclesToggle();
         }
+
+        // Add local marker toggle
+        this.addLocalMarkersToggle();
     }
 
     /**
      * Add visibility toggle
      */
     addVisibilityToggle() {
-        const container = document.createElement('div');
-        container.style.marginBottom = '10px';
-        container.style.display = 'flex';
-        container.style.justifyContent = 'space-between';
-        container.style.alignItems = 'center';
-
-        // Use "Planet" label for all planets
-        const labelElem = document.createElement('label');
-        labelElem.textContent = 'Planet: ';
-
-        // Create switch container
-        const switchLabel = document.createElement('label');
-        switchLabel.className = 'switch';
-
-        // Create toggle input
-        const toggle = document.createElement('input');
-        toggle.type = 'checkbox';
-        toggle.checked = true; // Initially visible
-        toggle.id = `${this.planet.id}${PlanetControlPanel.elementIds.planetVisibilitySwitch}`;
-
-
-// !!! TODO: Must be investigated, DOES NOT WORK
-        // Add event listener
-        toggle.addEventListener('change', (e) => {
-            this.setPlanetVisibility(e.target.checked)
+        return this.createToggleComponent({
+            label: 'Planet: ',
+            tooltip: `Show/Hide ${this.planet.name}`,
+            checked: true,
+            id: `${this.planet.id}${PlanetControlPanel.elementIds.planetVisibilitySwitch}`,
+            onChange: (checked) => {
+                this.setPlanetVisibility(checked);
+            },
+            parent: this.consoleContent
         });
-
-        // Create slider span
-        const sliderSpan = document.createElement('span');
-        sliderSpan.className = 'slider';
-
-        // Assemble the switch
-        switchLabel.appendChild(toggle);
-        switchLabel.appendChild(sliderSpan);
-
-        // Add elements to container
-        container.appendChild(labelElem);
-        container.appendChild(switchLabel);
-
-        // Add to control panel
-        this.consoleContent.appendChild(container);
     }
 
     /**
@@ -441,253 +453,74 @@ class PlanetControlPanel extends ControlPanel {
         return container;
     }
 
-
-//    /**
-//     * Add orbit visibility controls with slider, reset button and toggle
-//     */
-//    addOrbitLineToggle() {
-//        const container = document.createElement('div');
-//        container.style.marginBottom = '15p//x';
-//
-//        // Add label
-//        const orbitLabel = document.createElement('label');
-//        orbitLabel.textContent = 'Orbit Line: ';
-//        orbitLabel.style.display = 'block';
-//        orbitLabel.style.marginBottom = '5px';
-//        container.appendChild(orbitLabel);
-//
-//        // Create controls container for slider, reset button and toggle
-//        const controlsContainer = document.createElement('div');
-//        controlsContainer.style.display = 'flex';
-//        controlsContainer.style.alignItems = 'center';
-//        controlsContainer.style.gap = '10px';
-//
-//        // Create slider
-//        const slider = document.createElement('input');
-//        slider.type = 'range';
-//        slider.min = '0';
-//        slider.max = '1';
-//        slider.step = '0.01';
-//        slider.value = this.planet.orbitOpacity.toString();
-//        slider.style.flexGrow = '1';
-//        slider.id = `${this.planet.id}${PlanetControlPanel.elementIds.orbitOpacitySlider}`;
-//
-//        // Create reset button
-//        const resetButton = document.createElement('img');
-//        resetButton.src = 'icons/reset.png';
-//        resetButton.style.width = '24px';
-//        resetButton.style.height = '24px';
-//        resetButton.style.cursor = 'pointer';
-//        resetButton.title = "Reset to default opacity";
-//
-//        // Create switch container
-//        const switchLabel = document.createElement('label');
-//        switchLabel.className = 'switch';
-//        switchLabel.title = "Show/Hide Orbit Line";
-//
-//        // Create toggle input
-//        const toggle = document.createElement('input');
-//        toggle.type = 'checkbox';
-//        toggle.checked = true; // Initially visible
-//        toggle.id = `${this.planet.id}${PlanetControlPanel.elementIds.obrbitVisibilitySwitch}`;
-//
-//        // Create slider span
-//        const sliderSpan = document.createElement('span');
-//        sliderSpan.className = 'slider';
-//
-//        // Assemble the switch
-//        switchLabel.appendChild(toggle);
-//        switchLabel.appendChild(sliderSpan);
-//
-//        // Add event listener for slider
-//        slider.addEventListener('input', () => {
-//            const opacity = parseFloat(slider.value);
-//
-//            if (this.planet.orbitLine && this.planet.orbitLine.material) {
-//                this.planet.orbitLine.material.opacity = opacity;
-//                this.planet.orbitLine.material.needsUpdate = true;
-//                this.planet.orbitOpacity = opacity;
-//            }
-//
-//            // If slider is moved from 0, enable the visibility toggle
-//            if (opacity > 0 && !toggle.checked) {
-//                toggle.checked = true;
-//                this.setOrbitLineVisibility(true);
-//            }
-//
-//            // If slider is set to 0, make orbit invisible but don't change the toggle
-//            if (opacity === 0) {
-//                this.setOrbitLineVisibility(false);
-//            }
-//        });
-//
-//        // Add event listener for reset button
-//        resetButton.addEventListener('click', () => {
-//            slider.value = Planet.orbitOpacity.toString();
-//
-//            if (this.planet.orbitLine && this.planet.orbitLine.material) {
-//                this.planet.orbitLine.material.opacity = Planet.orbitOpacity;
-//                this.planet.orbitLine.material.needsUpdate = true;
-//                this.planet.orbitOpacity = Planet.orbitOpacity;
-//            }
-//
-//            toggle.checked = true;
-//            this.setOrbitLineVisibility(true);
-//        });
-//
-//        // Add event listener for toggle
-//        toggle.addEventListener('change', (e) => {
-//            this.setOrbitLineVisibility(e.target.checked);
-//        });
-//
-//        // Add components to controls container
-//        controlsContainer.appendChild(slider);
-//        controlsContainer.appendChild(resetButton);
-//        controlsContainer.appendChild(switchLabel);
-//
-//        // Add controls container to main container
-//        container.appendChild(controlsContainer);
-//
-//        // Add to control panel
-//        this.consoleContent.appendChild(container);
-//    }
-
-
     /**
      * Add axis toggle
      */
     addAxisToggle(visibility) {
-        const container = document.createElement('div');
-        container.style.marginBottom = '10px';
-        container.style.display = 'flex';
-        container.style.justifyContent = 'space-between';
-        container.style.alignItems = 'center';
-
-        const labelElem = document.createElement('label');
-        labelElem.textContent = 'Rotation Axis: ';
-
-        // Create switch container
-        const switchLabel = document.createElement('label');
-        switchLabel.className = 'switch';
-
-        // Create toggle input
-        const toggle = document.createElement('input');
-        toggle.type = 'checkbox';
-
-        // Add event listener
-        toggle.checked = visibility; //this.defaultAxisVisibility;
-        toggle.addEventListener('change', (e) => {
-            if (this.planet.axis) {
-                this.planet.axis.visible = e.target.checked;
-            }
+        return this.createToggleComponent({
+            label: 'Rotation Axis: ',
+            tooltip: 'Show/Hide Rotation Axis',
+            checked: visibility,
+            id: `${this.planet.id}${PlanetControlPanel.elementIds.axisVisibilitySwitch}`,
+            onChange: (checked) => {
+                if (this.planet.axis) {
+                    this.planet.axis.visible = checked;
+                }
+            },
+            parent: this.consoleContent
         });
-
-        // Create slider span
-        const sliderSpan = document.createElement('span');
-        sliderSpan.className = 'slider';
-
-        // Assemble the switch
-        switchLabel.appendChild(toggle);
-        switchLabel.appendChild(sliderSpan);
-
-        // Add elements to container
-        container.appendChild(labelElem);
-        container.appendChild(switchLabel);
-
-        // Add to control panel
-        this.consoleContent.appendChild(container);
     }
 
     /**
      * Add North Pole Axis toggle (Earth only)
      */
     addNorthPoleAxisToggle() {
-        const container = document.createElement('div');
-        container.style.marginBottom = '10px';
-        container.style.display = 'flex';
-        container.style.justifyContent = 'space-between';
-        container.style.alignItems = 'center';
-
-        const labelElem = document.createElement('label');
-        labelElem.textContent = 'North Pole Axis: ';
-
-        // Create switch container
-        const switchLabel = document.createElement('label');
-        switchLabel.className = 'switch';
-
-        // Create toggle input
-        const toggle = document.createElement('input');
-        toggle.type = 'checkbox';
-        toggle.checked = false; // Initially hidden
-        toggle.id = 'earth-panel-north-pole-axis-toggle';
-
-        // Add event listener
-        toggle.addEventListener('change', (e) => {
-            if (this.planet.northPoleAxis) {
-                this.planet.northPoleAxis.visible = e.target.checked;
-            }
+        return this.createToggleComponent({
+            label: 'North Pole Axis: ',
+            tooltip: 'Show/Hide North Pole Axis',
+            checked: false,
+            id: PlanetControlPanel.elementIds.nortPoleAxisSwitch,
+            onChange: (checked) => {
+                if (this.planet.northPoleAxis) {
+                    this.planet.northPoleAxis.visible = checked;
+                }
+            },
+            parent: this.consoleContent
         });
-
-        // Create slider span
-        const sliderSpan = document.createElement('span');
-        sliderSpan.className = 'slider';
-
-        // Assemble the switch
-        switchLabel.appendChild(toggle);
-        switchLabel.appendChild(sliderSpan);
-
-        // Add elements to container
-        container.appendChild(labelElem);
-        container.appendChild(switchLabel);
-
-        // Add to control panel
-        this.consoleContent.appendChild(container);
     }
 
     /**
      * Add latitude circles toggle
      */
     addLatitudeCirclesToggle() {
-        const container = document.createElement('div');
-        container.style.marginBottom = '10px';
-        container.style.display = 'flex';
-        container.style.justifyContent = 'space-between';
-        container.style.alignItems = 'center';
-
-        const labelElem = document.createElement('label');
-        labelElem.textContent = 'Latitude Circles: ';
-
-        // Create switch container
-        const switchLabel = document.createElement('label');
-        switchLabel.className = 'switch';
-
-        // Create toggle input
-        const toggle = document.createElement('input');
-        toggle.type = 'checkbox';
-        toggle.checked = false; // Initially hidden
-        toggle.id = `${this.planet.ID}-panel-latitude-toggle`;
-
-        // Add event listener
-        toggle.addEventListener('change', (e) => {
-            if (this.planet.latitudeCircles) {
-                this.planet.latitudeCircles.visible = e.target.checked;
-            }
+        return this.createToggleComponent({
+            label: 'Latitude Circles: ',
+            tooltip: 'Show/Hide Latitude Circles',
+            checked: false,
+            id: `${this.planet.id}${PlanetControlPanel.elementIds.latitudeVisibilitySwitch}`,
+            onChange: (checked) => {
+                if (this.planet.latitudeCircles) {
+                    this.planet.latitudeCircles.visible = checked;
+                }
+            },
+            parent: this.consoleContent
         });
+    }
 
-        // Create slider span
-        const sliderSpan = document.createElement('span');
-        sliderSpan.className = 'slider';
-
-        // Assemble the switch
-        switchLabel.appendChild(toggle);
-        switchLabel.appendChild(sliderSpan);
-
-        // Add elements to container
-        container.appendChild(labelElem);
-        container.appendChild(switchLabel);
-
-        // Add to control panel
-        this.consoleContent.appendChild(container);
+    /**
+     * Add local marker visibility toggle
+     */
+    addLocalMarkersToggle() {
+        return this.createToggleComponent({
+            label: 'Local Marker: ',
+            tooltip: `Show/Hide local marker for ${this.planet.name}`,
+            checked: true,  // Default ON
+            id: `${this.planet.id}${PlanetControlPanel.elementIds.localMarkerVisibilitySwitch}`,
+            onChange: (checked) => {
+                this.planet.setLocalMarkersVisible(checked)
+            },
+            parent: this.consoleContent
+        });
     }
 
 

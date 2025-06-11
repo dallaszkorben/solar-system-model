@@ -13,6 +13,7 @@ class SideMarker {
     }
 
     createMarker() {
+
         // Calculate marker size based on planet diameter and size factor
         const markerSize = this.planet.radius * this.markerSizeFactor * 2;
 
@@ -32,24 +33,55 @@ class SideMarker {
      * Update the marker position based on the distance factor
      * This positions the marker at a fixed global direction from the planet
      */
+//    updateMarkerPosition() {
+//        if (!this.marker) return;
+//
+//        // Calculate marker distance based on planet diameter and distance factor
+//        const markerDistance = this.planet.diameter * this.markerDistanceFactor;
+//
+//        // Position the marker at a fixed global direction (along Z-axis)
+//        // This ensures the marker maintains a consistent position relative to the planet
+//        this.marker.position.set(0, 0, markerDistance);
+//    }
+
+    /**
+     * Update the marker position to match the side view camera position
+     * This positions the marker at the same location as the side view camera would be
+     */
     updateMarkerPosition() {
         if (!this.marker) return;
-        
+
         // Calculate marker distance based on planet diameter and distance factor
         const markerDistance = this.planet.diameter * this.markerDistanceFactor;
-        
-        // Position the marker at a fixed global direction (along Z-axis)
-        // This ensures the marker maintains a consistent position relative to the planet
-        this.marker.position.set(0, 0, markerDistance);
+
+        // Use the same positioning logic as in PlanetSideView.positionCameraAtEquatorAngle
+        // with default angles (0, 0) and the configured distance factor
+
+        // Create position using spherical coordinates
+        const basePosition = new THREE.Vector3(0, 0, markerDistance);
+
+        // Apply the planet's axial tilt (rotation around Z-axis)
+        const tiltRadians = THREE.MathUtils.degToRad(this.planet.axialTilt.z);
+        const tiltMatrix = new THREE.Matrix4().makeRotationZ(tiltRadians);
+        basePosition.applyMatrix4(tiltMatrix);
+
+        // Set the marker position
+        this.marker.position.copy(basePosition);
     }
-    
+
+
+
+
+
+
+
     /**
      * Set the marker position in world space
      * @param {THREE.Vector3} worldPosition - The world position to place the marker
      */
     setWorldPosition(worldPosition) {
         if (!this.marker) return;
-        
+
         // Convert world position to local space of the marker's parent
         const localPos = new THREE.Vector3();
         this.planet.sideMarkerGroup.worldToLocal(worldPosition, localPos);
@@ -93,7 +125,7 @@ class SideMarker {
     setCameraView(enabled) {
         this.cameraView = enabled;
     }
-    
+
     /**
      * Get the target position for the camera to look at (usually the planet center)
      * @returns {THREE.Vector3} The target position

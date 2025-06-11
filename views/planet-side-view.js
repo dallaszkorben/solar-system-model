@@ -82,7 +82,7 @@ class PlanetSideView extends BaseView {
             this.setAllowNavigation(this.allowNavigation);
 
             // Show the side marker for the target planet
-            this.targetPlanet.setSideMarkerVisible(true);
+            this.targetPlanet.setSideMarkerVisibility(true);
 
             console.log(`Activated ${this.viewType} for planet: ${this.targetPlanet.constructor.name}`);
 
@@ -94,7 +94,7 @@ class PlanetSideView extends BaseView {
     deactivate() {
         if (this.targetPlanet) {
             // Hide the side marker when deactivating the view
-            this.targetPlanet.setSideMarkerVisible(false);
+            this.targetPlanet.setSideMarkerVisibility(false);
         }
 
         // Always re-enable orbit controls when deactivating the view

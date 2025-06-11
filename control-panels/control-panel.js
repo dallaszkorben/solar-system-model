@@ -1,5 +1,9 @@
 /**
  * Base class for all control panels
+ *
+ * Textures:
+ *   - planet textures: https://www.solarsystemscope.com/textures/
+ *   - sky textures:    https://svs.gsfc.nasa.gov/4851/
  */
 class ControlPanel {
     constructor(title, position = { top: '20px', left: '20px' }) {
@@ -299,6 +303,164 @@ class ControlPanel {
         container.appendChild(controlsContainer);
 
         // Add to control panel if parent is provided
+        if (config.parent) {
+            config.parent.appendChild(container);
+        }
+
+        return container;
+    }
+
+    /**
+     * Creates a control with label and one or more toggle switches
+     *
+     * @param {Object} config - Configuration object for the control
+     * @param {string} config.label - Label text for the control
+     * @param {Object} config.icon - Optional icon configuration
+     * @param {string} config.icon.src - Source URL for the icon
+     * @param {Array} config.toggles - Array of toggle configurations
+     * @param {string} config.toggles[].tooltip - Tooltip for the toggle switch
+     * @param {boolean} config.toggles[].checked - Initial state of toggle
+     * @param {string} config.toggles[].id - ID for the toggle element
+     * @param {Function} config.toggles[].onChange - Function to call when toggle state changes
+     * @param {number} config.toggles[].marginRight - Optional right margin in pixels
+     * @param {HTMLElement} config.parent - Parent element to append the control to
+     * @returns {HTMLElement} - The created container element
+     *
+     * Example for sigle toggle:
+     *    addAxisToggle(visibility) {
+     *        return this.createToggleComponent({
+     *            label: 'Rotation Axis: ',
+     *            tooltip: 'Show/Hide Rotation Axis',
+     *            checked: visibility,
+     *            id: `${this.planet.id}-axis-toggle`,
+     *            onChange: (checked) => {
+     *                if (this.planet.axis) {
+     *                    this.planet.axis.visible = checked;
+     *                }
+     *            },
+     *            parent: this.consoleContent
+     *        });
+     *    }
+     *
+     * Example for multiple toggles:
+     *
+     *    createCelestialBodyControl(body) {
+     *        return this.createToggleComponent({
+     *            label: body.name,
+     *            icon: {
+     *                src: `icons/${body.id}.png`
+     *            },
+     *            toggles: [
+     *                {
+     *                    tooltip: `Show/Hide ${body.name}`,
+     *                    checked: true,
+     *                    id: `${body.id}${SolarSystemControlPanel.elementIds.planetVisibilitySwitch}`,
+     *                    onChange: (checked) => {
+     *                        if (this.solarSystem && this.solarSystem.planetObjs && this.solarSystem.planetObjs[body.id]) {
+     *                            this.controlPanels[body.id].setPlanetVisibility(checked);
+     *                        }
+     *                    },
+     *                    marginRight: 10
+     *                },
+     *                {
+     *                    tooltip: `Show/Hide ${body.name} Controls`,
+     *                    checked: false,
+     *                    id: `${body.id}-controls-toggle`,
+     *                    onChange: (checked) => {
+     *                        if (checked) {
+     *                            this.controlPanels[body.id].show();
+     *                        } else {
+     *                            this.controlPanels[body.id].hide();
+     *                        }
+     *                    }
+     *                }
+     *            ],
+     *            parent: this.consoleContent
+     *        });
+     *    }
+     */
+    createToggleComponent(config) {
+        const container = document.createElement('div');
+        container.style.marginBottom = '10px';
+        container.style.display = 'flex';
+        container.style.justifyContent = 'space-between';
+        container.style.alignItems = 'center';
+
+        // Create label container that can include an icon
+        const labelContainer = document.createElement('div');
+        labelContainer.style.display = 'flex';
+        labelContainer.style.alignItems = 'center';
+        labelContainer.style.flexGrow = '1';
+
+        // Add icon if provided
+        if (config.icon) {
+            const iconContainer = document.createElement('div');
+            iconContainer.style.width = '24px';
+            iconContainer.style.height = '24px';
+            iconContainer.style.marginRight = '8px';
+
+            const icon = document.createElement('img');
+            icon.src = config.icon.src;
+            icon.style.width = '100%';
+            icon.style.height = '100%';
+            iconContainer.appendChild(icon);
+            labelContainer.appendChild(iconContainer);
+        }
+
+        // Add label
+        const labelElem = document.createElement('label');
+        labelElem.textContent = config.label;
+        labelContainer.appendChild(labelElem);
+
+        // Add elements to container
+        container.appendChild(labelContainer);
+
+        // Handle single toggle case for backward compatibility
+        const toggles = config.toggles || [{
+            tooltip: config.tooltip,
+            checked: config.checked,
+            id: config.id,
+            onChange: config.onChange
+        }];
+
+        // Add all toggles
+        toggles.forEach((toggleConfig, index) => {
+            // Create switch container
+            const switchLabel = document.createElement('label');
+            switchLabel.className = 'switch';
+            switchLabel.title = toggleConfig.tooltip;
+
+            // Add margin if specified or if not the last toggle
+            if (toggleConfig.marginRight || index < toggles.length - 1) {
+                switchLabel.style.marginRight = toggleConfig.marginRight ?
+                    `${toggleConfig.marginRight}px` : '10px';
+            }
+
+            // Create toggle input
+            const toggle = document.createElement('input');
+            toggle.type = 'checkbox';
+            toggle.checked = toggleConfig.checked;
+            toggle.id = toggleConfig.id;
+
+            // Add event listener
+            toggle.addEventListener('change', (e) => {
+                if (toggleConfig.onChange) {
+                    toggleConfig.onChange(e.target.checked);
+                }
+            });
+
+            // Create slider span
+            const sliderSpan = document.createElement('span');
+            sliderSpan.className = 'slider';
+
+            // Assemble the switch
+            switchLabel.appendChild(toggle);
+            switchLabel.appendChild(sliderSpan);
+
+            container.appendChild(switchLabel);
+        });
+
+        // Add to parent if provided
         if (config.parent) {
             config.parent.appendChild(container);
         }

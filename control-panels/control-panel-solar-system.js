@@ -4,20 +4,22 @@
 class SolarSystemControlPanel extends ControlPanel {
 
     static elementIds = {
-        planetVisibilitySwitch: '-planet-visibility-toggle',
+        planetVisibilitySwitch:         '-planet-visibility-toggle',
 
-        rotationSpeedSlider:    'global-rotation-speed-slider',
-        rotationSpeedSwitch:    'global-rotation-speed-toggle',
+        rotationSpeedSlider:            'global-rotation-speed-slider',
+        rotationSpeedSwitch:            'global-rotation-speed-toggle',
 
-        orbitSpeedSlider:       'global-orbit-speed-slider',
-        orbitSpeedSwitch:       'global-orbit-speed-toggle',
+        orbitSpeedSlider:               'global-orbit-speed-slider',
+        orbitSpeedSwitch:               'global-orbit-speed-toggle',
 
-        orbitOpacitySlider:     'global-orbit-opacity-slider',
-        obrbitVisibilitySwitch: 'global-orbit-visibility-toggle',
+        orbitOpacitySlider:             'global-orbit-opacity-slider',
+        obrbitVisibilitySwitch:         'global-orbit-visibility-toggle',
+
+        rotationAxistSwitch:            'global-rotation-axis-toggle',
+        dayNigthEffectSwitch:           'global-day-night-toggle',
+        localMarkersVisibilitySwitch:   'global-local-markers-toggle',
+        sideMarkersVisibilitySwitch:    'global-side-markers-toggle',
     }
-
-
-
 
     static scaleModeValues = {
         noScale: 'no-scale',
@@ -36,11 +38,14 @@ class SolarSystemControlPanel extends ControlPanel {
 
         // Create sections from the old version
         this.createScaleModeSection();
-        this.addCelectialBodiesVisibilityControl();
+        this.addCelestialBodiesVisibilityControl();
         this.addRotationSpeedControl();
         this.addOrbitSpeedControl();
         this.addOrbitVisibilityControl();
-        this.createGeneralControlSection();
+        this.addEnableDayNightEffect();
+        this.addAllRotationAxisToggle();
+        this.addLocalMarkersToggle();
+        this.addSideMarkersToggle();
     }
 
     createScaleModeSection() {
@@ -104,7 +109,7 @@ class SolarSystemControlPanel extends ControlPanel {
         this.consoleContent.appendChild(scaleModeContainer);
     }
 
-    addCelectialBodiesVisibilityControl() {
+    addCelestialBodiesVisibilityControl() {
         // Create section header
         const sectionHeader = document.createElement('h4');
         sectionHeader.textContent = 'Visibility Control';
@@ -115,7 +120,38 @@ class SolarSystemControlPanel extends ControlPanel {
 
         // Add toggles for each celestial body
         Object.entries(SolarSystem.celestialBodies).forEach(([key, body]) => {
-            this.createCelestialBodyControl(body);
+            this.createToggleComponent({
+                label: body.name,
+                icon: {
+                    src: `icons/${body.id}.png`
+                },
+                toggles: [
+                    {
+                        tooltip: `Show/Hide ${body.name}`,
+                        checked: true,
+                        id: `${body.id}${SolarSystemControlPanel.elementIds.planetVisibilitySwitch}`,
+                        onChange: (checked) => {
+                            if (this.solarSystem && this.solarSystem.planetObjs && this.solarSystem.planetObjs[body.id]) {
+                                this.controlPanels[body.id].setPlanetVisibility(checked);
+                            }
+                        },
+                        marginRight: 10
+                    },
+                    {
+                        tooltip: `Show/Hide ${body.name} Controls`,
+                        checked: false,
+                        id: `${body.id}-controls-toggle`,
+                        onChange: (checked) => {
+                            if (checked) {
+                                this.controlPanels[body.id].show();
+                            } else {
+                                this.controlPanels[body.id].hide();
+                            }
+                        }
+                    }
+                ],
+                parent: this.consoleContent
+            });
         });
 
         // Instantiate all celestial body control panels - But not shown yet
@@ -128,93 +164,7 @@ class SolarSystemControlPanel extends ControlPanel {
         });
     }
 
-    createCelestialBodyControl(body) {
-        const toggleContainer = document.createElement('div');
-        toggleContainer.style.marginBottom = '10px';
-        toggleContainer.style.display = 'flex';
-        toggleContainer.style.justifyContent = 'space-between';
-        toggleContainer.style.alignItems = 'center';
 
-        // Create icon container
-        const iconContainer = document.createElement('div');
-        iconContainer.style.width = '24px';
-        iconContainer.style.height = '24px';
-        iconContainer.style.marginRight = '8px';
-
-        // Create and add planet icon
-        const planetIcon = document.createElement('img');
-        planetIcon.src = `icons/${body.id}.png`;
-        planetIcon.style.width = '100%';
-        planetIcon.style.height = '100%';
-        iconContainer.appendChild(planetIcon);
-
-        const toggleLabel = document.createElement('label');
-        toggleLabel.textContent = body.name;
-        toggleLabel.style.flexGrow = '1';
-        toggleLabel.style.display = 'flex';
-        toggleLabel.style.alignItems = 'center';
-
-        // Create first switch container (visibility switch)
-        const switchLabel1 = document.createElement('label');
-        switchLabel1.className = 'switch';
-        switchLabel1.style.marginRight = '10px';
-        switchLabel1.title = "Show/Hide " + body.name;
-
-        // Create first toggle input (visibility switch)
-        const toggle1 = document.createElement('input');
-        toggle1.type = 'checkbox';
-        toggle1.checked = true; // Default ON
-        toggle1.id = `${body.id}${SolarSystemControlPanel.elementIds.planetVisibilitySwitch}`;
-
-        // Add event listener for visibility toggle
-        toggle1.addEventListener('change', () => {
-            if (this.solarSystem && this.solarSystem.planetObjs && this.solarSystem.planetObjs[body.id]) {
-                this.controlPanels[body.id].setPlanetVisibility(toggle1.checked);
-            }
-        });
-
-        // Create slider span for first switch
-        const sliderSpan1 = document.createElement('span');
-        sliderSpan1.className = 'slider';
-
-        // Assemble the first switch
-        switchLabel1.appendChild(toggle1);
-        switchLabel1.appendChild(sliderSpan1);
-
-        // Create second switch container (controls switch)
-        const switchLabel2 = document.createElement('label');
-        switchLabel2.className = 'switch';
-        switchLabel2.title = "Show/Hide " + body.name + " Controls";
-
-        // Create second toggle input (controls switch)
-        const toggle2 = document.createElement('input');
-        toggle2.type = 'checkbox';
-        toggle2.checked = false;
-        toggle2.id = `${body.id}-controls-toggle`;
-
-        // Add event listener for Control Panel toggle
-        toggle2.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                this.controlPanels[body.id].show();
-            } else {
-                this.controlPanels[body.id].hide();
-            }
-        });
-
-        // Create slider span for second switch
-        const sliderSpan2 = document.createElement('span');
-        sliderSpan2.className = 'slider';
-
-        // Assemble the second switch
-        switchLabel2.appendChild(toggle2);
-        switchLabel2.appendChild(sliderSpan2);
-
-        toggleContainer.appendChild(iconContainer);
-        toggleContainer.appendChild(toggleLabel);
-        toggleContainer.appendChild(switchLabel1);
-        toggleContainer.appendChild(switchLabel2);
-        this.consoleContent.appendChild(toggleContainer);
-    }
 
     /**
      * Add rotation speed controls with slider, reset button and toggle
@@ -282,118 +232,6 @@ class SolarSystemControlPanel extends ControlPanel {
 
         return container;
     }
-
-
-//    createRotationControlsSection() {
-//        // Create section header
-//        const rotationHeader = document.createElement('h4');
-//        rotationHeader.textContent = 'Rotation Controls';
-//        rotationHeader.style.margin = '15px 0 10px 0';
-//        rotationHeader.style.borderBottom = '1px solid #555';
-//        rotationHeader.style.paddingBottom = '5px';
-//        this.consoleContent.appendChild(rotationHeader);
-//
-//        // Add rotation speed slider with reset button and toggle
-//        const rotationSliderContainer = document.createElement('div');
-//        rotationSliderContainer.style.marginBottom = '15px';
-//
-//        // Add label for the slider
-//        const rotationSliderLabel = document.createElement('label');
-//        rotationSliderLabel.textContent = 'Global Rotation Speed: ';
-//        rotationSliderLabel.style.display = 'block';
-//        rotationSliderLabel.style.marginBottom = '5px';
-//        rotationSliderContainer.appendChild(rotationSliderLabel);
-//
-//        // Create controls container for slider, reset button and toggle
-//        const rotationControlsContainer = document.createElement('div');
-//        rotationControlsContainer.style.display = 'flex';
-//        rotationControlsContainer.style.alignItems = 'center';
-//        rotationControlsContainer.style.gap = '10px';
-//
-//        // Create slider
-//        const rotationSlider = document.createElement('input');
-//        rotationSlider.type = 'range';
-//        rotationSlider.min = '0';
-//        rotationSlider.max = Planet.maxRotationFactor;
-//        rotationSlider.step = '0.01';
-//        rotationSlider.value = '1.0'; //default
-//        rotationSlider.style.flexGrow = '1';
-//        rotationSlider.id =  SolarSystemControlPanel.elementIds.rotationSpeedSlider;
-//
-//        // Create reset button
-//        const rotationResetButton = document.createElement('img');
-//        rotationResetButton.src = 'icons/reset.png';
-//        rotationResetButton.style.width = '24px';
-//        rotationResetButton.style.height = '24px';
-//        rotationResetButton.style.cursor = 'pointer';
-//        rotationResetButton.title = "Reset to default speed";
-//
-//        // Add event listener for reset button
-//        rotationResetButton.addEventListener('click', () => {
-//            rotationSlider.value = '1.0';
-//            if (this.solarSystem) {
-//                this.setAllRotationSpeed(1.0);
-//                rotationToggle.checked = false;
-//                this.setAllRotationEnabled(false);
-//            }
-//        });
-//
-//        // Create switch container
-//        const rotationSwitchLabel = document.createElement('label');
-//        rotationSwitchLabel.className = 'switch';
-//        rotationSwitchLabel.title = "Enable All Rotation";
-//
-//        const rotationToggle = document.createElement('input');
-//        rotationToggle.type = 'checkbox';
-//        rotationToggle.checked = false; // Default OFF
-//        rotationToggle.id = SolarSystemControlPanel.elementIds.rotationSpeedSwitch;
-//
-//        // Add event listener for rotation toggle
-//        rotationToggle.addEventListener('change', () => {
-//            if (this.solarSystem) {
-//                this.setAllRotationEnabled(rotationToggle.checked);
-//            }
-//        });
-//
-//        // Create slider span
-//        const rotationSliderSpan = document.createElement('span');
-//        rotationSliderSpan.className = 'slider';
-//
-//        // Assemble the switch
-//        rotationSwitchLabel.appendChild(rotationToggle);
-//        rotationSwitchLabel.appendChild(rotationSliderSpan);
-//
-//        // Add components to controls container
-//        rotationControlsContainer.appendChild(rotationSlider);
-//        rotationControlsContainer.appendChild(rotationResetButton);
-//        rotationControlsContainer.appendChild(rotationSwitchLabel);
-//
-//        // Add controls container to slider container
-//        rotationSliderContainer.appendChild(rotationControlsContainer);
-//
-//        // Add event listener for rotation speed slider
-//        rotationSlider.addEventListener('input', () => {
-//            if (this.solarSystem) {
-//                // Use slider value directly as the speed factor
-//                const speedFactor = parseFloat(rotationSlider.value);
-//
-//                // Update rotation speed for all planets
-//                this.setAllRotationSpeed(speedFactor);
-//
-//                // If slider is moved from 0, enable the rotation toggle
-//                if (speedFactor > 0 && !rotationToggle.checked) {
-//                    rotationToggle.checked = true;
-//                }
-//
-//                // If slider is set to 0, disable rotation but don't change the toggle
-//                if (speedFactor === 0) {
-//                    this.setAllRotationEnabled(false);
-//                }
-//            }
-//        });
-//
-//        this.consoleContent.appendChild(rotationSliderContainer);
-//    }
 
     /**
      * Add orbit speed controls with slider, reset button and toggle
@@ -513,11 +351,11 @@ class SolarSystemControlPanel extends ControlPanel {
         return container;
     }
 
-
-
-    createGeneralControlSection(){
-
-        // Create a separate section for General Control
+    /**
+     * Add day/night effect toggle control
+     */
+    addEnableDayNightEffect() {
+        // Create section header
         const generalHeader = document.createElement('h4');
         generalHeader.textContent = 'General Control';
         generalHeader.style.margin = '15px 0 10px 0';
@@ -525,45 +363,74 @@ class SolarSystemControlPanel extends ControlPanel {
         generalHeader.style.paddingBottom = '5px';
         this.consoleContent.appendChild(generalHeader);
 
-        // Add Day/Night Effect toggle
-        const dayNightContainer = document.createElement('div');
-        dayNightContainer.style.marginBottom = '15px';
-        dayNightContainer.style.display = 'flex';
-        dayNightContainer.style.justifyContent = 'space-between';
-        dayNightContainer.style.alignItems = 'center';
-
-        const dayNightLabel = document.createElement('label');
-        dayNightLabel.textContent = 'Enable All Day/Night: ';
-
-        // Create switch container
-        const dayNightSwitchLabel = document.createElement('label');
-        dayNightSwitchLabel.className = 'switch';
-
-        // Create toggle input
-        const dayNightToggle = document.createElement('input');
-        dayNightToggle.type = 'checkbox';
-        dayNightToggle.checked = true; // Default ON
-        dayNightToggle.id = 'global-day-night-toggle';
-
-        // Add event listener for day/night toggle
-        dayNightToggle.addEventListener('change', () => {
-            if (this.solarSystem) {
-                this.solarSystem.setAllDayNightEffectEnabled(dayNightToggle.checked);
-            }
+        return this.createToggleComponent({
+            label: 'Enable All Day/Night: ',
+            tooltip: 'Enable/Disable day/night effect on all planets',
+            checked: true,
+            id: SolarSystemControlPanel.elementIds.dayNigthEffectSwitch,
+            onChange: (checked) => {
+                if (this.solarSystem) {
+                    this.solarSystem.setAllDayNightEffectEnabled(checked);
+                }
+            },
+            parent: this.consoleContent
         });
-
-        // Create slider span
-        const dayNightSliderSpan = document.createElement('span');
-        dayNightSliderSpan.className = 'slider';
-
-        // Assemble the switch
-        dayNightSwitchLabel.appendChild(dayNightToggle);
-        dayNightSwitchLabel.appendChild(dayNightSliderSpan);
-
-        dayNightContainer.appendChild(dayNightLabel);
-        dayNightContainer.appendChild(dayNightSwitchLabel);
-        this.consoleContent.appendChild(dayNightContainer);
     }
+
+    /**
+     * Add rotation axis visibility toggle for all planets
+     */
+    addAllRotationAxisToggle() {
+        return this.createToggleComponent({
+            label: 'All Rotation Axes: ',
+            tooltip: 'Show/Hide rotation axes on all planets',
+            checked: PlanetControlPanel.defaultAxisVisibility,
+            id: SolarSystemControlPanel.elementIds.rotationAxistSwitch,
+            onChange: (checked) => {
+                if (this.solarSystem) {
+                    this.setAllRotationAxisVisible(checked);
+                }
+            },
+            parent: this.consoleContent
+        });
+    }
+
+    /**
+     * Add local markers visibility toggle
+     */
+    addLocalMarkersToggle() {
+        return this.createToggleComponent({
+            label: 'Local Markers: ',
+            tooltip: 'Show/Hide local markers on all planets',
+            checked: PlanetControlPanel.defaultLocalMarkersVisibility,
+            id: SolarSystemControlPanel.elementIds.localMarkersVisibilitySwitch,
+            onChange: (checked) => {
+                if (this.solarSystem) {
+                    this.setAllLocalMarkersVisible(checked);
+                }
+            },
+            parent: this.consoleContent
+        });
+    }
+
+    /**
+     * Add side markers visibility toggle
+     */
+    addSideMarkersToggle() {
+        return this.createToggleComponent({
+            label: 'Side Markers: ',
+            tooltip: 'Show/Hide side markers on all planets',
+            checked: PlanetControlPanel.defaultSideMarkersVisibility,
+            id: SolarSystemControlPanel.elementIds.sideMarkersVisibilitySwitch,
+            onChange: (checked) => {
+                if (this.solarSystem) {
+                    this.setAllSideMarkersVisible(checked);
+                }
+            },
+            parent: this.consoleContent
+        });
+    }
+
 
 // --- Effects on all planets ---
 
@@ -606,6 +473,29 @@ class SolarSystemControlPanel extends ControlPanel {
             controlPanel.setOrbitLineOpacity(opacity);
         });
     }
+
+    // ---
+
+    setAllRotationAxisVisible(visible) {
+        Object.entries(this.controlPanels).forEach(([key, controlPanel]) => {
+            controlPanel.setRotationAxisVisibility(visible);
+        });
+    }
+
+    // ---
+
+    setAllLocalMarkersVisible(visible) {
+        Object.entries(this.controlPanels).forEach(([key, controlPanel]) => {
+            controlPanel.setLocalMarkersVisibility(visible);
+        });
+    }
+
+    setAllSideMarkersVisible(visible) {
+        Object.entries(this.controlPanels).forEach(([key, controlPanel]) => {
+            controlPanel.setSideMarkersVisibility(visible);
+        });
+    }
+
 
 // ---
 
