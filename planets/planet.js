@@ -83,27 +83,28 @@ class Planet {
         this.defaultOrbitSpeed = noScaleModeData.orbitSpeed(); // Store default orbit speed
         this.globalOrbitSpeedFactor = 1.0; // Default factor (50% on slider)
         this.orbitGroup = new THREE.Group(); // Parent group for orbital motion
-        this.sideMarkerGroup = new THREE.Group(); // Separate group for side marker that doesn't counter-rotate
 
         // Visibility property
         this.visible = true; // Visible by default
         this.orbitOpacity = Planet.orbitOpacity; // Default orbit line opacity
         this.dayNightEffectEnabled = true; // Default to enabled
 
-        // Side marker properties
-        this.sideMarker = null;
-        this.sideMarkerVisible = false;
-        this.sideMarkerDistanceFactor = 3; // Default: 2x the planet diameter
-        this.sideMarkerSizeFactor = 0.1;     // Default: 1/10 of the planet diameter
-
         // Add the group to the orbit group
         this.orbitGroup.add(this.group);
 
-        // Add the side marker group to the orbit group
-        this.orbitGroup.add(this.sideMarkerGroup);
-
-//        this.createSideMarker();
+        // Create season labels
+        this.orbitPositionMarkerList = [
+            { name: 'aphelion',   description: 'farthest', angle: 0 },          //Farthest from the Sun
+            { name: 'perihelion', description: 'closest',  angle: Math.PI },    //Closest to the Sun
+            { name: '',           description: '',         angle: Math.PI/2 },
+            { name: '',           description: '',         angle: Math.PI*3/2 }
+        ];
+        this.createOrbitPositionMarkers(this.orbitPositionMarkerList);
     }
+
+    // --------------
+    // --- Sphere ---
+    // --------------
 
     createSphere(texturePath) {
             console.log(`Creating sphere with texture: ${texturePath}`);
@@ -175,6 +176,10 @@ class Planet {
         }
     }
 
+    // ------------
+    // --- Axis ---
+    // ------------
+
     createAxis(color = 0xff0000) {
         const axisLength = this.diameter * 1.2;
         const cylinderRadius = this.diameter / 100;
@@ -207,26 +212,20 @@ class Planet {
         }
     }
 
+    setRotationEnabled(enabled) {
+        this.rotationEnabled = enabled;
+    }
 
+    applyTilt() {
+        this.group.rotation.x = THREE.MathUtils.degToRad(this.axialTilt.x);
+        this.group.rotation.y = THREE.MathUtils.degToRad(this.axialTilt.y);
+        this.group.rotation.z = THREE.MathUtils.degToRad(this.axialTilt.z);
 
+    }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    // ------------------------
+    // --- Latitude Circles ---
+    // ------------------------
 
     createLatitudeCircles(latitudes) {
         const segments = 64;
@@ -289,6 +288,58 @@ class Planet {
         this.latitudeCircles.visible = false; // Hide by default
     }
 
+    updateLatitudeCircles() {
+        // Only proceed if the planet has latitude circles
+        if (!this.latitudeCircles) {
+            return;
+        }
+
+        // Store current visibility state
+        const wasVisible = this.latitudeCircles.visible;
+
+        // Remove existing latitude circles
+        this.group.remove(this.latitudeCircles);
+
+        // Create new latitude circles with current radius
+        this.createLatitudeCircles(this.getLatitudeCircleList());
+
+        // Restore visibility state
+        if (this.latitudeCircles) {
+            this.latitudeCircles.visible = wasVisible;
+        }
+    }
+
+    // ---------------------
+    // --- Local Markers ---
+    // ---------------------
+
+    setLocalMarkersVisible(visible) {
+        if (this.locationMarkers) {
+            this.locationMarkers.forEach(marker => marker.setVisible(visible));
+        }
+    }
+
+    // Default methods for location markers
+    createLocationMarkers() {
+        // To be implemented by subclasses if they have location data
+    }
+
+    updateLocationMarkers() {
+        // Only proceed if the planet has location markers
+        if (!this.locationMarkers || this.locationMarkers.length === 0) {
+            return;
+        }
+
+        // Update each marker
+        this.locationMarkers.forEach(marker => {
+            marker.updateMarker();
+        });
+    }
+
+    // -------------
+    // --- Orbit ---
+    // -------------
+
     createOrbit() {
         const segments = 128;
         const orbitGeometry = new THREE.BufferGeometry();
@@ -318,38 +369,274 @@ class Planet {
         this.orbitGroup.add(this.orbitLine);
     }
 
-    applyTilt() {
-        this.group.rotation.x = THREE.MathUtils.degToRad(this.axialTilt.x);
-        this.group.rotation.y = THREE.MathUtils.degToRad(this.axialTilt.y);
-        this.group.rotation.z = THREE.MathUtils.degToRad(this.axialTilt.z);
-
-    }
-
-    /**
-     * Updates the planet's rotation based on time
-     * @param {number} now - Current timestamp
-     */
-    update(now) {
-        // Handle rotation if enabled
-        if (this.rotationEnabled && this.rotationSpeed > 0) {
-            // Apply rotation based on current rotation speed
-            this.sphere.rotation.y += this.rotationSpeed;
+    updateOrbit() {
+        // Only proceed if the planet has an orbit line
+        if (!this.orbitLine) {
+            return;
         }
 
-        // Handle orbit if enabled
-        if (this.orbitEnabled && this.orbitSpeed > 0) {
-            // Apply orbit based on current orbit speed
-            this.orbitGroup.rotation.y += this.orbitSpeed;
+        // Update orbit line geometry
+        const segments = 128;
+        const vertices = [];
+
+        for (let i = 0; i <= segments; i++) {
+            const theta = (i / segments) * Math.PI * 2;
+            const x = this.orbitRadius * Math.cos(theta);
+            const z = this.orbitRadius * Math.sin(theta);
+            vertices.push(x, 0, z);
+        }
+
+        // Update orbit line geometry
+        this.orbitLine.geometry.setAttribute(
+            'position',
+            new THREE.Float32BufferAttribute(vertices, 3)
+        );
+
+        // Update object position
+        this.group.position.x = this.orbitRadius;
+    }
+
+    setOrbitEnabled(enabled) {
+        this.orbitEnabled = enabled;
+    }
+
+    // ---------------------
+    // --- orbit markers ---
+    // ---------------------
+
+    createOrbitPositionMarkers(positions) {
+        if (!positions || !positions.length) return;
+
+        this.orbitPositionMarkers = new THREE.Group();
+
+        positions.forEach(position => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 256;
+            canvas.height = 256;
+
+            // Only add name text if it exists and is not empty
+            if (position.name && position.name !== "") {
+                ctx.font = 'Bold 40px Arial';
+                ctx.fillStyle = 'white';
+                ctx.textAlign = 'center';
+                ctx.fillText(position.name, 128, 120);
+            }
+
+            // Only add description text if it exists and is not empty
+            if (position.description && position.description !== "") {
+                ctx.font = '30px Arial';
+                ctx.fillStyle = 'white';
+                ctx.textAlign = 'center';
+                ctx.fillText(`(${position.description})`, 128, position.name ? 180 : 128);
+            }
+
+            // Only create a sprite if there's something to display
+            if ((position.name && position.name !== "") ||
+                (position.description && position.description !== "")) {
+
+                const texture = new THREE.CanvasTexture(canvas);
+                const material = new THREE.SpriteMaterial({ map: texture });
+                const sprite = new THREE.Sprite(material);
+
+                const x = this.orbitRadius * Math.cos(position.angle);
+                const z = this.orbitRadius * Math.sin(position.angle);
+                sprite.position.set(x, this.radius * 3, z);
+                sprite.scale.set(this.radius * 5, this.radius * 5, 1);
+
+                this.orbitPositionMarkers.add(sprite);
+            }
+        });
+
+        this.orbitGroup.add(this.orbitPositionMarkers);
+        this.orbitPositionMarkers.visible = false;
+    }
+
+    updateOrbitPositionMarkers() {
+        // Only proceed if the planet has orbit position markers
+        if (!this.orbitPositionMarkers) {
+            return;
+        }
+
+        // Store current visibility state
+        const wasVisible = this.orbitPositionMarkers.visible;
+
+        // Remove existing markers
+        this.orbitGroup.remove(this.orbitPositionMarkers);
+
+        // Get the positions data from the planet class
+        const positions = this.orbitPositionMarkerList;
+
+        // Create new markers with current orbit radius
+        if (positions && positions.length > 0) {
+            this.createOrbitPositionMarkers(positions);
+        }
+
+        // Restore visibility state
+        if (this.orbitPositionMarkers) {
+            this.orbitPositionMarkers.visible = wasVisible;
         }
     }
 
-    /**
-     * Sets the rotation enabled state
-     * @param {boolean} enabled - Whether rotation should be enabled
-     */
-    setRotationEnabled(enabled) {
-        this.rotationEnabled = enabled;
+    setOrbitPositionMarkersVisibility(visible) {
+        if (this.orbitPositionMarkers) {
+            this.orbitPositionMarkers.visible = visible;
+        }
     }
+
+    // ------------
+    // --- Ring ---
+    // ------------
+
+    createRings() {
+        if (!this.factData.ringInnerRadius || !this.factData.ringOuterRadius) {
+            return; // Skip if planet doesn't have ring data
+        }
+
+        // Calculate ring dimensions based on factData
+        const planetRadius = this.factData.diameter / 2;
+        const innerRadiusFactor = this.factData.ringInnerRadius / planetRadius;
+        const outerRadiusFactor = this.factData.ringOuterRadius / planetRadius;
+
+        const innerRadius = this.radius * innerRadiusFactor;
+        const outerRadius = this.radius * outerRadiusFactor;
+        const thickness = this.radius * 0.05; // Default thickness factor
+
+        // Create a group to hold all ring components
+        this.rings = new THREE.Group();
+
+        // Load ring texture
+        const textureLoader = new THREE.TextureLoader();
+        const ringTexture = textureLoader.load(`textures/${this.constructor.name.toLowerCase()}-ring-texture.png`);
+
+        // Create ring materials - with NO OWN LIGHT
+        const ringStandardMaterial = new THREE.MeshStandardMaterial({
+            map: ringTexture,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 1.0
+
+        });
+        // Create ring materials - with LIGHT
+        const ringBasicMaterial = new THREE.MeshBasicMaterial({
+            map: ringTexture,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.9
+        });
+
+        // Store materials for later use
+        this.ringStandardMaterial = ringStandardMaterial;
+        this.ringBasicMaterial = ringBasicMaterial;
+
+        // Create a cylinder for the ring
+        const ringGeometry = new THREE.CylinderGeometry(
+            outerRadius,    // radiusTop
+            outerRadius,    // radiusBottom
+            thickness,      // height
+            64,             // radialSegments
+            1,              // heightSegments
+            false           // openEnded
+        );
+
+        // Modify UVs to map texture from inner to outer radius
+        const uvs = ringGeometry.attributes.uv;
+        const positionAttr = ringGeometry.attributes.position;
+
+        for (let i = 0; i < positionAttr.count; i++) {
+            const x = positionAttr.getX(i);
+            const z = positionAttr.getZ(i);
+
+            // Calculate actual radius of this vertex
+            const vertexRadius = Math.sqrt(x * x + z * z);
+
+            // Map U from innerRadius to outerRadius
+            const radius = (vertexRadius - innerRadius) / (outerRadius - innerRadius);
+            const angle = Math.atan2(z, x) / (Math.PI * 2);
+
+            // Set U based on normalized radius from inner to outer edge
+            // Set V based on angle around the cylinder
+            uvs.setXY(i, Math.max(0, Math.min(1, radius)), angle < 0 ? angle + 1 : angle);
+        }
+
+        // Create the ring mesh
+        const ring = new THREE.Mesh(ringGeometry, ringStandardMaterial);
+
+        // Align with the orbital plane
+        ring.rotation.y = Math.PI / 2;
+
+        this.rings.add(ring);
+
+        // Add rings to the planet group
+        this.group.add(this.rings);
+
+        // Set ring visibility property
+        this.ringsVisible = true;
+    }
+
+    updateRings() {
+
+        // Only proceed if the planet has rings
+        if (!this.hasRing()) {
+            return;
+        }
+
+        // Store current visibility state
+        const wasVisible = this.rings ? this.rings.visible : false;
+
+        // Remove existing rings
+        if (this.rings) {
+            this.group.remove(this.rings);
+        }
+
+        // Create new rings with current planet size
+        this.createRings();
+
+        // Restore visibility state
+        if (this.rings) {
+            this.rings.visible = wasVisible;
+        }
+    }
+
+    // Add this method to the Planet class
+    toggleRings(visible) {
+        if (this.rings) {
+            this.rings.visible = visible;
+            this.ringsVisible = visible;
+        }
+    }
+
+    hasRing(){
+        return false;
+    }
+
+    getRingBasicMaterial(){
+        return null;
+    }
+
+    getRingStandardMaterial(){
+        return null;
+    }
+
+    setRingMaterial(material){
+        return null;
+    }
+
+
+    // ---
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     /**
      * Sets the global rotation speed factor (0-10)
@@ -385,57 +672,11 @@ class Planet {
         }
     }
 
-    /**
-     * Sets the orbit enabled state
-     * @param {boolean} enabled - Whether orbit should be enabled
-     */
-    setOrbitEnabled(enabled) {
-        this.orbitEnabled = enabled;
-    }
 
-    /**
-     * Sets the visibility of the planet
-     * @param {boolean} visible - Whether the planet should be visible
-     */
 
-    createSeasonLabels(seasons) {
-        if (!seasons || !seasons.length) return;
 
-        this.seasonLabels = new THREE.Group();
 
-        seasons.forEach(season => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = 256;
-            canvas.height = 256;
 
-            if (season.name) {
-                ctx.font = 'Bold 120px Arial';
-                ctx.fillStyle = 'white';
-                ctx.textAlign = 'center';
-                ctx.fillText(season.name, 128, 120);
-            }
-
-            ctx.font = '40px Arial';
-            ctx.fillStyle = 'white';
-            ctx.textAlign = 'center';
-            ctx.fillText(`(${season.season})`, 128, season.name ? 180 : 128);
-
-            const texture = new THREE.CanvasTexture(canvas);
-            const material = new THREE.SpriteMaterial({ map: texture });
-            const sprite = new THREE.Sprite(material);
-
-            const x = this.orbitRadius * Math.cos(season.angle);
-            const z = this.orbitRadius * Math.sin(season.angle);
-            sprite.position.set(x, this.radius * 3, z);
-            sprite.scale.set(this.radius * 5, this.radius * 5, 1);
-
-            this.seasonLabels.add(sprite);
-        });
-
-        this.orbitGroup.add(this.seasonLabels);
-        this.seasonLabels.visible = false; // Hide season labels by default
-    }
 
     update(time) {
         // Rotate the sphere around its axis if rotation is enabled
@@ -449,11 +690,6 @@ class Planet {
             this.orbitGroup.rotation.y += this.orbitSpeed;
             const deltaAngle = this.orbitGroup.rotation.y - previousOrbitAngle;
             this.group.rotation.y -= deltaAngle;
-        }
-
-        // Update side marker camera position if active
-        if (this.sideMarker && this.sideMarker.cameraView) {
-            this.sideMarker.updateCameraPosition();
         }
     }
 
@@ -577,35 +813,7 @@ class Planet {
 
 
 
-    /**
-     * Set whether the camera should view from the side marker
-     * @param {boolean} enabled - Whether to enable camera view from the side marker
-     */
-    setSideMarkerCameraView(enabled) {
-//        if (!this.sideMarker && enabled) {
-//            this.createSideMarker();
-//        }
 
-//        if (this.sideMarker) {
-            this.sideMarker.setCameraView(enabled);
-
-            // Force immediate camera update
-//            if (enabled && this.solarSystem && this.solarSystem.camera) {
-//                this.sideMarker.updateCameraPosition();
-//            }
-//        }
-    }
-
-    /**
-     * Get the world position of the side marker
-     * @returns {THREE.Vector3} The side marker's position in world coordinates
-     */
-//    getSideMarkerWorldPosition() {
-//        if (this.sideMarker) {
-//            return this.sideMarker.getWorldPosition();
-//        }
-//        return new THREE.Vector3();
-//    }
 
     // Helper method to make elements draggable - moved from individual planet classes
     makeDraggableElement(element, handle) {
@@ -646,171 +854,27 @@ class Planet {
         }
     }
 
-    createRings() {
-        if (!this.factData.ringInnerRadius || !this.factData.ringOuterRadius) {
-            return; // Skip if planet doesn't have ring data
-        }
 
-        // Calculate ring dimensions based on factData
-        const planetRadius = this.factData.diameter / 2;
-        const innerRadiusFactor = this.factData.ringInnerRadius / planetRadius;
-        const outerRadiusFactor = this.factData.ringOuterRadius / planetRadius;
 
-        const innerRadius = this.radius * innerRadiusFactor;
-        const outerRadius = this.radius * outerRadiusFactor;
-        const thickness = this.radius * 0.05; // Default thickness factor
 
-        // Create a group to hold all ring components
-        this.rings = new THREE.Group();
-
-        // Load ring texture
-        const textureLoader = new THREE.TextureLoader();
-        const ringTexture = textureLoader.load(`textures/${this.constructor.name.toLowerCase()}-ring-texture.png`);
-
-        // Create ring materials - with NO OWN LIGHT
-        const ringStandardMaterial = new THREE.MeshStandardMaterial({
-            map: ringTexture,
-            side: THREE.DoubleSide,
-            transparent: true,
-            opacity: 1.0
-
-        });
-        // Create ring materials - with LIGHT
-        const ringBasicMaterial = new THREE.MeshBasicMaterial({
-            map: ringTexture,
-            side: THREE.DoubleSide,
-            transparent: true,
-            opacity: 0.9
-        });
-
-        // Store materials for later use
-        this.ringStandardMaterial = ringStandardMaterial;
-        this.ringBasicMaterial = ringBasicMaterial;
-
-        // Create a cylinder for the ring
-        const ringGeometry = new THREE.CylinderGeometry(
-            outerRadius,    // radiusTop
-            outerRadius,    // radiusBottom
-            thickness,      // height
-            64,             // radialSegments
-            1,              // heightSegments
-            false           // openEnded
-        );
-
-        // Modify UVs to map texture from inner to outer radius
-        const uvs = ringGeometry.attributes.uv;
-        const positionAttr = ringGeometry.attributes.position;
-
-        for (let i = 0; i < positionAttr.count; i++) {
-            const x = positionAttr.getX(i);
-            const z = positionAttr.getZ(i);
-
-            // Calculate actual radius of this vertex
-            const vertexRadius = Math.sqrt(x * x + z * z);
-
-            // Map U from innerRadius to outerRadius
-            const radius = (vertexRadius - innerRadius) / (outerRadius - innerRadius);
-            const angle = Math.atan2(z, x) / (Math.PI * 2);
-
-            // Set U based on normalized radius from inner to outer edge
-            // Set V based on angle around the cylinder
-            uvs.setXY(i, Math.max(0, Math.min(1, radius)), angle < 0 ? angle + 1 : angle);
-        }
-
-        // Create the ring mesh
-        const ring = new THREE.Mesh(ringGeometry, ringStandardMaterial);
-
-        // Align with the orbital plane
-        ring.rotation.y = Math.PI / 2;
-
-        this.rings.add(ring);
-
-        // Add rings to the planet group
-        this.group.add(this.rings);
-
-        // Set ring visibility property
-        this.ringsVisible = true;
-    }
-
-    updateRings() {
-
-        // Only proceed if the planet has rings
-        if (!this.hasRing()) {
-            return;
-        }
-
-        // Store current visibility state
-        const wasVisible = this.rings ? this.rings.visible : false;
-
-        // Remove existing rings
-        if (this.rings) {
-            this.group.remove(this.rings);
-        }
-
-        // Create new rings with current planet size
-        this.createRings();
-
-        // Restore visibility state
-        if (this.rings) {
-            this.rings.visible = wasVisible;
-        }
-    }
-
-    // Add this method to the Planet class
-    hasRing() {
-        return !!this.factData.ringInnerRadius && !!this.factData.ringOuterRadius;
-    }
-
-    // Add this method to the Planet class
-    toggleRings(visible) {
-        if (this.rings) {
-            this.rings.visible = visible;
-            this.ringsVisible = visible;
-        }
-    }
-
-    hasRing(){
-        return false;
-    }
-
-    getRingBasicMaterial(){
-        return null;
-    }
-
-    getRingStandardMaterial(){
-        return null;
-    }
-
-    setRingMaterial(material){
-        return null;
-    }
-
-    // Default methods for location markers
-    createLocationMarkers() {
-        // To be implemented by subclasses if they have location data
-    }
-
-    setLocalMarkersVisible(visible) {
-        if (this.locationMarkers) {
-            this.locationMarkers.forEach(marker => marker.setVisible(visible));
-        }
-    }
 
     /**
-     * Updates location markers to match the current planet size
+     * Updates the planet's rotation based on time
+     * @param {number} now - Current timestamp
      */
-    updateLocationMarkers() {
-        // Only proceed if the planet has location markers
-        if (!this.locationMarkers || this.locationMarkers.length === 0) {
-            return;
+    update(now) {
+        // Handle rotation if enabled
+        if (this.rotationEnabled && this.rotationSpeed > 0) {
+            // Apply rotation based on current rotation speed
+            this.sphere.rotation.y += this.rotationSpeed;
         }
 
-        // Update each marker
-        this.locationMarkers.forEach(marker => {
-            marker.updateMarker();
-        });
+        // Handle orbit if enabled
+        if (this.orbitEnabled && this.orbitSpeed > 0) {
+            // Apply orbit based on current orbit speed
+            this.orbitGroup.rotation.y += this.orbitSpeed;
+        }
     }
-
 
 
 

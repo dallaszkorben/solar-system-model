@@ -70,14 +70,18 @@ class Sky extends Planet {
             this.createAxis(0xff0000);
 
             // Create latitude circles (just equator for sky)
-            this.createLatitudeCircles([
-                { name: 'Celestial Equator', angle: 0, color: 0x00ffff, widthScale: 1.0 }
-            ]);
+            this.createLatitudeCircles(this.getLatitudeCircleList());
 
             console.log('Sky object created successfully');
 
         // Add a custom rotation speed variable that can be set later
         this.customRotationSpeed = 0;
+    }
+
+    getLatitudeCircleList() {
+        return [
+            { name: 'Celestial Equator', angle: 0, color: 0x00ffff, widthScale: 1.0 }
+        ];
     }
 
     /**

@@ -19,11 +19,11 @@ class PlanetControlPanel extends ControlPanel {
         nortPoleAxisSwitch:         'earth-panel-north-pole-axis-toggle',
         latitudeVisibilitySwitch:   '-panel-latitude-toggle',
         localMarkerVisibilitySwitch:'-panel-local-marker-toggle',
+        orbitPositionMarkersSwitch: '-panel-orbit-position-markers-toggle',
     };
 
     static defaultAxisVisibility = true;
     static defaultLocalMarkersVisibility = true;
-    static defaultSideMarkersVisibility = false;
 
     constructor(planet) {
         super(`${planet.name} Controls`, { top: '20px', right: '20px' });
@@ -43,10 +43,6 @@ class PlanetControlPanel extends ControlPanel {
 
     getDefaultLocalMarkersVisibility(){
         return PlanetControlPanel.defaultLocalMarkersVisibility;
-    }
-
-    getDefaultSideMarkersVisibility(){
-        return PlanetControlPanel.defaultSideMarkersVisibility;
     }
 
 //--- bidirectional switches ---
@@ -107,6 +103,7 @@ class PlanetControlPanel extends ControlPanel {
     // ---
 
     setRotationEnabled(enable) {
+
         this.planet.setRotationEnabled(enable);
 
         // Update the rotation toggle in the Planet Controls panel
@@ -118,6 +115,7 @@ class PlanetControlPanel extends ControlPanel {
     }
 
     setRotationSpeed(speedFactor) {
+
         this.planet.setGlobalRotationSpeedFactor(speedFactor);
 
         // Update the rotation speed slider in the Planet Controls panel
@@ -137,6 +135,7 @@ class PlanetControlPanel extends ControlPanel {
     // ---
 
     setOrbitEnabled(enable) {
+
         // Store previous non-zero speed value if disabling
         if (!enable && this.planet.globalOrbitSpeedFactor > 0) {
             this.previousOrbitSpeed = this.planet.globalOrbitSpeedFactor;
@@ -167,6 +166,7 @@ class PlanetControlPanel extends ControlPanel {
      * @param {number} speedFactor - Factor to multiply the default orbit speed by
      */
     setOrbitSpeed(speedFactor) {
+
         // Store non-zero values for later use
         if (speedFactor > 0) {
             this.previousOrbitSpeed = speedFactor;
@@ -217,7 +217,6 @@ class PlanetControlPanel extends ControlPanel {
     }
 
     setSideMarkersVisibility(visible){
-        this.planet.setSideMarkerVisibility(visible);
     }
 
 //---
@@ -264,6 +263,10 @@ class PlanetControlPanel extends ControlPanel {
 
         // Add local marker toggle
         this.addLocalMarkersToggle();
+
+        // Add orbit position markers toggle
+        this.addOrbitPositionMarkersToggle();
+
     }
 
     /**
@@ -523,5 +526,20 @@ class PlanetControlPanel extends ControlPanel {
         });
     }
 
+    /**
+     * Add orbit position markers toggle
+     */
+    addOrbitPositionMarkersToggle() {
+        return this.createToggleComponent({
+            label: 'Orbit Markers: ',
+            tooltip: `Show/Hide orbit position markers for ${this.planet.name}`,
+            checked: false,  // Default OFF
+            id: `${this.planet.id}${PlanetControlPanel.elementIds.orbitPositionMarkersSwitch}`,
+            onChange: (checked) => {
+                this.planet.setOrbitPositionMarkersVisibility(checked);
+            },
+            parent: this.consoleContent
+        });
+    }
 
 }

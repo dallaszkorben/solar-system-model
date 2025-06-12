@@ -106,24 +106,18 @@ class Venus extends Planet {
 
         this.createSphere('textures/Venus-texture.jpg');
         this.createAxis();
-        this.createLatitudeCircles([
-            { name: 'Equator', angle: 0, color: 0x00ffff, widthScale: 1.0 },  // Cyan for equator (more visible on yellowish planet)
-            { name: 'North Tropic', angle: Venus.getTropic(), color: 0xff8800, widthScale: 0.6 },
-            { name: 'North Polar', angle: Venus.getPolar(), color: 0x00aaff, widthScale: 0.6 },
-            { name: 'South Tropic', angle: -Venus.getTropic(), color: 0xff8800, widthScale: 0.6 },
-            { name: 'South Polar', angle: -Venus.getPolar(), color: 0x00aaff, widthScale: 0.6 }
-        ]);
+        this.createLatitudeCircles(this.getLatitudeCircleList());
         this.applyTilt();
         this.createOrbit();
 
-        // Create season labels
-        const seasons = [
-            { name: '', season: 'perihelion', angle: 0 },
-            { name: '', season: 'aphelion', angle: Math.PI },
-            { name: '', season: 'position 1', angle: Math.PI/2 },
-            { name: '', season: 'position 2', angle: Math.PI*3/2 }
-        ];
-        this.createSeasonLabels(seasons);
+//        // Create season labels
+//        const orbitPositionmarkers = [
+//            { name: '', season: 'perihelion', angle: 0 },
+//            { name: '', season: 'aphelion', angle: Math.PI },
+//            { name: '', season: 'position 1', angle: Math.PI/2 },
+//            { name: '', season: 'position 2', angle: Math.PI*3/2 }
+//        ];
+//        this.createOrbitPositionMarkers(orbitPositionmarkers);
 
         // Removed console pane creation for now
 
@@ -136,6 +130,16 @@ class Venus extends Planet {
                 this.toggleDayNightEffect(e.detail.enabled);
             }
         });
+    }
+
+    getLatitudeCircleList() {
+        return [
+            { name: 'Equator', angle: 0, color: 0x00ffff, widthScale: 1.0 },
+            { name: 'North Tropic', angle: Venus.getTropic(), color: 0xff8800, widthScale: 0.6 },
+            { name: 'North Polar', angle: Venus.getPolar(), color: 0x00aaff, widthScale: 0.6 },
+            { name: 'South Tropic', angle: -Venus.getTropic(), color: 0xff8800, widthScale: 0.6 },
+            { name: 'South Polar', angle: -Venus.getPolar(), color: 0x00aaff, widthScale: 0.6 }
+        ];
     }
 
     static getTropic(){

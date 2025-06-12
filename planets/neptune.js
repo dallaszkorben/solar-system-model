@@ -105,12 +105,16 @@ class Neptune extends Planet {
 
         this.createSphere('textures/Neptune-texture.jpg');
         this.createAxis(0xff0000); // Blue color for Neptune's axis
-        this.createLatitudeCircles([
+        this.createLatitudeCircles(this.getLatitudeCircleList());
+        this.applyTilt();
+        this.createOrbit();
+    }
+
+    getLatitudeCircleList() {
+        return [
             { name: 'Equator', angle: 0, color: 0xff0000, widthScale: 1.0 },
             { name: 'North Tropic', angle: 28.32, color: 0xff8800, widthScale: 0.6 },
             { name: 'South Tropic', angle: -28.32, color: 0xff8800, widthScale: 0.6 }
-        ]);
-        this.applyTilt();
-        this.createOrbit();
+        ];
     }
 }

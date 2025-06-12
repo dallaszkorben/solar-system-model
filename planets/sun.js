@@ -104,13 +104,17 @@ class Sun extends Planet {
 
         this.createSphere('textures/Sun-texture.jpg');
         this.createAxis(0xff0000); // Orange color for Sun's axis
-        this.createLatitudeCircles([
-            { name: 'Solar Equator', angle: 0, color: 0x00ffff, widthScale: 1.0 }
-        ]);
+        this.createLatitudeCircles(this.getLatitudeCircleList());
         this.applyTilt();
 
         // Add a point light at the center of the sun
         this.addSunLight();
+    }
+
+    getLatitudeCircleList() {
+        return [
+            { name: 'Solar Equator', angle: 0, color: 0x00ffff, widthScale: 1.0 }
+        ];
     }
 
     // This method has been moved to the Planet base class

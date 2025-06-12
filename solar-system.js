@@ -199,10 +199,6 @@ class SolarSystem {
         }
     }
 
-
-
-
-
     // Method to set the scale mode state
     setScaleMode(state) {
         this.scaleModeState = state;
@@ -251,8 +247,6 @@ class SolarSystem {
             object.orbitalPeriod = modeData.orbitalPeriod;
             object.maxOrbitalPeriod = modeData.maxOrbitalPeriod;
 
-
-
             // Update speeds
             object.defaultRotationSpeed = modeData.rotationSpeed(); // Store default rotation speed
             object.defaultOrbitSpeed = modeData.orbitSpeed(); // Store default orbit speed
@@ -268,37 +262,24 @@ class SolarSystem {
             // Align Axis Size
             object.updateAxis();
 
+            // Align Latitude Circles
+            object.updateLatitudeCircles();
+
             // Align Ring
             object.updateRings();
 
             // Align Planet size
             object.updateSphere();
 
+            // Align Planet local markers
             object.updateLocationMarkers();
 
-            // Update orbit position if applicable
-            if (object.group && object.orbitLine) {
-                // Update orbit line geometry
-                const segments = 128;
-                const vertices = [];
+            // Align Planet Orbit line
+            object.updateOrbit();
 
-                for (let i = 0; i <= segments; i++) {
-                    const theta = (i / segments) * Math.PI * 2;
-                    const x = object.orbitRadius * Math.cos(theta);
-                    const z = object.orbitRadius * Math.sin(theta);
-                    vertices.push(x, 0, z);
-                }
+            // Align Orbit Position Markers
+            object.updateOrbitPositionMarkers();
 
-                // Update orbit line geometry
-                object.orbitLine.geometry.setAttribute(
-                    'position',
-                    new THREE.Float32BufferAttribute(vertices, 3)
-                );
-
-                // Update object position - ONLY if it's not the Sun
-                object.group.position.x = object.orbitRadius;
-
-            }
         }
     }
 }

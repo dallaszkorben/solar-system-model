@@ -16,9 +16,10 @@ class SolarSystemControlPanel extends ControlPanel {
         obrbitVisibilitySwitch:         'global-orbit-visibility-toggle',
 
         rotationAxistSwitch:            'global-rotation-axis-toggle',
-        dayNigthEffectSwitch:           'global-day-night-toggle',
-        localMarkersVisibilitySwitch:   'global-local-markers-toggle',
-        sideMarkersVisibilitySwitch:    'global-side-markers-toggle',
+        dayNigthEffectSwitch:           'global-day-night-effect-toggle',
+        localMarkersVisibilitySwitch:   'global-local-markers-visibility-toggle',
+        sideMarkersVisibilitySwitch:    'global-side-markers-visibility-toggle',
+
     }
 
     static scaleModeValues = {

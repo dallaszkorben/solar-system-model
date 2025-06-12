@@ -114,28 +114,32 @@ class Earth extends Planet {
         this.createSphere('textures/Earth-texture.jpg');
         this.createAxis();
         this.createNorthPoleAxis();
-        this.createLatitudeCircles([
+        this.createLatitudeCircles(this.getLatitudeCircleList());
+        this.applyTilt();
+        this.createOrbit();
+
+        // Create season labels
+        this.orbitPositionMarkerList = [
+            { name: 'summer', description: '', angle: 0 },           // Aphelion - summer in northern hemisphere
+            { name: 'winter', description: '', angle: Math.PI },     // Perihelion - winter in northern hemisphere
+            { name: 'spring', description: '', angle: Math.PI/2 },
+            { name: 'autumn', description: '', angle: Math.PI*3/2 }
+        ];
+        this.createOrbitPositionMarkers(this.orbitPositionMarkerList);
+
+        // Create location markers
+        this.locationMarkers = [];
+        this.createLocationMarkers();
+    }
+
+    getLatitudeCircleList() {
+        return [
             { name: 'Equator', angle: 0, color: 0xff0000, widthScale: 1.0 },
             { name: 'Tropic of Cancer', angle: 23.4, color: 0xff8800, widthScale: 0.6 },
             { name: 'Tropic of Capricorn', angle: -23.4, color: 0xff8800, widthScale: 0.6 },
             { name: 'Arctic Circle', angle: 66.6, color: 0x00aaff, widthScale: 0.6 },
             { name: 'Antarctic Circle', angle: -66.6, color: 0x00aaff, widthScale: 0.6 }
-        ]);
-        this.applyTilt();
-        this.createOrbit();
-
-        // Create season labels
-        const seasons = [
-            { name: '', season: 'summer', angle: 0 },       // Aphelion - summer in northern hemisphere
-            { name: '', season: 'winter', angle: Math.PI }, // Perihelion - winter in northern hemisphere
-            { name: '', season: 'spring', angle: Math.PI/2 },
-            { name: '', season: 'autumn', angle: Math.PI*3/2 }
         ];
-        this.createSeasonLabels(seasons);
-
-        // Create location markers
-        this.locationMarkers = [];
-        this.createLocationMarkers();
     }
 
     createLocationMarkers() {
