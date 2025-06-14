@@ -611,18 +611,6 @@ class Planet {
     // ---
 
 
-
-
-
-
-
-
-
-
-
-
-
-
     /**
      * Sets the global rotation speed factor (0-10)
      * @param {number} factor - Factor to multiply the default rotation speed by
@@ -777,12 +765,7 @@ class Planet {
 
     getObject() {
         return this.orbitGroup;
-        //return this.group;
     }
-
-
-
-
 
     // Helper method to make elements draggable - moved from individual planet classes
     makeDraggableElement(element, handle) {
@@ -824,88 +807,28 @@ class Planet {
     }
 
     update(now) {
+
         // Handle rotation if enabled
         if (this.rotationEnabled && this.rotationSpeed > 0) {
+
             // Apply rotation based on current rotation speed
             this.sphere.rotation.y += this.rotationSpeed;
         }
 
         // Handle orbit if enabled
         if (this.orbitEnabled && this.orbitSpeed > 0) {
-            const orbitDelta = this.orbitSpeed;
+            // Store the previous orbit angle before updating
+            const previousOrbitAngle = this.orbitGroup.rotation.y;
 
             // Apply orbit based on current orbit speed
-            this.orbitGroup.rotation.y += orbitDelta;
+            this.orbitGroup.rotation.y += this.orbitSpeed;
 
-            // // Counter-rotate markers
-            // if (this.orbitMarkers) {
-            //     this.orbitMarkers.forEach(marker => {
-            //         if (marker.marker) {
-            //             marker.marker.rotation.y -= orbitDelta;
-            //         }
-            //     });
-            // }
+            // Calculate the delta angle (how much the orbit changed)
+            const deltaAngle = this.orbitGroup.rotation.y - previousOrbitAngle;
 
+            // Counter-rotate the planet group to maintain tilt direction in space
+            // This keeps the axial tilt fixed in the Y-X plane
+            this.group.rotation.y -= deltaAngle;
         }
     }
-
-
-
-//    update(now) {
-//        // Handle rotation if enabled
-//        if (this.rotationEnabled && this.rotationSpeed > 0) {
-//            // Apply rotation based on current rotation speed
-//            this.sphere.rotation.y += this.rotationSpeed;
-//        }
-//
-//        // Handle orbit if enabled
-//        if (this.orbitEnabled && this.orbitSpeed > 0) {
-//            // Apply orbit based on current orbit speed
-//            this.orbitGroup.rotation.y += this.orbitSpeed;
-//
-//            // Update orbit markers to counter-rotate
-//            if (this.orbitMarkers) {
-//                this.orbitMarkers.forEach(marker => {
-//                    marker.update();
-//                });
-//            }
-//        }
-//    }
-
-
-//    /**
-//     * Updates the planet's rotation based on time
-//     * @param {number} now - Current timestamp
-//     */
-//    update(now) {
-//        // Handle rotation if enabled
-//        if (this.rotationEnabled && this.rotationSpeed > 0) {
-//            // Apply rotation based on current rotation speed
-//            this.sphere.rotation.y += this.rotationSpeed;
-//        }
-//
-//        // Handle orbit if enabled
-//        if (this.orbitEnabled && this.orbitSpeed > 0) {
-//
-//            // Apply orbit based on current orbit speed
-//            this.orbitGroup.rotation.y += this.orbitSpeed;
-//        }
-//    }
-
-
-//    update(time) {
-//        // Rotate the sphere around its axis if rotation is enabled
-//        if (this.rotationEnabled && this.rotationSpeed > 0) {
-//            this.sphere.rotation.y += this.rotationSpeed;
-//        }
-//
-//        // Orbit around the Sun if orbit is enabled
-//        if (this.orbitEnabled && this.orbitSpeed > 0) {
-//            const previousOrbitAngle = this.orbitGroup.rotation.y;
-//            this.orbitGroup.rotation.y += this.orbitSpeed;
-//            const deltaAngle = this.orbitGroup.rotation.y - previousOrbitAngle;
-//            this.group.rotation.y -= deltaAngle;
-//        }
-//    }
-
 }
