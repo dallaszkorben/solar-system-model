@@ -104,9 +104,9 @@ class Earth extends Planet {
 
 
 
-    constructor() {
+    constructor(scene) {
 
-        super(Earth.factData, Earth.noScaleModeData, Earth.sizeScaleModeData, Earth.distanceScaleModeData);
+        super(scene, Earth.factData, Earth.noScaleModeData, Earth.sizeScaleModeData, Earth.distanceScaleModeData);
 
         this.name = Earth.NAME;
         this.id   = Earth.ID;
@@ -120,16 +120,22 @@ class Earth extends Planet {
 
         // Create season labels
         this.orbitPositionMarkerList = [
-            { name: 'summer', description: '', angle: 0 },           // Aphelion - summer in northern hemisphere
-            { name: 'winter', description: '', angle: Math.PI },     // Perihelion - winter in northern hemisphere
-            { name: 'spring', description: '', angle: Math.PI/2 },
-            { name: 'autumn', description: '', angle: Math.PI*3/2 }
+            { name: 'summer', description: '', angle: 0,           color: 0xffaa00 },           // Aphelion - summer in northern hemisphere
+            { name: 'winter', description: '', angle: Math.PI,     color: 0x00aaff },     // Perihelion - winter in northern hemisphere
+            { name: 'spring', description: '', angle: Math.PI/2,   color: 0x00ff00 },
+            { name: 'autumn', description: '', angle: Math.PI*3/2, color: 0xff5500 }
         ];
-        this.createOrbitPositionMarkers(this.orbitPositionMarkerList);
+//        this.createOrbitPositionMarkers(this.orbitPositionMarkerList);
+
+        this.createOrbitPositionMarkers();
 
         // Create location markers
         this.locationMarkers = [];
         this.createLocationMarkers();
+    }
+
+    getOrbitPositionMarkerList() {
+        return this.orbitPositionMarkerList;
     }
 
     getLatitudeCircleList() {

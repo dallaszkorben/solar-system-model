@@ -9,6 +9,7 @@ class LocationMarker {
         this.longitude = longitude;  // in degrees
         this.color = color;
         this.marker = null;
+        this.wasVisible = true;      // Track visibility state
 
         this.updateMarker()
     }

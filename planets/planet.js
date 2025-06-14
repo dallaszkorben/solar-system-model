@@ -40,9 +40,10 @@ class Planet {
         };
     }
 
-    constructor(factData, noScaleModeData, sizeScaleModeData, distanceScaleModeData) {
+    constructor(scene, factData, noScaleModeData, sizeScaleModeData, distanceScaleModeData) {
 
         // Store reference data
+        this.scene = scene;
         this.factData = factData;
         this.noScaleModeData = noScaleModeData;
         this.sizeScaleModeData = sizeScaleModeData;
@@ -92,14 +93,17 @@ class Planet {
         // Add the group to the orbit group
         this.orbitGroup.add(this.group);
 
-        // Create season labels
+        // Create orbit position markers
         this.orbitPositionMarkerList = [
-            { name: 'aphelion',   description: 'farthest', angle: 0 },          //Farthest from the Sun
-            { name: 'perihelion', description: 'closest',  angle: Math.PI },    //Closest to the Sun
-            { name: '',           description: '',         angle: Math.PI/2 },
-            { name: '',           description: '',         angle: Math.PI*3/2 }
+            { name: 'aphelion',   description: 'farthest', angle: 0,           color: 0xffffff},    //Farthest from the Sun
+            { name: 'perihelion', description: 'closest',  angle: Math.PI,     color: 0xffffff},    //Closest to the Sun
+            { name: '',           description: '',         angle: Math.PI/2,   color: 0xffffff},
+            { name: '',           description: '',         angle: Math.PI*3/2, color: 0xffffff}
         ];
-        this.createOrbitPositionMarkers(this.orbitPositionMarkerList);
+
+//        this.createOrbitPositionMarkers(this.orbitPositionMarkerList);
+//        // Set initial visibility based on PlanetControlPanel default
+//        this.setOrbitPositionMarkersVisibility(PlanetControlPanel.defaultOrbitPositionMarkersVisibility);
     }
 
     // --------------
@@ -401,86 +405,67 @@ class Planet {
     }
 
     // ---------------------
-    // --- orbit markers ---
+    // --- Orbit Markers ---
     // ---------------------
 
-    createOrbitPositionMarkers(positions) {
+    createOrbitPositionMarkers() {
+        const positions = this.getOrbitPositionMarkerList();
+
         if (!positions || !positions.length) return;
 
-        this.orbitPositionMarkers = new THREE.Group();
+        // Clear existing markers array if it exists
+        this.orbitMarkers = [];
 
+        // Create markers using the OrbitMarker class
         positions.forEach(position => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = 256;
-            canvas.height = 256;
-
-            // Only add name text if it exists and is not empty
-            if (position.name && position.name !== "") {
-                ctx.font = 'Bold 40px Arial';
-                ctx.fillStyle = 'white';
-                ctx.textAlign = 'center';
-                ctx.fillText(position.name, 128, 120);
-            }
-
-            // Only add description text if it exists and is not empty
-            if (position.description && position.description !== "") {
-                ctx.font = '30px Arial';
-                ctx.fillStyle = 'white';
-                ctx.textAlign = 'center';
-                ctx.fillText(`(${position.description})`, 128, position.name ? 180 : 128);
-            }
-
-            // Only create a sprite if there's something to display
-            if ((position.name && position.name !== "") ||
-                (position.description && position.description !== "")) {
-
-                const texture = new THREE.CanvasTexture(canvas);
-                const material = new THREE.SpriteMaterial({ map: texture });
-                const sprite = new THREE.Sprite(material);
-
-                const x = this.orbitRadius * Math.cos(position.angle);
-                const z = this.orbitRadius * Math.sin(position.angle);
-                sprite.position.set(x, this.radius * 3, z);
-                sprite.scale.set(this.radius * 5, this.radius * 5, 1);
-
-                this.orbitPositionMarkers.add(sprite);
-            }
+            const marker = new OrbitPositionMarker(
+                this,
+                position.name,
+                position.description,
+                position.angle,
+                position.color || 0xffffff
+            );
+            this.orbitMarkers.push(marker);
         });
 
-        this.orbitGroup.add(this.orbitPositionMarkers);
-        this.orbitPositionMarkers.visible = false;
+        // Set the default value
+        this.setOrbitPositionMarkersVisibility(PlanetControlPanel.defaultOrbitPositionMarkersVisibility);
+    }
+
+    getOrbitPositionMarkerList() {
+        return this.orbitPositionMarkerList;
     }
 
     updateOrbitPositionMarkers() {
-        // Only proceed if the planet has orbit position markers
-        if (!this.orbitPositionMarkers) {
+        // Only proceed if the planet has orbit markers
+        if (!this.orbitMarkers || this.orbitMarkers.length === 0) {
             return;
         }
 
         // Store current visibility state
-        const wasVisible = this.orbitPositionMarkers.visible;
+        const wasVisible = this.orbitMarkers.some(marker =>
+            marker.marker && marker.marker.visible
+        );
 
-        // Remove existing markers
-        this.orbitGroup.remove(this.orbitPositionMarkers);
+        // Remove existing markers from the scene
+        this.orbitMarkers.forEach(marker => {
+            if (marker.marker) {
+                this.scene.remove(marker.marker);
+            }
+        });
 
-        // Get the positions data from the planet class
-        const positions = this.orbitPositionMarkerList;
-
-        // Create new markers with current orbit radius
-        if (positions && positions.length > 0) {
-            this.createOrbitPositionMarkers(positions);
-        }
+        // Create new markers
+        this.createOrbitPositionMarkers();
 
         // Restore visibility state
-        if (this.orbitPositionMarkers) {
-            this.orbitPositionMarkers.visible = wasVisible;
+        if (this.orbitMarkers) {
+            this.setOrbitPositionMarkersVisibility(wasVisible);
         }
     }
 
     setOrbitPositionMarkersVisibility(visible) {
-        if (this.orbitPositionMarkers) {
-            this.orbitPositionMarkers.visible = visible;
+        if (this.orbitMarkers) {
+            this.orbitMarkers.forEach(marker => marker.setVisible(visible));
         }
     }
 
@@ -672,27 +657,6 @@ class Planet {
         }
     }
 
-
-
-
-
-
-
-    update(time) {
-        // Rotate the sphere around its axis if rotation is enabled
-        if (this.rotationEnabled && this.rotationSpeed > 0) {
-            this.sphere.rotation.y += this.rotationSpeed;
-        }
-
-        // Orbit around the Sun if orbit is enabled
-        if (this.orbitEnabled && this.orbitSpeed > 0) {
-            const previousOrbitAngle = this.orbitGroup.rotation.y;
-            this.orbitGroup.rotation.y += this.orbitSpeed;
-            const deltaAngle = this.orbitGroup.rotation.y - previousOrbitAngle;
-            this.group.rotation.y -= deltaAngle;
-        }
-    }
-
     /**
      * Show the planet by making all its components visible
      */
@@ -710,8 +674,10 @@ class Planet {
         if (this.orbitLine) {
             this.orbitLine.visible = this.orbitLine.wasVisible || false;
         }
-        if (this.seasonLabels) {
-            this.seasonLabels.visible = this.seasonLabels.wasVisible || false;
+        if (this.orbitMarkers) {
+            this.orbitMarkers.forEach(marker => {
+                marker.setVisible(marker.wasVisible || false);
+            });
         }
         // Show rings if this planet has them
         if (this.rings) {
@@ -741,10 +707,12 @@ class Planet {
             this.orbitLine.wasVisible = this.orbitLine.visible;
             this.orbitLine.visible = false;
         }
-        if (this.seasonLabels) {
+        if (this.orbitMarkers) {
             // Store current visibility state before hiding
-            this.seasonLabels.wasVisible = this.seasonLabels.visible;
-            this.seasonLabels.visible = false;
+            this.orbitMarkers.forEach(marker => {
+                marker.wasVisible = marker.marker ? marker.marker.visible : false;
+                marker.setVisible(false);
+            });
         }
         // Hide rings if this planet has them
         if (this.rings) {
@@ -809,6 +777,7 @@ class Planet {
 
     getObject() {
         return this.orbitGroup;
+        //return this.group;
     }
 
 
@@ -854,14 +823,6 @@ class Planet {
         }
     }
 
-
-
-
-
-    /**
-     * Updates the planet's rotation based on time
-     * @param {number} now - Current timestamp
-     */
     update(now) {
         // Handle rotation if enabled
         if (this.rotationEnabled && this.rotationSpeed > 0) {
@@ -871,11 +832,80 @@ class Planet {
 
         // Handle orbit if enabled
         if (this.orbitEnabled && this.orbitSpeed > 0) {
+            const orbitDelta = this.orbitSpeed;
+
             // Apply orbit based on current orbit speed
-            this.orbitGroup.rotation.y += this.orbitSpeed;
+            this.orbitGroup.rotation.y += orbitDelta;
+
+            // // Counter-rotate markers
+            // if (this.orbitMarkers) {
+            //     this.orbitMarkers.forEach(marker => {
+            //         if (marker.marker) {
+            //             marker.marker.rotation.y -= orbitDelta;
+            //         }
+            //     });
+            // }
+
         }
     }
 
 
+
+//    update(now) {
+//        // Handle rotation if enabled
+//        if (this.rotationEnabled && this.rotationSpeed > 0) {
+//            // Apply rotation based on current rotation speed
+//            this.sphere.rotation.y += this.rotationSpeed;
+//        }
+//
+//        // Handle orbit if enabled
+//        if (this.orbitEnabled && this.orbitSpeed > 0) {
+//            // Apply orbit based on current orbit speed
+//            this.orbitGroup.rotation.y += this.orbitSpeed;
+//
+//            // Update orbit markers to counter-rotate
+//            if (this.orbitMarkers) {
+//                this.orbitMarkers.forEach(marker => {
+//                    marker.update();
+//                });
+//            }
+//        }
+//    }
+
+
+//    /**
+//     * Updates the planet's rotation based on time
+//     * @param {number} now - Current timestamp
+//     */
+//    update(now) {
+//        // Handle rotation if enabled
+//        if (this.rotationEnabled && this.rotationSpeed > 0) {
+//            // Apply rotation based on current rotation speed
+//            this.sphere.rotation.y += this.rotationSpeed;
+//        }
+//
+//        // Handle orbit if enabled
+//        if (this.orbitEnabled && this.orbitSpeed > 0) {
+//
+//            // Apply orbit based on current orbit speed
+//            this.orbitGroup.rotation.y += this.orbitSpeed;
+//        }
+//    }
+
+
+//    update(time) {
+//        // Rotate the sphere around its axis if rotation is enabled
+//        if (this.rotationEnabled && this.rotationSpeed > 0) {
+//            this.sphere.rotation.y += this.rotationSpeed;
+//        }
+//
+//        // Orbit around the Sun if orbit is enabled
+//        if (this.orbitEnabled && this.orbitSpeed > 0) {
+//            const previousOrbitAngle = this.orbitGroup.rotation.y;
+//            this.orbitGroup.rotation.y += this.orbitSpeed;
+//            const deltaAngle = this.orbitGroup.rotation.y - previousOrbitAngle;
+//            this.group.rotation.y -= deltaAngle;
+//        }
+//    }
 
 }

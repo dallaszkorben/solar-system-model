@@ -99,8 +99,8 @@ class Jupiter extends Planet {
 
 
 
-    constructor() {
-        super(Jupiter.factData, Jupiter.nonScaleModelData, Jupiter.sizeScaleModeData, Jupiter.distanceScaleModeData);
+    constructor(scene) {
+        super(scene, Jupiter.factData, Jupiter.nonScaleModelData, Jupiter.sizeScaleModeData, Jupiter.distanceScaleModeData);
 
         this.name = Jupiter.NAME;
         this.id   = Jupiter.ID;
@@ -110,6 +110,7 @@ class Jupiter extends Planet {
         this.createLatitudeCircles(this.getLatitudeCircleList());
         this.applyTilt();
         this.createOrbit();
+        this.createOrbitPositionMarkers();
     }
 
     getLatitudeCircleList() {

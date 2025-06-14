@@ -92,8 +92,8 @@ class Sun extends Planet {
         maxOrbitSpeed: function() { return 0; },
     };
 
-    constructor() {
-        super(Sun.factData, Sun.nonScaleModelData, Sun.sizeScaleModeData, Sun.distanceScaleModeData);
+    constructor(scene) {
+        super(scene, Sun.factData, Sun.nonScaleModelData, Sun.sizeScaleModeData, Sun.distanceScaleModeData);
 
         this.name = Sun.NAME;
         this.id   = Sun.ID;

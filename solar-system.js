@@ -4,16 +4,16 @@
 class SolarSystem {
 
     static celestialBodies = {
-        sky:     {id: Sky.ID,     name: Sky.NAME,     instantiate: new Sky(),     planetControlPanelClass: SkyControlPanel    },
-        sun:     {id: Sun.ID,     name: Sun.NAME,     instantiate: new Sun(),     planetControlPanelClass: SunControlPanel    },
-        mercury: {id: Mercury.ID, name: Mercury.NAME, instantiate: new Mercury(), planetControlPanelClass: PlanetControlPanel },
-        venus:   {id: Venus.ID,   name: Venus.NAME,   instantiate: new Venus(),   planetControlPanelClass: PlanetControlPanel },
-        earth:   {id: Earth.ID,   name: Earth.NAME,   instantiate: new Earth(),   planetControlPanelClass: PlanetControlPanel },
-        mars:    {id: Mars.ID,    name: Mars.NAME,    instantiate: new Mars(),    planetControlPanelClass: PlanetControlPanel },
-        jupiter: {id: Jupiter.ID, name: Jupiter.NAME, instantiate: new Jupiter(), planetControlPanelClass: PlanetControlPanel },
-        saturn:  {id: Saturn.ID,  name: Saturn.NAME,  instantiate: new Saturn(),  planetControlPanelClass: PlanetControlPanel },
-        uranus:  {id: Uranus.ID,  name: Uranus.NAME,  instantiate: new Uranus(),  planetControlPanelClass: PlanetControlPanel },
-        neptune: {id: Neptune.ID, name: Neptune.NAME, instantiate: new Neptune(), planetControlPanelClass: PlanetControlPanel },
+        sky:     {id: Sky.ID,     name: Sky.NAME,     bodyClass: Sky,     planetControlPanelClass: SkyControlPanel    },
+        sun:     {id: Sun.ID,     name: Sun.NAME,     bodyClass: Sun,     planetControlPanelClass: SunControlPanel    },
+        mercury: {id: Mercury.ID, name: Mercury.NAME, bodyClass: Mercury, planetControlPanelClass: PlanetControlPanel },
+        venus:   {id: Venus.ID,   name: Venus.NAME,   bodyClass: Venus,   planetControlPanelClass: PlanetControlPanel },
+        earth:   {id: Earth.ID,   name: Earth.NAME,   bodyClass: Earth,   planetControlPanelClass: PlanetControlPanel },
+        mars:    {id: Mars.ID,    name: Mars.NAME,    bodyClass: Mars,    planetControlPanelClass: PlanetControlPanel },
+        jupiter: {id: Jupiter.ID, name: Jupiter.NAME, bodyClass: Jupiter, planetControlPanelClass: PlanetControlPanel },
+        saturn:  {id: Saturn.ID,  name: Saturn.NAME,  bodyClass: Saturn,  planetControlPanelClass: PlanetControlPanel },
+        uranus:  {id: Uranus.ID,  name: Uranus.NAME,  bodyClass: Uranus,  planetControlPanelClass: PlanetControlPanel },
+        neptune: {id: Neptune.ID, name: Neptune.NAME, bodyClass: Neptune, planetControlPanelClass: PlanetControlPanel },
     }
 
     constructor() {
@@ -97,10 +97,13 @@ class SolarSystem {
 
             // Add all planets to the scene (excluding sky which is handled separately)
             Object.entries(SolarSystem.celestialBodies).forEach(([key, body]) => {
-                this.planetObjs[key] = body.instantiate;
-                this.scene.add(body.instantiate.getObject());
+                const planetClass = body.bodyClass;
+                const planetObj = new planetClass(this.scene);
+                this.planetObjs[key] = planetObj;
+                this.scene.add(planetObj.getObject());
             });
 
+            // TODO: Why it is here????
             // Set up event listener for toggling location markers
             document.addEventListener('toggleLocationMarkers', (event) => {
                 Object.values(this.planetObjs).forEach(planet => {

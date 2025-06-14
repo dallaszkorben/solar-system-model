@@ -24,6 +24,7 @@ class PlanetControlPanel extends ControlPanel {
 
     static defaultAxisVisibility = true;
     static defaultLocalMarkersVisibility = true;
+    static defaultOrbitPositionMarkersVisibility = false;
 
     constructor(planet) {
         super(`${planet.name} Controls`, { top: '20px', right: '20px' });
@@ -43,6 +44,10 @@ class PlanetControlPanel extends ControlPanel {
 
     getDefaultLocalMarkersVisibility(){
         return PlanetControlPanel.defaultLocalMarkersVisibility;
+    }
+
+    getDefaultOrbitPositionMarkersVisibility(){
+        return PlanetControlPanel.defaultOrbitPositionMarkersVisibility;
     }
 
 //--- bidirectional switches ---
@@ -533,7 +538,7 @@ class PlanetControlPanel extends ControlPanel {
         return this.createToggleComponent({
             label: 'Orbit Markers: ',
             tooltip: `Show/Hide orbit position markers for ${this.planet.name}`,
-            checked: false,  // Default OFF
+            checked: this.getDefaultOrbitPositionMarkersVisibility(),
             id: `${this.planet.id}${PlanetControlPanel.elementIds.orbitPositionMarkersSwitch}`,
             onChange: (checked) => {
                 this.planet.setOrbitPositionMarkersVisibility(checked);

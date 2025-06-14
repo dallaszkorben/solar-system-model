@@ -98,8 +98,8 @@ class Venus extends Planet {
         maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
     };
 
-    constructor() {
-        super(Venus.factData, Venus.nonScaleModelData, Venus.sizeScaleModeData, Venus.distanceScaleModeData);
+    constructor(scene) {
+        super(scene, Venus.factData, Venus.nonScaleModelData, Venus.sizeScaleModeData, Venus.distanceScaleModeData);
 
         this.name = Venus.NAME;
         this.id   = Venus.ID;
@@ -109,27 +109,7 @@ class Venus extends Planet {
         this.createLatitudeCircles(this.getLatitudeCircleList());
         this.applyTilt();
         this.createOrbit();
-
-//        // Create season labels
-//        const orbitPositionmarkers = [
-//            { name: '', season: 'perihelion', angle: 0 },
-//            { name: '', season: 'aphelion', angle: Math.PI },
-//            { name: '', season: 'position 1', angle: Math.PI/2 },
-//            { name: '', season: 'position 2', angle: Math.PI*3/2 }
-//        ];
-//        this.createOrbitPositionMarkers(orbitPositionmarkers);
-
-        // Removed console pane creation for now
-
-        // Listen for global day/night changes
-        document.addEventListener('globalDayNightChange', (e) => {
-            const toggle = document.getElementById('venus-day-night-toggle');
-            if (toggle) {
-                toggle.checked = e.detail.enabled;
-                this.dayNightEnabled = e.detail.enabled;
-                this.toggleDayNightEffect(e.detail.enabled);
-            }
-        });
+        this.createOrbitPositionMarkers();
     }
 
     getLatitudeCircleList() {
@@ -150,7 +130,4 @@ class Venus extends Planet {
         return 90 - Venus.factData.axialTilt.z;
     }
 
-
-    // No need for a custom update method - Venus's retrograde rotation is handled by its axial tilt
-    // The parent Planet class's update method will be used instead
 }

@@ -97,8 +97,8 @@ class Neptune extends Planet {
         maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
     };
 
-    constructor() {
-        super(Neptune.factData, Neptune.nonScaleModelData, Neptune.sizeScaleModeData, Neptune.distanceScaleModeData);
+    constructor(scene) {
+        super(scene, Neptune.factData, Neptune.nonScaleModelData, Neptune.sizeScaleModeData, Neptune.distanceScaleModeData);
 
         this.name = Neptune.NAME;
         this.id   = Neptune.ID;
@@ -108,6 +108,7 @@ class Neptune extends Planet {
         this.createLatitudeCircles(this.getLatitudeCircleList());
         this.applyTilt();
         this.createOrbit();
+        this.createOrbitPositionMarkers();
     }
 
     getLatitudeCircleList() {

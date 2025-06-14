@@ -110,8 +110,8 @@ class Saturn extends Planet {
         maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
     };
 
-    constructor() {
-        super(Saturn.factData, Saturn.nonScaleModelData, Saturn.sizeScaleModeData, Saturn.distanceScaleModeData);
+    constructor(scene) {
+        super(scene, Saturn.factData, Saturn.nonScaleModelData, Saturn.sizeScaleModeData, Saturn.distanceScaleModeData);
 
         this.name = Saturn.NAME;
         this.id   = Saturn.ID;
@@ -126,6 +126,7 @@ class Saturn extends Planet {
         this.createRings();
         this.applyTilt();
         this.createOrbit();
+        this.createOrbitPositionMarkers();
     }
 
     getLatitudeCircleList() {

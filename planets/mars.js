@@ -102,8 +102,8 @@ class Mars extends Planet {
         maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
     };
 
-    constructor() {
-        super(Mars.factData, Mars.nonScaleModelData, Mars.sizeScaleModeData, Mars.distanceScaleModeData);
+    constructor(scene) {
+        super(scene, Mars.factData, Mars.nonScaleModelData, Mars.sizeScaleModeData, Mars.distanceScaleModeData);
 
         this.name = Mars.NAME;
         this.id   = Mars.ID;
@@ -113,10 +113,12 @@ class Mars extends Planet {
         this.createLatitudeCircles(this.getLatitudeCircleList());
         this.applyTilt();
         this.createOrbit();
+        this.createOrbitPositionMarkers();
 
         // Create location markers
         this.locationMarkers = [];
         this.createLocationMarkers();
+
     }
 
     getLatitudeCircleList() {

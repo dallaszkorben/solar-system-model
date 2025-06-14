@@ -97,8 +97,8 @@ class Mercury extends Planet {
         maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
     };
 
-    constructor() {
-        super(Mercury.factData, Mercury.nonScaleModelData, Mercury.sizeScaleModeData, Mercury.distanceScaleModeData);
+    constructor(scene) {
+        super(scene, Mercury.factData, Mercury.nonScaleModelData, Mercury.sizeScaleModeData, Mercury.distanceScaleModeData);
 
         this.name = Mercury.NAME;
         this.id   = Mercury.ID;
@@ -108,6 +108,7 @@ class Mercury extends Planet {
         this.createLatitudeCircles(this.getLatitudeCircleList());
         this.applyTilt();
         this.createOrbit();
+        this.createOrbitPositionMarkers();
     }
 
     getLatitudeCircleList() {
