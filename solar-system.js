@@ -22,6 +22,7 @@ class SolarSystem {
         this.renderer = null;
         this.controls = null;
         this.sky = null;
+        this.sideViewMarkers = null;
 
         // Control panels
         this.solarSystemControlPanel = null;
@@ -103,15 +104,18 @@ class SolarSystem {
                 this.scene.add(planetObj.getObject());
             });
 
-            // TODO: Why it is here????
             // Set up event listener for toggling location markers
             document.addEventListener('toggleLocationMarkers', (event) => {
+                // Update location markers on planets
                 Object.values(this.planetObjs).forEach(planet => {
                     if (typeof planet.setLocationMarkersVisible === 'function') {
                         planet.setLocationMarkersVisible(event.detail.visible);
                     }
                 });
             });
+            
+            // Create side view markers
+            this.sideViewMarkers = new SideViewMarkers(this);
 
             console.log('All planets initialized and added to scene');
     }
@@ -158,6 +162,11 @@ class SolarSystem {
         // Update active view if any
         if (this.viewControlPanel && this.viewControlPanel.activeView) {
             this.viewControlPanel.activeView.update();
+        }
+        
+        // Update side view markers
+        if (this.sideViewMarkers) {
+            this.sideViewMarkers.update();
         }
 
         this.renderer.render(this.scene, this.camera);

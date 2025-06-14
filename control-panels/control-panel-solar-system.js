@@ -486,15 +486,28 @@ class SolarSystemControlPanel extends ControlPanel {
     // ---
 
     setAllLocalMarkersVisible(visible) {
+        // Update all planet local markers
         Object.entries(this.controlPanels).forEach(([key, controlPanel]) => {
             controlPanel.setLocalMarkersVisibility(visible);
         });
+        
+        // Dispatch event for camera position marker and other listeners
+        const event = new CustomEvent('toggleLocationMarkers', {
+            detail: { visible: visible }
+        });
+        document.dispatchEvent(event);
     }
 
     setAllSideMarkersVisible(visible) {
         Object.entries(this.controlPanels).forEach(([key, controlPanel]) => {
             controlPanel.setSideMarkersVisibility(visible);
         });
+        
+        // Dispatch event for side view markers
+        const event = new CustomEvent('toggleSideMarkers', {
+            detail: { visible: visible }
+        });
+        document.dispatchEvent(event);
     }
 
 

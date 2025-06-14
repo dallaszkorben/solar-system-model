@@ -219,6 +219,12 @@ class PlanetControlPanel extends ControlPanel {
         if (localMarkersVisibilityToggle && localMarkersVisibilityToggle.checked !== visible) {
             localMarkersVisibilityToggle.checked = visible;
         }
+        
+        // Dispatch event for camera position marker and other listeners
+        const event = new CustomEvent('toggleLocationMarkers', {
+            detail: { visible: visible }
+        });
+        document.dispatchEvent(event);
     }
 
     setSideMarkersVisibility(visible){

@@ -39,6 +39,22 @@ class PlanetSideView extends BaseView {
         this.initialCameraSetup = false;
         this.allowNavigation = false; // Whether to allow user navigation
         this.viewDirection = new THREE.Vector3(0, 0, 1); // Default view direction (along Z-axis)
+        
+        // Create yellow sphere marker
+        this.createYellowSphereMarker();
+    }
+    
+    // Create a yellow sphere marker
+    createYellowSphereMarker() {
+        const geometry = new THREE.SphereGeometry(1, 16, 16);
+        const material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+        this.yellowSphere = new THREE.Mesh(geometry, material);
+        this.yellowSphere.visible = false;
+        
+        // Add to scene
+        if (this.solarSystem && this.solarSystem.scene) {
+            this.solarSystem.scene.add(this.yellowSphere);
+        }
     }
 
     /**
@@ -85,6 +101,11 @@ class PlanetSideView extends BaseView {
 
             // Initial camera setup
             this.setupCamera();
+            
+            // Make yellow sphere visible
+            if (this.yellowSphere) {
+                this.yellowSphere.visible = true;
+            }
         }
     }
 
@@ -92,6 +113,11 @@ class PlanetSideView extends BaseView {
         // Always re-enable orbit controls when deactivating the view
         if (this.solarSystem && this.solarSystem.controls) {
             this.solarSystem.controls.enabled = true;
+        }
+        
+        // Hide yellow sphere
+        if (this.yellowSphere) {
+            this.yellowSphere.visible = false;
         }
 
         super.deactivate();
@@ -177,11 +203,6 @@ class PlanetSideView extends BaseView {
             }
 
             // Position camera using the angles and absolute depth
-            //this.positionCameraAtEquatorAngle(horizontalAngleDiff, verticalAngleDiff, depthTranslate);
-            //this.positionCameraAtOrbitPlane(horizontalAngleDiff, -verticalAngleDiff, depthTranslate);
-
-            // Original - 1st
-            //this.positionCameraAtOrbitPlane(-verticalAngleDiff, horizontalAngleDiff, depthTranslate);
             this.positionCameraAtEquatorAngle(-verticalAngleDiff, horizontalAngleDiff, depthTranslate);
         }
         // If navigation is allowed, just update the orbit controls
@@ -191,6 +212,35 @@ class PlanetSideView extends BaseView {
             this.targetPlanet.sphere.getWorldPosition(planetWorldPos);
             this.solarSystem.controls.target.copy(planetWorldPos);
         }
+        
+        // Update yellow sphere position and size
+        this.updateYellowSphere();
+    }
+    
+    // Update the yellow sphere position and size
+    updateYellowSphere() {
+        if (!this.yellowSphere || !this.targetPlanet || !this.solarSystem || !this.solarSystem.camera) return;
+        
+        // Get planet position
+        const planetWorldPos = new THREE.Vector3();
+        this.targetPlanet.sphere.getWorldPosition(planetWorldPos);
+        
+        // Calculate position in front of camera
+        const cameraDir = new THREE.Vector3();
+        this.solarSystem.camera.getWorldDirection(cameraDir);
+        
+        // Position sphere in front of camera
+        const spherePos = new THREE.Vector3();
+        spherePos.copy(this.solarSystem.camera.position).add(
+            cameraDir.multiplyScalar(-this.targetPlanet.diameter * 0.5)
+        );
+        
+        // Set sphere position
+        this.yellowSphere.position.copy(spherePos);
+        
+        // Set sphere size to 1/10th of planet diameter
+        const size = this.targetPlanet.diameter / 10;
+        this.yellowSphere.scale.set(size, size, size);
     }
 
     /**
@@ -286,99 +336,4 @@ class PlanetSideView extends BaseView {
             this.solarSystem.controls.target.copy(planetWorldPos);
         }
     }
-
-
-
-
-//    /**
-//     * Position the camera at a specific angle around the planet's equator and meridian
-//     * @param {number} verticalAngle - Angle in radians from the equator (latitude)
-//     * @param {number} horizontalAngle - Angle in radians around the equator (longitude)
-//     * @param {number} distanceFactor - Distance factor relative to planet diameter
-//     */
-//    positionCameraAtEquatorAngle(verticalAngle, horizontalAngle, distanceFactor) {
-//        if (!this.targetPlanet || !this.solarSystem || !this.solarSystem.camera) return;
-//
-//        // Get current planet position
-//        const planetWorldPos = new THREE.Vector3();
-//        this.targetPlanet.sphere.getWorldPosition(planetWorldPos);
-//
-//        // Calculate camera distance based on planet size and distance factor
-//        const cameraDistance = this.targetPlanet.diameter * distanceFactor;
-//
-//        // Create position using spherical coordinates
-//        const basePosition = new THREE.Vector3(0, 0, cameraDistance);
-//
-//        // Apply vertical rotation (latitude)
-//        const verticalMatrix = new THREE.Matrix4().makeRotationX(verticalAngle);
-//        basePosition.applyMatrix4(verticalMatrix);
-//
-//        // Apply horizontal rotation (longitude)
-//        const horizontalMatrix = new THREE.Matrix4().makeRotationY(horizontalAngle);
-//        basePosition.applyMatrix4(horizontalMatrix);
-//
-//        // Apply the planet's axial tilt (rotation around Z-axis)
-//        const tiltRadians = THREE.MathUtils.degToRad(this.targetPlanet.axialTilt.z);
-//        const tiltMatrix = new THREE.Matrix4().makeRotationZ(tiltRadians);
-//        basePosition.applyMatrix4(tiltMatrix);
-//
-//        // Get the planet's world rotation
-//        const planetWorldQuaternion = new THREE.Quaternion();
-//        this.targetPlanet.group.getWorldQuaternion(planetWorldQuaternion);
-//
-//        // Apply the planet's world rotation to the camera position
-//        basePosition.applyQuaternion(planetWorldQuaternion);
-//
-//        // Add the planet's world position to get the final camera position
-//        const cameraPos = new THREE.Vector3().addVectors(planetWorldPos, basePosition);
-//
-//        // Position the camera
-//        this.solarSystem.camera.position.copy(cameraPos);
-//        this.solarSystem.camera.lookAt(planetWorldPos);
-//        this.solarSystem.camera.up.set(0, 1, 0); // Ensure consistent up vector
-//    }
-//
-//    /**
-//     * Position the camera at a specific angle in the planet's orbit plane
-//     * @param {number} verticalAngle - Angle in radians from the orbit plane
-//     * @param {number} horizontalAngle - Angle in radians around the orbit
-//     * @param {number} distanceFactor - Distance factor relative to planet diameter
-//     */
-//    positionCameraAtOrbitPlane(verticalAngle, horizontalAngle, distanceFactor) {
-//        if (!this.targetPlanet || !this.solarSystem || !this.solarSystem.camera) return;
-//
-//        // Get current planet position
-//        const planetWorldPos = new THREE.Vector3();
-//        this.targetPlanet.sphere.getWorldPosition(planetWorldPos);
-//
-//        // Calculate camera distance based on planet size and distance factor
-//        const cameraDistance = this.targetPlanet.diameter * distanceFactor;
-//
-//        // Create position using spherical coordinates
-//        const basePosition = new THREE.Vector3(0, 0, cameraDistance);
-//
-//        // Apply vertical rotation (from orbit plane)
-//        const verticalMatrix = new THREE.Matrix4().makeRotationX(verticalAngle);
-//        basePosition.applyMatrix4(verticalMatrix);
-//
-//        // Apply horizontal rotation (around orbit)
-//        const horizontalMatrix = new THREE.Matrix4().makeRotationY(horizontalAngle);
-//        basePosition.applyMatrix4(horizontalMatrix);
-//
-//        // Get the planet's orbit group world rotation
-//        const orbitWorldQuaternion = new THREE.Quaternion();
-//        this.targetPlanet.orbitGroup.getWorldQuaternion(orbitWorldQuaternion);
-//
-//        // Apply the orbit's world rotation to the camera position
-//        basePosition.applyQuaternion(orbitWorldQuaternion);
-//
-//        // Add the planet's world position to get the final camera position
-//        const cameraPos = new THREE.Vector3().addVectors(planetWorldPos, basePosition);
-//
-//        // Position the camera
-//        this.solarSystem.camera.position.copy(cameraPos);
-//        this.solarSystem.camera.lookAt(planetWorldPos);
-//        this.solarSystem.camera.up.set(0, 1, 0); // Ensure consistent up vector
-//    }
-
 }
