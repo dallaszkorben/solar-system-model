@@ -28,7 +28,7 @@ class SolarSystem {
         this.solarSystemControlPanel = null;
         this.viewControlPanel = null;
 
-        // Scale mode state: 'no-scale', 'size-scale', or 'distance-scale'
+        // Scale mode state: 'no-scale', 'size-scale', 'distance-scale', 'full-scale'
         this.scaleModeState = 'no-scale';
 
         // Initialize planets collection - used in SolarSystem
@@ -227,6 +227,9 @@ class SolarSystem {
                 break;
             case 'distance-scale':
                 modeData = object.distanceScaleModeData;
+                break;
+            case 'full-scale':
+                modeData = object.fullScaleModeData;
                 break;
             default:
                 modeData = object.noScaleModeData;

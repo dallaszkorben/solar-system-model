@@ -110,8 +110,33 @@ class Saturn extends Planet {
         maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
     };
 
+    static fullScaleModeData = {
+        diameter: Saturn.factData.diameter/1000,
+        orbitRadius: Saturn.factData.orbitRadius/1000,
+        get rotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Saturn.factData.rotationPeriod, Saturn.factData.orbitalPeriod);
+            return 10 * relativePeriods.rotation;
+        },
+        get maxRotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Saturn.factData.rotationPeriod, Saturn.factData.orbitalPeriod);
+            return 1 * relativePeriods.rotation;
+        },
+        get orbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Saturn.factData.rotationPeriod, Saturn.factData.orbitalPeriod);
+            return 600 * relativePeriods.orbit;
+        },
+        get maxOrbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Saturn.factData.rotationPeriod, Saturn.factData.orbitalPeriod);
+            return 60 * relativePeriods.orbit;
+        },
+        rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
+        maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
+        orbitSpeed: function() { return (2 * Math.PI) / (this.orbitalPeriod * 60); },
+        maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
+    };
+
     constructor(solarSystem) {
-        super(solarSystem, Saturn.factData, Saturn.nonScaleModelData, Saturn.sizeScaleModeData, Saturn.distanceScaleModeData);
+        super(solarSystem, Saturn.factData, Saturn.nonScaleModelData, Saturn.sizeScaleModeData, Saturn.distanceScaleModeData, Saturn.fullScaleModeData);
 
         this.name = Saturn.NAME;
         this.id   = Saturn.ID;

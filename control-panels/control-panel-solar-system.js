@@ -25,7 +25,8 @@ class SolarSystemControlPanel extends ControlPanel {
     static scaleModeValues = {
         noScale: 'no-scale',
         sizeScale: 'size-scale',
-        distanceScale: 'distance-scale'
+        distanceScale: 'distance-scale',
+        fullScale: 'full-scale'
     }
 
     constructor(solarSystem) {
@@ -72,7 +73,8 @@ class SolarSystemControlPanel extends ControlPanel {
         const options = [
             { id: 'scale-no', label: 'No', value: SolarSystemControlPanel.scaleModeValues.noScale },
             { id: 'scale-size', label: 'Size', value: SolarSystemControlPanel.scaleModeValues.sizeScale },
-            { id: 'scale-distance', label: 'Distance', value: SolarSystemControlPanel.scaleModeValues.distanceScale }
+            { id: 'scale-distance', label: 'Distance', value: SolarSystemControlPanel.scaleModeValues.distanceScale },
+            { id: 'scale-full', label: 'Full', value: SolarSystemControlPanel.scaleModeValues.fullScale }
         ];
 
         options.forEach(option => {

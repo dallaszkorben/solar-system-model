@@ -98,8 +98,33 @@ class Venus extends Planet {
         maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
     };
 
+    static fullScaleModeData = {
+        diameter: Venus.factData.diameter/1000,
+        orbitRadius: Venus.factData.orbitRadius/1000,
+        get rotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Venus.factData.rotationPeriod, Venus.factData.orbitalPeriod);
+            return 10 * relativePeriods.rotation;
+        },
+        get maxRotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Venus.factData.rotationPeriod, Venus.factData.orbitalPeriod);
+            return 1 * relativePeriods.rotation;
+        },
+        get orbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Venus.factData.rotationPeriod, Venus.factData.orbitalPeriod);
+            return 600 * relativePeriods.orbit;
+        },
+        get maxOrbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Venus.factData.rotationPeriod, Venus.factData.orbitalPeriod);
+            return 60 * relativePeriods.orbit;
+        },
+        rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
+        maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
+        orbitSpeed: function() { return (2 * Math.PI) / (this.orbitalPeriod * 60); },
+        maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
+    };
+
     constructor(solarSystem) {
-        super(solarSystem, Venus.factData, Venus.nonScaleModelData, Venus.sizeScaleModeData, Venus.distanceScaleModeData);
+        super(solarSystem, Venus.factData, Venus.nonScaleModelData, Venus.sizeScaleModeData, Venus.distanceScaleModeData, Venus.fullScaleModeData);
 
         this.name = Venus.NAME;
         this.id   = Venus.ID;

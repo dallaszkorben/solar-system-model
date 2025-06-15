@@ -97,8 +97,32 @@ class Neptune extends Planet {
         maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
     };
 
+    static fullScaleModeData = {
+        diameter: Neptune.factData.diameter/1000,
+        orbitRadius: Neptune.factData.orbitRadius/1000,
+        get rotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Neptune.factData.rotationPeriod, Neptune.factData.orbitalPeriod);
+            return 10 * relativePeriods.rotation;
+        },
+        get maxRotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Neptune.factData.rotationPeriod, Neptune.factData.orbitalPeriod);
+            return 1 * relativePeriods.rotation;
+        },
+        get orbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Neptune.factData.rotationPeriod, Neptune.factData.orbitalPeriod);
+            return 600 * relativePeriods.orbit;
+        },
+        get maxOrbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Neptune.factData.rotationPeriod, Neptune.factData.orbitalPeriod);
+            return 60 * relativePeriods.orbit;
+        },
+        rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
+        maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
+        orbitSpeed: function() { return (2 * Math.PI) / (this.orbitalPeriod * 60); },
+        maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
+    };
     constructor(solarSystem) {
-        super(solarSystem, Neptune.factData, Neptune.nonScaleModelData, Neptune.sizeScaleModeData, Neptune.distanceScaleModeData);
+        super(solarSystem, Neptune.factData, Neptune.nonScaleModelData, Neptune.sizeScaleModeData, Neptune.distanceScaleModeData, Neptune.fullScaleModeData);
 
         this.name = Neptune.NAME;
         this.id   = Neptune.ID;

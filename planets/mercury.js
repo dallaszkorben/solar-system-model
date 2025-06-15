@@ -97,8 +97,33 @@ class Mercury extends Planet {
         maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
     };
 
+    static fullScaleModeData = {
+        diameter: Mercury.factData.diameter/1000,
+        orbitRadius: Mercury.factData.orbitRadius/1000,
+        get rotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Mercury.factData.rotationPeriod, Mercury.factData.orbitalPeriod);
+            return 10 * relativePeriods.rotation;
+        },
+        get maxRotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Mercury.factData.rotationPeriod, Mercury.factData.orbitalPeriod);
+            return 1 * relativePeriods.rotation;
+        },
+        get orbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Mercury.factData.rotationPeriod, Mercury.factData.orbitalPeriod);
+            return 600 * relativePeriods.orbit;
+        },
+        get maxOrbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Mercury.factData.rotationPeriod, Mercury.factData.orbitalPeriod);
+            return 60 * relativePeriods.orbit;
+        },
+        rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
+        maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
+        orbitSpeed: function() { return (2 * Math.PI) / (this.orbitalPeriod * 60); },
+        maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
+    };
+
     constructor(solarSystem) {
-        super(solarSystem, Mercury.factData, Mercury.nonScaleModelData, Mercury.sizeScaleModeData, Mercury.distanceScaleModeData);
+        super(solarSystem, Mercury.factData, Mercury.nonScaleModelData, Mercury.sizeScaleModeData, Mercury.distanceScaleModeData, Mercury.fullScaleModeData);
 
         this.name = Mercury.NAME;
         this.id   = Mercury.ID;

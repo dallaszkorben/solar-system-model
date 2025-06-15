@@ -40,7 +40,7 @@ class Planet {
         };
     }
 
-    constructor(solarSystem, factData, noScaleModeData, sizeScaleModeData, distanceScaleModeData) {
+    constructor(solarSystem, factData, noScaleModeData, sizeScaleModeData, distanceScaleModeData, fullScaleModeData) {
 
         // Store reference data
         this.solarSystem = solarSystem;
@@ -49,6 +49,7 @@ class Planet {
         this.noScaleModeData = noScaleModeData;
         this.sizeScaleModeData = sizeScaleModeData;
         this.distanceScaleModeData = distanceScaleModeData;
+        this.fullScaleModeData = fullScaleModeData;
 
         this.name = Planet.NAME;
         this.id   = Planet.ID;

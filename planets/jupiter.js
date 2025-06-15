@@ -97,10 +97,33 @@ class Jupiter extends Planet {
         maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
     };
 
-
+    static fullScaleModeData = {
+        diameter: Jupiter.factData.diameter/1000,
+        orbitRadius: Jupiter.factData.orbitRadius/1000,
+        get rotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Jupiter.factData.rotationPeriod, Jupiter.factData.orbitalPeriod);
+            return 10 * relativePeriods.rotation;
+        },
+        get maxRotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Jupiter.factData.rotationPeriod, Jupiter.factData.orbitalPeriod);
+            return 1 * relativePeriods.rotation;
+        },
+        get orbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Jupiter.factData.rotationPeriod, Jupiter.factData.orbitalPeriod);
+            return 600 * relativePeriods.orbit;
+        },
+        get maxOrbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Jupiter.factData.rotationPeriod, Jupiter.factData.orbitalPeriod);
+            return 60 * relativePeriods.orbit;
+        },
+        rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
+        maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
+        orbitSpeed: function() { return (2 * Math.PI) / (this.orbitalPeriod * 60); },
+        maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
+    };
 
     constructor(solarSystem) {
-        super(solarSystem, Jupiter.factData, Jupiter.nonScaleModelData, Jupiter.sizeScaleModeData, Jupiter.distanceScaleModeData);
+        super(solarSystem, Jupiter.factData, Jupiter.nonScaleModelData, Jupiter.sizeScaleModeData, Jupiter.distanceScaleModeData, Jupiter.fullScaleModeData);
 
         this.name = Jupiter.NAME;
         this.id   = Jupiter.ID;

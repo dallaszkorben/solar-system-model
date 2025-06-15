@@ -22,7 +22,6 @@ class Sun extends Planet {
         orbitalPeriod: 0,           // Sun doesn't orbit anything
     };
 
-
     static nonScaleModelData = {
         diameter: Sun.factData.diameter/30.0, // visually appealing diameter
         orbitRadius: 0,                       // Sun doesn't orbit anything
@@ -92,8 +91,33 @@ class Sun extends Planet {
         maxOrbitSpeed: function() { return 0; },
     };
 
+    static fullScaleModeData = {
+        diameter: Sun.factData.diameter/1000,
+        orbitRadius: 0,
+        get rotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Sun.factData.rotationPeriod, Sun.factData.orbitalPeriod);
+            return 10 * relativePeriods.rotation;
+        },
+        get maxRotationPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Sun.factData.rotationPeriod, Sun.factData.orbitalPeriod);
+            return 1 * relativePeriods.rotation;
+        },
+        get orbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Sun.factData.rotationPeriod, Sun.factData.orbitalPeriod);
+            return 600 * relativePeriods.orbit;
+        },
+        get maxOrbitalPeriod() {
+            const relativePeriods = Planet.calculateRelativePeriods(Sun.factData.rotationPeriod, Sun.factData.orbitalPeriod);
+            return 60 * relativePeriods.orbit;
+        },
+        rotationSpeed: function() { return (2 * Math.PI) / (this.rotationPeriod * 60); },
+        maxRotationSpeed: function() { return (2 * Math.PI) / (this.maxRotationPeriod * 60); },
+        orbitSpeed: function() { return 0; },
+        maxOrbitSpeed: function() { return 0; },
+    };
+
     constructor(solarSystem) {
-        super(solarSystem, Sun.factData, Sun.nonScaleModelData, Sun.sizeScaleModeData, Sun.distanceScaleModeData);
+        super(solarSystem, Sun.factData, Sun.nonScaleModelData, Sun.sizeScaleModeData, Sun.distanceScaleModeData, Sun.fullScaleModeData, Sun.fullScaleModeData);
 
         this.name = Sun.NAME;
         this.id   = Sun.ID;
