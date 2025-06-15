@@ -120,7 +120,7 @@ class Mars extends Planet {
         this.createLocationMarkers();
 
         // Create side view marker
-        this.sideViewMarker = this.createSideViewMarker();
+        this.createSideViewMarker();
 
     }
 

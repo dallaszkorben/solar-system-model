@@ -19,11 +19,13 @@ class PlanetControlPanel extends ControlPanel {
         nortPoleAxisSwitch:         'earth-panel-north-pole-axis-toggle',
         latitudeVisibilitySwitch:   '-panel-latitude-toggle',
         localMarkerVisibilitySwitch:'-panel-local-marker-toggle',
+        sideMarkerVisibilitySwitch: '-panel-side-marker-toggle',
         orbitPositionMarkersSwitch: '-panel-orbit-position-markers-toggle',
     };
 
     static defaultAxisVisibility = true;
     static defaultLocalMarkersVisibility = true;
+    static defaultSideMarkersVisibility = false;
     static defaultOrbitPositionMarkersVisibility = false;
 
     constructor(planet) {
@@ -44,6 +46,10 @@ class PlanetControlPanel extends ControlPanel {
 
     getDefaultLocalMarkersVisibility(){
         return PlanetControlPanel.defaultLocalMarkersVisibility;
+    }
+
+    getDefaultSideMarkersVisibility(){
+        return PlanetControlPanel.defaultSideMarkersVisibility;
     }
 
     getDefaultOrbitPositionMarkersVisibility(){
@@ -211,6 +217,10 @@ class PlanetControlPanel extends ControlPanel {
         }
     }
 
+    setOrbitPositionMarkerVisibility(visible){
+        this.planet.setOrbitPositionMarkersVisibility(visible);
+    }
+
     setLocalMarkersVisibility(visible){
         this.planet.setLocalMarkersVisible(visible);
 
@@ -227,7 +237,14 @@ class PlanetControlPanel extends ControlPanel {
         document.dispatchEvent(event);
     }
 
-    setSideMarkersVisibility(visible){
+    setSideViewMarkerVisibility(visible){
+        this.planet.setSideViewMarkerVisible(visible);
+
+        // Update the side markers toggle in the Planet Controls panel
+        const sideMarkersVisibilityToggle = document.getElementById(`${this.planet.id}${PlanetControlPanel.elementIds.sideMarkerVisibilitySwitch}`);
+        if (sideMarkersVisibilityToggle && sideMarkersVisibilityToggle.checked !== visible) {
+            sideMarkersVisibilityToggle.checked = visible;
+        }
     }
 
 //---
@@ -274,6 +291,9 @@ class PlanetControlPanel extends ControlPanel {
 
         // Add local marker toggle
         this.addLocalMarkersToggle();
+
+        // Add side marker toggle
+        this.addSideViewMarkersToggle();
 
         // Add orbit position markers toggle
         this.addOrbitPositionMarkersToggle();
@@ -477,9 +497,7 @@ class PlanetControlPanel extends ControlPanel {
             checked: visibility,
             id: `${this.planet.id}${PlanetControlPanel.elementIds.axisVisibilitySwitch}`,
             onChange: (checked) => {
-                if (this.planet.axis) {
-                    this.planet.axis.visible = checked;
-                }
+                this.setRotationAxisVisibility(checked);
             },
             parent: this.consoleContent
         });
@@ -538,6 +556,22 @@ class PlanetControlPanel extends ControlPanel {
     }
 
     /**
+     * Add side marker visibility toggle
+     */
+    addSideViewMarkersToggle() {
+        return this.createToggleComponent({
+            label: 'Side Marker: ',
+            tooltip: `Show/Hide side marker for ${this.planet.name}`,
+            checked: this.getDefaultSideMarkersVisibility(),
+            id: `${this.planet.id}${PlanetControlPanel.elementIds.sideMarkerVisibilitySwitch}`,
+            onChange: (checked) => {
+                this.setSideViewMarkerVisibility(checked);
+            },
+            parent: this.consoleContent
+        });
+    }
+
+    /**
      * Add orbit position markers toggle
      */
     addOrbitPositionMarkersToggle() {
@@ -547,7 +581,8 @@ class PlanetControlPanel extends ControlPanel {
             checked: this.getDefaultOrbitPositionMarkersVisibility(),
             id: `${this.planet.id}${PlanetControlPanel.elementIds.orbitPositionMarkersSwitch}`,
             onChange: (checked) => {
-                this.planet.setOrbitPositionMarkersVisibility(checked);
+//                this.planet.setOrbitPositionMarkersVisibility(checked);
+                this.setOrbitPositionMarkerVisibility(checked);
             },
             parent: this.consoleContent
         });

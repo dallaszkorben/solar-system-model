@@ -490,7 +490,7 @@ class SolarSystemControlPanel extends ControlPanel {
         Object.entries(this.controlPanels).forEach(([key, controlPanel]) => {
             controlPanel.setLocalMarkersVisibility(visible);
         });
-        
+
         // Dispatch event for camera position marker and other listeners
         const event = new CustomEvent('toggleLocationMarkers', {
             detail: { visible: visible }
@@ -500,9 +500,9 @@ class SolarSystemControlPanel extends ControlPanel {
 
     setAllSideMarkersVisible(visible) {
         Object.entries(this.controlPanels).forEach(([key, controlPanel]) => {
-            controlPanel.setSideMarkersVisibility(visible);
+            controlPanel.setSideViewMarkerVisibility(visible);
         });
-        
+
         // Dispatch event for side view markers
         const event = new CustomEvent('toggleSideMarkers', {
             detail: { visible: visible }

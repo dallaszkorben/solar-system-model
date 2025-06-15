@@ -53,7 +53,7 @@ class Planet {
         this.id   = Planet.ID;
 
         this.axis = null;
-
+        this.sideViewMarker = null;
 
         // Location markers
         this.locationMarkers = [];
@@ -224,7 +224,6 @@ class Planet {
         this.group.rotation.x = THREE.MathUtils.degToRad(this.axialTilt.x);
         this.group.rotation.y = THREE.MathUtils.degToRad(this.axialTilt.y);
         this.group.rotation.z = THREE.MathUtils.degToRad(this.axialTilt.z);
-
     }
 
     // ------------------------
@@ -345,7 +344,13 @@ class Planet {
     // ------------------------
 
     createSideViewMarker() {
-        return new SideViewMarkers(this);
+        this.sideViewMarker = new SideViewMarkers(this);
+    }
+
+    setSideViewMarkerVisible(visible){
+        if(this.sideViewMarker){
+            this.sideViewMarker.setVisible(visible);
+        }
     }
 
     // -------------
