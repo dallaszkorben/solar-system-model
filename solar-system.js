@@ -161,6 +161,85 @@ class SolarSystem {
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
     }
+    
+    /**
+     * Calculate position at a specific angle around a planet's equator and meridian
+     * @param {Object} planet - The planet object
+     * @param {number} verticalAngleDiff - Angle in radians to move around the equator
+     * @param {number} horizontalAngleDiff - Angle in radians to move up/down along meridian
+     * @param {number} depthTranslate - Factor of planet diameter for distance
+     * @returns {THREE.Vector3} The calculated position
+     */
+    calculateEquatorialPosition(planet, verticalAngleDiff = 0, horizontalAngleDiff = 0, depthTranslate = 1.5) {
+        if (!planet) return null;
+        
+        // Get planet position
+        const planetWorldPos = new THREE.Vector3();
+        planet.sphere.getWorldPosition(planetWorldPos);
+        
+        // Calculate distance based on planet size
+        const distance = planet.diameter * depthTranslate;
+        
+        // Add PI/2 to the angle to make 0 the default position
+        const adjustedVerticalAngle = verticalAngleDiff + Math.PI/2;
+        
+        // Create position using spherical coordinates
+        const basePosition = new THREE.Vector3(
+            Math.cos(adjustedVerticalAngle) * Math.cos(horizontalAngleDiff),
+            Math.sin(horizontalAngleDiff),
+            Math.sin(adjustedVerticalAngle) * Math.cos(horizontalAngleDiff)
+        );
+        
+        // Apply the planet's axial tilt (rotation around Z-axis)
+        if (planet.axialTilt && planet.axialTilt.z !== undefined) {
+            const tiltRadians = THREE.MathUtils.degToRad(planet.axialTilt.z);
+            const tiltMatrix = new THREE.Matrix4().makeRotationZ(tiltRadians);
+            basePosition.applyMatrix4(tiltMatrix);
+        }
+        
+        // Scale to the desired distance
+        basePosition.multiplyScalar(distance);
+        
+        // Return the final position
+        return new THREE.Vector3().addVectors(planetWorldPos, basePosition);
+    }
+    
+    /**
+     * Calculate position at a specific angle around a planet's orbit plane
+     * @param {Object} planet - The planet object
+     * @param {number} verticalAngleDiff - Angle in radians to move around the orbit plane
+     * @param {number} horizontalAngleDiff - Angle in radians to move up/down from orbit plane
+     * @param {number} depthTranslate - Factor of planet diameter for distance
+     * @returns {THREE.Vector3} The calculated position
+     */
+    calculateOrbitalPosition(planet, verticalAngleDiff = 0, horizontalAngleDiff = 0, depthTranslate = 1.5) {
+        if (!planet) return null;
+        
+        // Get planet position
+        const planetWorldPos = new THREE.Vector3();
+        planet.sphere.getWorldPosition(planetWorldPos);
+        
+        // Calculate distance based on planet size
+        const distance = planet.diameter * depthTranslate;
+        
+        // Add PI/2 to the angle to make 0 the default position
+        const adjustedAngle = verticalAngleDiff + Math.PI/2;
+        
+        // Create position using spherical coordinates
+        // verticalAngleDiff controls position around the orbit plane (X-Z)
+        // horizontalAngleDiff controls elevation from the orbit plane (Y)
+        const basePosition = new THREE.Vector3(
+            Math.cos(adjustedAngle) * Math.cos(horizontalAngleDiff),
+            Math.sin(horizontalAngleDiff),
+            Math.sin(adjustedAngle) * Math.cos(horizontalAngleDiff)
+        );
+        
+        // Scale to the desired distance
+        basePosition.multiplyScalar(distance);
+        
+        // Return the final position
+        return new THREE.Vector3().addVectors(planetWorldPos, basePosition);
+    }
 
     // Method to set global rotation speed factor (0-10)
     setGlobalRotationSpeed(factor) {
