@@ -2,7 +2,11 @@
  * LocationMarker class for creating specific location markers on planets
  */
 class LocationMarker {
-    constructor(planet, name, latitude, longitude, color = 0xffff00) {
+
+    static markerSphereScale = 1/100;
+    static markerSphereColor = 0xffff00;
+
+    constructor(planet, name, latitude, longitude, color = LocationMarker.markerSphereColor) {
         this.planet = planet;
         this.name = name;
         this.latitude = latitude;    // in degrees
@@ -22,7 +26,7 @@ class LocationMarker {
         }
 
         // Create the marker with size as 1% of the planet's diameter
-        this.updateMarkerSize();
+        this.markerSize = this.planet.diameter * LocationMarker.markerSphereScale;
 
         // Create new marker with updated size
         this.createMarker();

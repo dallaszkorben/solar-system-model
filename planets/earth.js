@@ -125,13 +125,15 @@ class Earth extends Planet {
             { name: 'spring', description: '', angle: Math.PI/2,   color: 0x00ff00 },
             { name: 'autumn', description: '', angle: Math.PI*3/2, color: 0xff5500 }
         ];
-//        this.createOrbitPositionMarkers(this.orbitPositionMarkerList);
 
         this.createOrbitPositionMarkers();
 
         // Create location markers
         this.locationMarkers = [];
         this.createLocationMarkers();
+
+        // Create side view marker
+        this.sideViewMarker = this.createSideViewMarker();
     }
 
     getOrbitPositionMarkerList() {
@@ -160,9 +162,6 @@ class Earth extends Planet {
             this.locationMarkers.forEach(marker => marker.setVisible(visible));
         }
     }
-
-    // This method has been moved to the Planet base class
-    // makeDraggableElement is now inherited from Planet
 
     // Create a north pole axis that extends to the sky
     createNorthPoleAxis() {

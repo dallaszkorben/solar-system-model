@@ -340,6 +340,14 @@ class Planet {
         });
     }
 
+    // ------------------------
+    // --- Side View Marker ---
+    // ------------------------
+
+    createSideViewMarker() {
+        return new SideViewMarkers(this);
+    }
+
     // -------------
     // --- Orbit ---
     // -------------
@@ -829,6 +837,11 @@ class Planet {
             // Counter-rotate the planet group to maintain tilt direction in space
             // This keeps the axial tilt fixed in the Y-X plane
             this.group.rotation.y -= deltaAngle;
+        }
+
+        // Update side view marker if present
+        if (this.sideViewMarker) {
+            this.sideViewMarker.update();
         }
     }
 }

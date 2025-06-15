@@ -113,9 +113,8 @@ class SolarSystem {
                     }
                 });
             });
-            
-            // Create side view markers
-            this.sideViewMarkers = new SideViewMarkers(this);
+
+            // Side view markers are now created by the Earth planet
 
             console.log('All planets initialized and added to scene');
     }
@@ -163,11 +162,8 @@ class SolarSystem {
         if (this.viewControlPanel && this.viewControlPanel.activeView) {
             this.viewControlPanel.activeView.update();
         }
-        
-        // Update side view markers
-        if (this.sideViewMarkers) {
-            this.sideViewMarkers.update();
-        }
+
+        // Side view markers are now updated by the Earth planet
 
         this.renderer.render(this.scene, this.camera);
     }
