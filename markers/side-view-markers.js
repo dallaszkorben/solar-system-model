@@ -13,11 +13,6 @@ class SideViewMarkers {
 
         // Create marker for the planet
         this.createMarker();
-
-        // Listen for side markers visibility toggle
-        document.addEventListener('toggleSideMarkers', (event) => {
-            this.setVisible(event.detail.visible);
-        });
     }
 
     createMarker() {

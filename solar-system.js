@@ -104,18 +104,6 @@ class SolarSystem {
                 this.scene.add(planetObj.getObject());
             });
 
-            // Set up event listener for toggling location markers
-            document.addEventListener('toggleLocationMarkers', (event) => {
-                // Update location markers on planets
-                Object.values(this.planetObjs).forEach(planet => {
-                    if (typeof planet.setLocationMarkersVisible === 'function') {
-                        planet.setLocationMarkersVisible(event.detail.visible);
-                    }
-                });
-            });
-
-            // Side view markers are now created by the Earth planet
-
             console.log('All planets initialized and added to scene');
     }
 

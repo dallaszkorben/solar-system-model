@@ -293,7 +293,7 @@ class PlanetControlPanel extends ControlPanel {
         this.addLocalMarkersToggle();
 
         // Add side marker toggle
-        this.addSideViewMarkersToggle();
+        this.addSideViewMarkerToggle();
 
         // Add orbit position markers toggle
         this.addOrbitPositionMarkersToggle();
@@ -558,7 +558,7 @@ class PlanetControlPanel extends ControlPanel {
     /**
      * Add side marker visibility toggle
      */
-    addSideViewMarkersToggle() {
+    addSideViewMarkerToggle() {
         return this.createToggleComponent({
             label: 'Side Marker: ',
             tooltip: `Show/Hide side marker for ${this.planet.name}`,

@@ -121,7 +121,6 @@ class Mars extends Planet {
 
         // Create side view marker
         this.createSideViewMarker();
-
     }
 
     getLatitudeCircleList() {
