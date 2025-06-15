@@ -99,7 +99,7 @@ class SolarSystem {
             // Add all planets to the scene (excluding sky which is handled separately)
             Object.entries(SolarSystem.celestialBodies).forEach(([key, body]) => {
                 const planetClass = body.bodyClass;
-                const planetObj = new planetClass(this.scene);
+                const planetObj = new planetClass(this);
                 this.planetObjs[key] = planetObj;
                 this.scene.add(planetObj.getObject());
             });

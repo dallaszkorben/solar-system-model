@@ -104,9 +104,9 @@ class Earth extends Planet {
 
 
 
-    constructor(scene) {
+    constructor(solarSystem) {
 
-        super(scene, Earth.factData, Earth.noScaleModeData, Earth.sizeScaleModeData, Earth.distanceScaleModeData);
+        super(solarSystem, Earth.factData, Earth.noScaleModeData, Earth.sizeScaleModeData, Earth.distanceScaleModeData);
 
         this.name = Earth.NAME;
         this.id   = Earth.ID;

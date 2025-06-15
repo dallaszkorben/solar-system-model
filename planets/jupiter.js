@@ -99,8 +99,8 @@ class Jupiter extends Planet {
 
 
 
-    constructor(scene) {
-        super(scene, Jupiter.factData, Jupiter.nonScaleModelData, Jupiter.sizeScaleModeData, Jupiter.distanceScaleModeData);
+    constructor(solarSystem) {
+        super(solarSystem, Jupiter.factData, Jupiter.nonScaleModelData, Jupiter.sizeScaleModeData, Jupiter.distanceScaleModeData);
 
         this.name = Jupiter.NAME;
         this.id   = Jupiter.ID;

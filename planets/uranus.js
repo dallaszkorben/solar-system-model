@@ -111,8 +111,8 @@ class Uranus extends Planet {
         maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
     };
 
-    constructor(scene) {
-        super(scene, Uranus.factData, Uranus.nonScaleModelData, Uranus.sizeScaleModeData, Uranus.distanceScaleModeData);
+    constructor(solarSystem) {
+        super(solarSystem, Uranus.factData, Uranus.nonScaleModelData, Uranus.sizeScaleModeData, Uranus.distanceScaleModeData);
 
         this.name = Uranus.NAME;
         this.id   = Uranus.ID;

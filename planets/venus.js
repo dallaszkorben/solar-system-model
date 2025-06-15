@@ -98,8 +98,8 @@ class Venus extends Planet {
         maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
     };
 
-    constructor(scene) {
-        super(scene, Venus.factData, Venus.nonScaleModelData, Venus.sizeScaleModeData, Venus.distanceScaleModeData);
+    constructor(solarSystem) {
+        super(solarSystem, Venus.factData, Venus.nonScaleModelData, Venus.sizeScaleModeData, Venus.distanceScaleModeData);
 
         this.name = Venus.NAME;
         this.id   = Venus.ID;

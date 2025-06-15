@@ -97,8 +97,8 @@ class Neptune extends Planet {
         maxOrbitSpeed: function() { return (2 * Math.PI) / (this.maxOrbitalPeriod * 60); },
     };
 
-    constructor(scene) {
-        super(scene, Neptune.factData, Neptune.nonScaleModelData, Neptune.sizeScaleModeData, Neptune.distanceScaleModeData);
+    constructor(solarSystem) {
+        super(solarSystem, Neptune.factData, Neptune.nonScaleModelData, Neptune.sizeScaleModeData, Neptune.distanceScaleModeData);
 
         this.name = Neptune.NAME;
         this.id   = Neptune.ID;

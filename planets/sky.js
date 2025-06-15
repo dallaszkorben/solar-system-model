@@ -20,7 +20,7 @@ class Sky extends Planet {
         orbitRadius: 0              // No orbit
     };
 
-    constructor(scene) {
+    constructor(solarSystem) {
             console.log('Creating Sky object...');
 
             // No-scale mode data
@@ -45,7 +45,7 @@ class Sky extends Planet {
 
 
             // Call parent constructor
-            super(scene, Sky.factData, noScaleModeData, sizeScaleModeData, distanceScaleModeData);
+            super(solarSystem, Sky.factData, noScaleModeData, sizeScaleModeData, distanceScaleModeData);
 
             this.name = Sky.NAME;
             this.id   = Sky.ID;
