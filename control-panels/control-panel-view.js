@@ -95,7 +95,7 @@ class ViewControlPanel extends ControlPanel {
         // Add radio buttons for Earth location views
         this.addViewRadioButton('Earth: Budapest', 'view', 'budapest', locationViewRadioGroup);
         this.addViewRadioButton('Earth: Kiruna', 'view', 'kiruna', locationViewRadioGroup);
-        
+
         // Add radio button for Mars location view
         this.addViewRadioButton('Mars: Perseverance', 'view', 'perseverance', locationViewRadioGroup);
     }
@@ -242,9 +242,9 @@ class ViewControlPanel extends ControlPanel {
                 this.planetSliderValues[planetName].horizontal = value;
 
                 // Update the camera position
-                if (this.activeView.positionCameraAtEquatorAngle) {
+                if (this.activeView.positionSideViewCamera) {
                     const verticalValue = this.planetSliderValues[planetName].vertical || 0;
-                    this.activeView.positionCameraAtEquatorAngle(verticalValue, value);
+                    this.activeView.positionSideViewCamera(verticalValue, value);
                 }
             } else if (this.activeView instanceof LocalView) {
                 const viewType = this.activeView.viewType;
@@ -295,13 +295,13 @@ class ViewControlPanel extends ControlPanel {
                 }
                 this.planetSliderValues[locationName].horizontal = defaultValue;
 
-                if (this.activeView.positionCameraAtEquatorAngle) {
+                if (this.activeView.positionSideViewCamera) {
                     const verticalValue = this.planetSliderValues[locationName].vertical || 0;
-                    this.activeView.positionCameraAtEquatorAngle(verticalValue, defaultValue);
+                    this.activeView.positionSideViewCamera(verticalValue, defaultValue);
                 }
             } else if (this.activeView instanceof LocalView) {
                 const viewType = this.activeView.viewType;
-                
+
                 // Get default value
                 let defaultValue = 0;
                 if (LocalView.viewCameras &&
@@ -309,14 +309,14 @@ class ViewControlPanel extends ControlPanel {
                     LocalView.viewCameras[viewType].rotateHorizontalDefaultValue !== undefined) {
                     defaultValue = LocalView.viewCameras[viewType].rotateHorizontalDefaultValue;
                 }
-                
+
                 // Update slider and camera
                 horizontalRotationSlider.value = defaultValue;
                 if (!this.planetSliderValues[viewType]) {
                     this.planetSliderValues[viewType] = {};
                 }
                 this.planetSliderValues[viewType].horizontal = defaultValue;
-                
+
                 // Update the camera position
                 this.activeView.setHorizontalAngle(defaultValue);
             }
@@ -372,9 +372,9 @@ class ViewControlPanel extends ControlPanel {
                 this.planetSliderValues[planetName].vertical = value;
 
                 // Update the camera position
-                if (this.activeView.positionCameraAtEquatorAngle) {
+                if (this.activeView.positionSideViewCamera) {
                     const horizontalValue = this.planetSliderValues[planetName].horizontal || 0;
-                    this.activeView.positionCameraAtEquatorAngle(value, horizontalValue);
+                    this.activeView.positionSideViewCamera(value, horizontalValue);
                 }
             } else if (this.activeView instanceof LocalView) {
                 const viewType = this.activeView.viewType;
@@ -425,13 +425,13 @@ class ViewControlPanel extends ControlPanel {
                 }
                 this.planetSliderValues[locationName].vertical = defaultValue;
 
-                if (this.activeView.positionCameraAtEquatorAngle) {
+                if (this.activeView.positionSideViewCamera) {
                     const horizontalValue = this.planetSliderValues[locationName].horizontal || 0;
-                    this.activeView.positionCameraAtEquatorAngle(defaultValue, horizontalValue);
+                    this.activeView.positionSideViewCamera(defaultValue, horizontalValue);
                 }
             } else if (this.activeView instanceof LocalView) {
                 const viewType = this.activeView.viewType;
-                
+
                 // Get default value
                 let defaultValue = 0;
                 if (LocalView.viewCameras &&
@@ -439,14 +439,14 @@ class ViewControlPanel extends ControlPanel {
                     LocalView.viewCameras[viewType].rotateVerticalDefaultValue !== undefined) {
                     defaultValue = LocalView.viewCameras[viewType].rotateVerticalDefaultValue;
                 }
-                
+
                 // Update slider and camera
                 verticalRotationSlider.value = defaultValue;
                 if (!this.planetSliderValues[viewType]) {
                     this.planetSliderValues[viewType] = {};
                 }
                 this.planetSliderValues[viewType].vertical = defaultValue;
-                
+
                 // Update the camera position
                 this.activeView.setVerticalAngle(defaultValue);
             }
@@ -502,10 +502,10 @@ class ViewControlPanel extends ControlPanel {
                 this.planetSliderValues[planetName].depth = value;
 
                 // Update the camera position
-                if (this.activeView.positionCameraAtEquatorAngle) {
+                if (this.activeView.positionSideViewCamera) {
                     const verticalValue = this.planetSliderValues[planetName].vertical || 0;
                     const horizontalValue = this.planetSliderValues[planetName].horizontal || 0;
-                    this.activeView.positionCameraAtEquatorAngle(verticalValue, horizontalValue, value);
+                    this.activeView.positionSideViewCamera(verticalValue, horizontalValue, value);
                 }
             } else if (this.activeView instanceof LocalView) {
                 const viewType = this.activeView.viewType;
@@ -556,14 +556,14 @@ class ViewControlPanel extends ControlPanel {
                 }
                 this.planetSliderValues[locationName].depth = defaultValue;
 
-                if (this.activeView.positionCameraAtEquatorAngle) {
+                if (this.activeView.positionSideViewCamera) {
                     const verticalValue = this.planetSliderValues[locationName].vertical || 0;
                     const horizontalValue = this.planetSliderValues[locationName].horizontal || 0;
-                    this.activeView.positionCameraAtEquatorAngle(verticalValue, horizontalValue, defaultValue);
+                    this.activeView.positionSideViewCamera(verticalValue, horizontalValue, defaultValue);
                 }
             } else if (this.activeView instanceof LocalView) {
                 const viewType = this.activeView.viewType;
-                
+
                 // Get default value
                 let defaultValue = 0.01;
                 if (LocalView.viewCameras &&
@@ -571,14 +571,14 @@ class ViewControlPanel extends ControlPanel {
                     LocalView.viewCameras[viewType].traverseVerticalDefaultValue !== undefined) {
                     defaultValue = LocalView.viewCameras[viewType].traverseVerticalDefaultValue;
                 }
-                
+
                 // Update slider and camera
                 depthTranslateSlider.value = defaultValue;
                 if (!this.planetSliderValues[viewType]) {
                     this.planetSliderValues[viewType] = {};
                 }
                 this.planetSliderValues[viewType].depth = defaultValue;
-                
+
                 // Update the camera position
                 this.activeView.setCameraElevation(defaultValue);
             }
@@ -654,7 +654,7 @@ class ViewControlPanel extends ControlPanel {
         verticalTranslateResetButton.addEventListener('click', () => {
             if (this.activeView instanceof LocalView) {
                 const viewType = this.activeView.viewType;
-                
+
                 // Get default value
                 let defaultValue = 0.01;
                 if (LocalView.viewCameras &&
@@ -662,14 +662,14 @@ class ViewControlPanel extends ControlPanel {
                     LocalView.viewCameras[viewType].traverseVerticalDefaultValue !== undefined) {
                     defaultValue = LocalView.viewCameras[viewType].traverseVerticalDefaultValue;
                 }
-                
+
                 // Update slider and camera
                 verticalTranslateSlider.value = defaultValue;
                 if (!this.planetSliderValues[viewType]) {
                     this.planetSliderValues[viewType] = {};
                 }
                 this.planetSliderValues[viewType].verticalTranslate = defaultValue;
-                
+
                 // Update the camera position
                 this.activeView.setVerticalTranslate(defaultValue);
             }
@@ -717,17 +717,17 @@ class ViewControlPanel extends ControlPanel {
 
         // Set visibility based on enabled state and view type
         const isLocalView = this.activeView instanceof LocalView;
-        
+
         // Rotation controls enabled for all view types
         this.navigationControls.horizontalRotationRow.style.opacity = enabled ? '1' : '0.5';
         this.navigationControls.horizontalRotationRow.style.pointerEvents = enabled ? 'auto' : 'none';
         this.navigationControls.verticalRotationRow.style.opacity = enabled ? '1' : '0.5';
         this.navigationControls.verticalRotationRow.style.pointerEvents = enabled ? 'auto' : 'none';
-        
+
         // Depth translate enabled only for non-local views
         this.navigationControls.depthTranslateRow.style.opacity = (enabled && !isLocalView) ? '1' : '0.5';
         this.navigationControls.depthTranslateRow.style.pointerEvents = (enabled && !isLocalView) ? 'auto' : 'none';
-        
+
         // Vertical translate enabled only for local views
         this.navigationControls.verticalTranslateRow.style.opacity = (enabled && isLocalView) ? '1' : '0.5';
         this.navigationControls.verticalTranslateRow.style.pointerEvents = (enabled && isLocalView) ? 'auto' : 'none';
@@ -737,7 +737,7 @@ class ViewControlPanel extends ControlPanel {
             // Get the current view type and location/planet name
             const viewType = this.activeView.viewType;
             let locationName;
-            
+
             if (this.activeView instanceof PlanetSideView) {
                 locationName = viewType.replace('SideView', '');
             } else if (this.activeView instanceof LocalView) {
@@ -774,7 +774,7 @@ class ViewControlPanel extends ControlPanel {
                 value: 2,
                 step: 0.01
             };
-            
+
             // Get camera settings for vertical translate slider
             let verticalTranslateConfig = {
                 min: 0.01,
@@ -785,13 +785,13 @@ class ViewControlPanel extends ControlPanel {
 
             // Check if there are specific camera settings for this view
             let camera;
-            
-            if (this.activeView instanceof PlanetSideView && 
-                PlanetSideView.viewCameras && 
+
+            if (this.activeView instanceof PlanetSideView &&
+                PlanetSideView.viewCameras &&
                 PlanetSideView.viewCameras[viewType]) {
                 camera = PlanetSideView.viewCameras[viewType];
-            } else if (this.activeView instanceof LocalView && 
-                       LocalView.viewCameras && 
+            } else if (this.activeView instanceof LocalView &&
+                       LocalView.viewCameras &&
                        LocalView.viewCameras[viewType]) {
                 camera = LocalView.viewCameras[viewType];
             }
@@ -853,7 +853,7 @@ class ViewControlPanel extends ControlPanel {
                     depthTranslateConfig.value = camera.traverseDepthDefaultValue;
                     this.planetSliderValues[locationName].depth = depthTranslateConfig.value;
                 }
-                
+
                 // Configure vertical translate slider (for LocalView only)
                 if (camera.traverseVerticalMinValue !== undefined) {
                     verticalTranslateConfig.min = camera.traverseVerticalMinValue;
@@ -864,7 +864,7 @@ class ViewControlPanel extends ControlPanel {
                 if (camera.traverseVerticalStep !== undefined) {
                     verticalTranslateConfig.step = camera.traverseVerticalStep;
                 }
-                
+
                 // Use stored value or default for vertical translate
                 if (this.planetSliderValues[locationName].verticalTranslate !== undefined) {
                     verticalTranslateConfig.value = this.planetSliderValues[locationName].verticalTranslate;
@@ -905,7 +905,7 @@ class ViewControlPanel extends ControlPanel {
             this.navigationControls.depthTranslateSlider.max = depthTranslateConfig.max;
             this.navigationControls.depthTranslateSlider.step = depthTranslateConfig.step;
             this.navigationControls.depthTranslateSlider.value = depthTranslateConfig.value;
-            
+
             // Update vertical translate slider properties
             this.navigationControls.verticalTranslateSlider.min = verticalTranslateConfig.min;
             this.navigationControls.verticalTranslateSlider.max = verticalTranslateConfig.max;
@@ -914,7 +914,7 @@ class ViewControlPanel extends ControlPanel {
 
             // Show the slider thumbs based on view type
             const isLocalView = this.activeView instanceof LocalView;
-            
+
             this.navigationControls.horizontalRotationSlider.style.opacity = '1';
             this.navigationControls.verticalRotationSlider.style.opacity = '1';
             this.navigationControls.depthTranslateSlider.style.opacity = isLocalView ? '0.5' : '1';
@@ -941,7 +941,7 @@ class ViewControlPanel extends ControlPanel {
             this.navigationControls.depthTranslateSlider.max = 0;
             this.navigationControls.depthTranslateSlider.value = 0;
             this.navigationControls.depthTranslateSlider.style.opacity = '0.5';
-            
+
             this.navigationControls.verticalTranslateSlider.min = 0;
             this.navigationControls.verticalTranslateSlider.max = 0;
             this.navigationControls.verticalTranslateSlider.value = 0;
