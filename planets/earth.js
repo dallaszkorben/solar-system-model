@@ -103,8 +103,8 @@ class Earth extends Planet {
     };
 
     static fullScaleModeData = {
-        diameter: Earth.factData.diameter/1000,
-        orbitRadius: Earth.factData.orbitRadius/1000,
+        diameter: Earth.factData.diameter/Planet.scaleDownOrbitFactor,
+        orbitRadius: Earth.factData.orbitRadius/Planet.scaleDownOrbitFactor,
         get rotationPeriod() {
             const relativePeriods = Planet.calculateRelativePeriods(Earth.factData.rotationPeriod, Earth.factData.orbitalPeriod);
             return 10 * relativePeriods.rotation;

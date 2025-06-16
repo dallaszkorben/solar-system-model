@@ -377,7 +377,7 @@ class Planet {
             color: 0xffffff,
             transparent: true,
             opacity: this.orbitOpacity, // Use the orbit opacity property
-            depthTest: true,
+            depthTest: true, // Disable depth testing to make orbit lines always visible
             depthWrite: false
         });
 

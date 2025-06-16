@@ -46,9 +46,9 @@ class SolarSystem {
 
             // Create the camera
             this.camera = new THREE.PerspectiveCamera(
-                45, // Field of view
+                40, // Field of view (default 40 degrees)
                 window.innerWidth / window.innerHeight, // Aspect ratio
-                1, // Near clipping plane
+                0.01, // Near clipping plane
                 100000000 // Far clipping plane
             );
 

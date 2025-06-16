@@ -197,7 +197,7 @@ class ControlPanel {
 // ---
 
     /**
-     * Creates a control group with a slider, reset button, and toggle switch
+     * Creates a control group with a slider, optional value display, reset button, and toggle switch
      *
      * @param {Object} config - Configuration object for the control
      * @param {string} config.label - Label text for the control
@@ -207,6 +207,7 @@ class ControlPanel {
      * @param {string} config.slider.step - Step value for slider
      * @param {string} config.slider.value - Initial value for slider
      * @param {string} config.slider.id - ID for the slider element
+     * @param {string} config.slider.unit - Unit to display after value (if empty string, show value without unit; if null/undefined, hide value)
      * @param {Object} config.resetButton - Reset button configuration
      * @param {string} config.resetButton.tooltip - Tooltip for reset button
      * @param {number} config.resetButton.resetValue - Value to set when reset button is clicked
@@ -217,7 +218,7 @@ class ControlPanel {
      * @param {Function} config.onSliderChange - Function to call when slider value changes
      * @param {Function} config.onReset - Function to call when reset button is clicked
      * @param {Function} config.onToggleChange - Function to call when toggle state changes
-     * @returns {HTMLElement} - The created container element
+     * @returns {Object} - Object containing the container, slider, valueDisplay, resetButton and toggle elements
      */
     createSliderControllerComponent(config) {
         const container = document.createElement('div');
@@ -230,7 +231,7 @@ class ControlPanel {
         controlLabel.style.marginBottom = '5px';
         container.appendChild(controlLabel);
 
-        // Create controls container for slider, reset button and toggle
+        // Create controls container for slider, value display, reset button and toggle
         const controlsContainer = document.createElement('div');
         controlsContainer.style.display = 'flex';
         controlsContainer.style.alignItems = 'center';
@@ -245,6 +246,16 @@ class ControlPanel {
         slider.value = config.slider.value;
         slider.style.flexGrow = '1';
         slider.id = config.slider.id;
+        
+        // Create value display if unit is specified
+        const valueDisplay = document.createElement('span');
+        if (config.slider.unit !== undefined) {
+            valueDisplay.style.minWidth = '40px';
+            valueDisplay.style.textAlign = 'right';
+            valueDisplay.textContent = `${slider.value}${config.slider.unit || ''}`;
+        } else {
+            valueDisplay.style.display = 'none';
+        }
 
         // Create reset button
         const resetButton = document.createElement('img');
@@ -275,6 +286,11 @@ class ControlPanel {
 
         // Add event listener for slider
         slider.addEventListener('input', () => {
+            // Update value display if visible
+            if (config.slider.unit !== undefined) {
+                valueDisplay.textContent = `${slider.value}${config.slider.unit || ''}`;
+            }
+            
             if (config.onSliderChange) {
                 config.onSliderChange(slider, toggle);
             }
@@ -282,6 +298,13 @@ class ControlPanel {
 
         // Add event listener for reset button
         resetButton.addEventListener('click', () => {
+            slider.value = config.resetButton.resetValue;
+            
+            // Update value display if visible
+            if (config.slider.unit !== undefined) {
+                valueDisplay.textContent = `${slider.value}${config.slider.unit || ''}`;
+            }
+            
             if (config.onReset) {
                 config.onReset(slider, toggle, config.resetButton.resetValue);
             }
@@ -296,8 +319,14 @@ class ControlPanel {
 
         // Add components to controls container
         controlsContainer.appendChild(slider);
+        if (config.slider.unit !== undefined) {
+            controlsContainer.appendChild(valueDisplay);
+        }
         controlsContainer.appendChild(resetButton);
-        controlsContainer.appendChild(switchLabel);
+        // Only add toggle if it's required
+        if (config.toggle && config.toggle.required !== false) {
+            controlsContainer.appendChild(switchLabel);
+        }
 
         // Add controls container to main container
         container.appendChild(controlsContainer);
@@ -307,7 +336,13 @@ class ControlPanel {
             config.parent.appendChild(container);
         }
 
-        return container;
+        return {
+            container,
+            slider,
+            valueDisplay,
+            resetButton,
+            toggle
+        };
     }
 
     /**
@@ -467,6 +502,6 @@ class ControlPanel {
 
         return container;
     }
-
+    
 
 }

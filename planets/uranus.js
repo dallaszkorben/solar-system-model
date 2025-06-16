@@ -112,8 +112,8 @@ class Uranus extends Planet {
     };
 
     static fullScaleModeData = {
-        diameter: Uranus.factData.diameter/1000,
-        orbitRadius: Uranus.factData.orbitRadius/1000,
+        diameter: Uranus.factData.diameter/Planet.scaleDownOrbitFactor,
+        orbitRadius: Uranus.factData.orbitRadius/Planet.scaleDownOrbitFactor,
         get rotationPeriod() {
             const relativePeriods = Planet.calculateRelativePeriods(Uranus.factData.rotationPeriod, Uranus.factData.orbitalPeriod);
             return 10 * relativePeriods.rotation;

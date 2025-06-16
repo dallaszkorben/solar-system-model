@@ -111,8 +111,8 @@ class Saturn extends Planet {
     };
 
     static fullScaleModeData = {
-        diameter: Saturn.factData.diameter/1000,
-        orbitRadius: Saturn.factData.orbitRadius/1000,
+        diameter: Saturn.factData.diameter/Planet.scaleDownOrbitFactor,
+        orbitRadius: Saturn.factData.orbitRadius/Planet.scaleDownOrbitFactor,
         get rotationPeriod() {
             const relativePeriods = Planet.calculateRelativePeriods(Saturn.factData.rotationPeriod, Saturn.factData.orbitalPeriod);
             return 10 * relativePeriods.rotation;

@@ -23,7 +23,7 @@ class Sun extends Planet {
     };
 
     static nonScaleModelData = {
-        diameter: Sun.factData.diameter/30.0, // visually appealing diameter
+        diameter: Sun.factData.diameter/90.0, // visually appealing diameter
         orbitRadius: 0,                       // Sun doesn't orbit anything
         get rotationPeriod() {
             const relativePeriods = Planet.calculateRelativePeriods(Sun.factData.rotationPeriod, 1);
@@ -92,7 +92,7 @@ class Sun extends Planet {
     };
 
     static fullScaleModeData = {
-        diameter: Sun.factData.diameter/1000,
+        diameter: Sun.factData.diameter/Planet.scaleDownOrbitFactor,
         orbitRadius: 0,
         get rotationPeriod() {
             const relativePeriods = Planet.calculateRelativePeriods(Sun.factData.rotationPeriod, Sun.factData.orbitalPeriod);

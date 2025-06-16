@@ -98,8 +98,8 @@ class Mercury extends Planet {
     };
 
     static fullScaleModeData = {
-        diameter: Mercury.factData.diameter/1000,
-        orbitRadius: Mercury.factData.orbitRadius/1000,
+        diameter: Mercury.factData.diameter/Planet.scaleDownOrbitFactor,
+        orbitRadius: Mercury.factData.orbitRadius/Planet.scaleDownOrbitFactor,
         get rotationPeriod() {
             const relativePeriods = Planet.calculateRelativePeriods(Mercury.factData.rotationPeriod, Mercury.factData.orbitalPeriod);
             return 10 * relativePeriods.rotation;

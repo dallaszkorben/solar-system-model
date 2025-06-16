@@ -28,6 +28,7 @@ class ViewControlPanel extends ControlPanel {
         this.createPlanetSideViewsSection();
         this.createLocalViewsSection();
         this.createNavigationSection();
+        this.createCameraSection();
     }
 
     createGlobalViewsSection() {
@@ -707,6 +708,82 @@ class ViewControlPanel extends ControlPanel {
 
         // Initially set navigation controls based on active view
         this.updateNavigationControls();
+    }
+
+    createCameraSection() {
+        // Create Camera section header
+        const cameraHeader = document.createElement('h4');
+        cameraHeader.textContent = 'Camera';
+        cameraHeader.style.margin = '20px 0 10px 0';
+        cameraHeader.style.borderBottom = '1px solid #555';
+        cameraHeader.style.paddingBottom = '5px';
+        this.consoleContent.appendChild(cameraHeader);
+
+        // Create FOV slider with value display
+        const fovControls = this.createSliderControllerComponent({
+            label: 'Field of View',
+            slider: {
+                min: '20',
+                max: '100',
+                step: '1',
+                value: this.solarSystem.camera ? this.solarSystem.camera.fov.toString() : '40',
+                id: 'camera-fov-slider',
+                unit: '°' // Show value with degree symbol
+            },
+            resetButton: {
+                tooltip: 'Reset to default',
+                resetValue: 40
+            },
+            toggle: {
+                required: false // Don't show toggle switch
+            },
+            onSliderChange: (slider) => {
+                this.solarSystem.camera.fov = parseFloat(slider.value);
+                this.solarSystem.camera.updateProjectionMatrix();
+            },
+            onReset: (slider) => {
+                this.solarSystem.camera.fov = parseFloat(slider.value);
+                this.solarSystem.camera.updateProjectionMatrix();
+            },
+            parent: this.consoleContent
+        });
+
+        // Create Zoom slider with value display
+        const zoomControls = this.createSliderControllerComponent({
+            label: 'Zoom',
+            slider: {
+                min: '0.1',
+                max: '5',
+                step: '0.1',
+                value: this.solarSystem.camera ? this.solarSystem.camera.zoom.toString() : '1.0',
+                id: 'camera-zoom-slider',
+                unit: 'X' // Show value with X suffix
+            },
+            resetButton: {
+                tooltip: 'Reset to default',
+                resetValue: 1.0
+            },
+            toggle: {
+                required: false // Don't show toggle switch
+            },
+            onSliderChange: (slider) => {
+                this.solarSystem.camera.zoom = parseFloat(slider.value);
+                this.solarSystem.camera.updateProjectionMatrix();
+            },
+            onReset: (slider) => {
+                this.solarSystem.camera.zoom = parseFloat(slider.value);
+                this.solarSystem.camera.updateProjectionMatrix();
+            },
+            parent: this.consoleContent
+        });
+
+        // Store references to camera controls
+        this.cameraControls = {
+            fovSlider: fovControls.slider,
+            zoomSlider: zoomControls.slider,
+            fovValueDisplay: fovControls.valueDisplay,
+            zoomValueDisplay: zoomControls.valueDisplay
+        };
     }
 
     updateNavigationControls() {

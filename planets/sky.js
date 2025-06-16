@@ -25,7 +25,7 @@ class Sky extends Planet {
 
             // No-scale mode data
             const noScaleModeData = {
-                diameter: 40000000, // Large diameter to encompass the solar system
+                diameter: 2 * 2 * 600000, // Large diameter to encompass the solar system
                 rotationPeriod: 240, // Slow rotation (4 hours per rotation)
                 maxRotationPeriod: 60, // Maximum speed (1 hour per rotation)
                 rotationSpeed: function() { return 0; }, // Initial rotation speed set to zero
@@ -38,14 +38,50 @@ class Sky extends Planet {
             };
 
             // Size scale mode data (same as no-scale for sky)
-            const sizeScaleModeData = { ...noScaleModeData };
+            const sizeScaleModeData = {
+                diameter: 2 * 2 * Uranus.sizeScaleModeData.orbitRadius + Planet.shiftOrbit,
+                rotationPeriod: 240, // Slow rotation (4 hours per rotation)
+                maxRotationPeriod: 60, // Maximum speed (1 hour per rotation)
+                rotationSpeed: function() { return 0; }, // Initial rotation speed set to zero
+                maxRotationSpeed: function() { return 0.0004; }, // Maximum rotation speed
+                orbitRadius: 0, // No orbit
+                orbitalPeriod: 0, // No orbit
+                maxOrbitalPeriod: 0, // No orbit
+                orbitSpeed: function() { return 0; }, // No orbit
+                maxOrbitSpeed: function() { return 0; } // No orbit
+            };
 
             // Distance scale mode data (same as no-scale for sky)
-            const distanceScaleModeData = { ...noScaleModeData };
+            const distanceScaleModeData = {
+                diameter: 2 * 2 * Neptune.factData.orbitRadius/Planet.scaleDownOrbitFactor,
+                rotationPeriod: 240, // Slow rotation (4 hours per rotation)
+                maxRotationPeriod: 60, // Maximum speed (1 hour per rotation)
+                rotationSpeed: function() { return 0; }, // Initial rotation speed set to zero
+                maxRotationSpeed: function() { return 0.0004; }, // Maximum rotation speed
+                orbitRadius: 0, // No orbit
+                orbitalPeriod: 0, // No orbit
+                maxOrbitalPeriod: 0, // No orbit
+                orbitSpeed: function() { return 0; }, // No orbit
+                maxOrbitSpeed: function() { return 0; } // No orbit
+            };
+
+            // Distance scale mode data (same as no-scale for sky)
+            const fullScaleModeData = {
+                diameter: 2 * 2 * Neptune.factData.orbitRadius/Planet.scaleDownOrbitFactor,
+                rotationPeriod: 240, // Slow rotation (4 hours per rotation)
+                maxRotationPeriod: 60, // Maximum speed (1 hour per rotation)
+                rotationSpeed: function() { return 0; }, // Initial rotation speed set to zero
+                maxRotationSpeed: function() { return 0.0004; }, // Maximum rotation speed
+                orbitRadius: 0, // No orbit
+                orbitalPeriod: 0, // No orbit
+                maxOrbitalPeriod: 0, // No orbit
+                orbitSpeed: function() { return 0; }, // No orbit
+                maxOrbitSpeed: function() { return 0; } // No orbit
+            };
 
 
             // Call parent constructor
-            super(solarSystem, Sky.factData, noScaleModeData, sizeScaleModeData, distanceScaleModeData);
+            super(solarSystem, Sky.factData, noScaleModeData, sizeScaleModeData, distanceScaleModeData, fullScaleModeData);
 
             this.name = Sky.NAME;
             this.id   = Sky.ID;

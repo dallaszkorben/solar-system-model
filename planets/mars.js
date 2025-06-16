@@ -103,8 +103,8 @@ class Mars extends Planet {
     };
 
     static fullScaleModeData = {
-        diameter: Mars.factData.diameter/1000,
-        orbitRadius: Mars.factData.orbitRadius/1000,
+        diameter: Mars.factData.diameter/Planet.scaleDownOrbitFactor,
+        orbitRadius: Mars.factData.orbitRadius/Planet.scaleDownOrbitFactor,
         get rotationPeriod() {
             const relativePeriods = Planet.calculateRelativePeriods(Mars.factData.rotationPeriod, Mars.factData.orbitalPeriod);
             return 10 * relativePeriods.rotation;

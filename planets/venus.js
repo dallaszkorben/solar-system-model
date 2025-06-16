@@ -99,8 +99,8 @@ class Venus extends Planet {
     };
 
     static fullScaleModeData = {
-        diameter: Venus.factData.diameter/1000,
-        orbitRadius: Venus.factData.orbitRadius/1000,
+        diameter: Venus.factData.diameter/Planet.scaleDownOrbitFactor,
+        orbitRadius: Venus.factData.orbitRadius/Planet.scaleDownOrbitFactor,
         get rotationPeriod() {
             const relativePeriods = Planet.calculateRelativePeriods(Venus.factData.rotationPeriod, Venus.factData.orbitalPeriod);
             return 10 * relativePeriods.rotation;

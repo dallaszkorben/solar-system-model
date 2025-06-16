@@ -98,8 +98,8 @@ class Jupiter extends Planet {
     };
 
     static fullScaleModeData = {
-        diameter: Jupiter.factData.diameter/1000,
-        orbitRadius: Jupiter.factData.orbitRadius/1000,
+        diameter: Jupiter.factData.diameter/Planet.scaleDownOrbitFactor,
+        orbitRadius: Jupiter.factData.orbitRadius/Planet.scaleDownOrbitFactor,
         get rotationPeriod() {
             const relativePeriods = Planet.calculateRelativePeriods(Jupiter.factData.rotationPeriod, Jupiter.factData.orbitalPeriod);
             return 10 * relativePeriods.rotation;
