@@ -341,22 +341,12 @@ class SolarSystem {
         }
         this.camera.updateProjectionMatrix();
 
-        // Apply the appropriate scale mode data to all planets
+        // Apply the appropriate scale mode data to all planets and sky
         if (this.planetObjs) {
             Object.values(this.planetObjs).forEach(planet => {
                 this.applyScaleModeToObject(planet);
             });
         }
-
-        // Apply the appropriate scale mode data to all planets
-        if (this.planetObjs) {
-            Object.values(this.planetObjs).forEach(planet => {
-                this.applyScaleModeToObject(planet);
-            });
-        }
-
-        // Also apply to the sky if needed
-        this.applyScaleModeToObject(this.sky);
 
         // Notify active view to update camera position based on new scale
         if (this.viewControlPanel && this.viewControlPanel.activeView) {

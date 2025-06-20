@@ -25,7 +25,8 @@ class Sky extends Planet {
 
             // No-scale mode data
             const noScaleModeData = {
-                diameter: 2 * 2 * 600000, // Large diameter to encompass the solar system
+                //diameter: 2 * 2 * 600000, // Large diameter to encompass the solar system
+                diameter: 2 * 2 * Neptune.factData.orbitRadius/Planet.scaleDownOrbitFactor,
                 rotationPeriod: 240, // Slow rotation (4 hours per rotation)
                 maxRotationPeriod: 60, // Maximum speed (1 hour per rotation)
                 rotationSpeed: function() { return 0; }, // Initial rotation speed set to zero
@@ -39,7 +40,8 @@ class Sky extends Planet {
 
             // Size scale mode data (same as no-scale for sky)
             const sizeScaleModeData = {
-                diameter: 2 * 2 * Uranus.sizeScaleModeData.orbitRadius + Planet.shiftOrbit,
+                //diameter: 2 * 2 * Uranus.sizeScaleModeData.orbitRadius + Planet.shiftOrbit,
+                diameter: 2 * 2 * Neptune.factData.orbitRadius/Planet.scaleDownOrbitFactor,
                 rotationPeriod: 240, // Slow rotation (4 hours per rotation)
                 maxRotationPeriod: 60, // Maximum speed (1 hour per rotation)
                 rotationSpeed: function() { return 0; }, // Initial rotation speed set to zero
@@ -130,7 +132,7 @@ class Sky extends Planet {
 
         // Create a simple material for the sphere initially
         const material = new THREE.MeshBasicMaterial({
-            color: 0xffffff, // White color to enhance brightness
+            color: 0x000000, // Black color to prevent white flash during loading
             side: THREE.BackSide,
             depthWrite: false,
             transparent: true,
@@ -163,9 +165,15 @@ class Sky extends Planet {
 
                 // Apply the star texture with doubled brightness
                 this.sphere.material.map = starTexture;
-                // Set brightness by using the maxStarBrightness property
-                this.sphere.material.color.setRGB(this.maxStarBrightness, this.maxStarBrightness, this.maxStarBrightness);
-                this.sphere.material.needsUpdate = true;
+
+                // Apply stored brightness if available, otherwise use default
+                if (this.currentStarBrightness !== undefined) {
+                    this.setStarsBrightness(this.currentStarBrightness);
+                } else {
+                    // Set brightness by using the maxStarBrightness property
+                    this.sphere.material.color.setRGB(this.maxStarBrightness, this.maxStarBrightness, this.maxStarBrightness);
+                    this.sphere.material.needsUpdate = true;
+                }
 
                 // Now load the constellation texture
                 textureLoader.load('textures/starry-sky-constellation-texture-16k-0_0_23.4.png',
@@ -178,7 +186,8 @@ class Sky extends Planet {
                         const constellationMaterial = new THREE.MeshBasicMaterial({
                             map: constellationTexture,
                             transparent: true,
-                            opacity: this.defaultConstellationBrightness,
+//                            opacity: this.currentConstellationBrightness !== undefined ? this.currentConstellationBrightness : this.defaultConstellationBrightness,
+                            opacity: this.currentConstellationBrightness,
                             side: THREE.BackSide,
                             depthWrite: false
                         });
@@ -189,11 +198,17 @@ class Sky extends Planet {
                         constellationTexture.repeat.x = -1;
                         constellationTexture.needsUpdate = true;
 
-                        // Create and add the constellation sphere (initially hidden)
+                        // Create and add the constellation sphere
                         this.constellationSphere = new THREE.Mesh(constellationGeometry, constellationMaterial);
-                        this.constellationSphere.visible = false; // Initially hidden
+                        // Use the stored visibility state if available, otherwise default to false
+                        this.constellationSphere.visible = this.constellationVisible !== undefined ? this.constellationVisible : false;
                         this.constellationSphere.renderOrder = -999; // Ensure it's drawn before other objects but after the star sphere
                         this.group.add(this.constellationSphere);
+
+                        // Apply stored brightness if available
+                        if (this.currentConstellationBrightness !== undefined) {
+                            this.setConstellationsBrightness(this.currentConstellationBrightness);
+                        }
 
                         console.log('Both textures applied successfully');
                     },
@@ -212,6 +227,41 @@ class Sky extends Planet {
                 console.error('Error loading star texture:', error);
             }
         );
+    }
+
+    // Store current brightness values for later use
+    storeCurrentBrightness() {
+        // Store star brightness
+        if (this.sphere && this.sphere.material) {
+            const colorValue = this.sphere.material.color.r;
+            this.currentStarBrightness = colorValue / (this.maxStarBrightness * 2.0);
+        }
+
+        // Store constellation brightness
+        if (this.constellationSphere && this.constellationSphere.material) {
+            this.currentConstellationBrightness = this.constellationSphere.material.opacity;
+        }
+    }
+
+    // Override updateSphere to handle both sky sphere and constellation sphere
+    updateSphere() {
+        // Store current visibility states as class properties
+        this.sphereVisible = this.sphere ? this.sphere.visible : true;
+        this.constellationVisible = this.constellationSphere ? this.constellationSphere.visible : false;
+
+        // Store current brightness values
+        this.storeCurrentBrightness();
+
+        // Remove existing spheres
+        if (this.sphere) {
+            this.group.remove(this.sphere);
+        }
+        if (this.constellationSphere) {
+            this.group.remove(this.constellationSphere);
+        }
+
+        // Recreate sky sphere with new radius
+        this.createSkySphere();
     }
 
     // Override the update method to use customRotationSpeed
@@ -288,6 +338,9 @@ class Sky extends Planet {
 
     // Set stars brightness
     setStarsBrightness(brightness) {
+        // Store the brightness value for future use
+        this.currentStarBrightness = brightness;
+
         if (this.sphere && this.sphere.material) {
             this.sphere.material.opacity = brightness;
             this.sphere.material.transparent = brightness < 1.0;
@@ -303,6 +356,9 @@ class Sky extends Planet {
 
     // Set constellations brightness
     setConstellationsBrightness(brightness) {
+        // Store the brightness value for future use
+        this.currentConstellationBrightness = brightness;
+
         if (this.constellationSphere && this.constellationSphere.material) {
             this.constellationSphere.material.opacity = brightness;
             this.constellationSphere.material.needsUpdate = true;
