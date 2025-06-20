@@ -303,12 +303,20 @@ class SolarSystem {
             const sunVisible = this.planetObjs.sun && this.planetObjs.sun.visible;
 
             Object.values(this.planetObjs).forEach(planet => {
-
                 // Skip the sun itself
                 if (planet !== this.planetObjs.sun && typeof planet.setDayNightEffectEnabled === 'function') {
                     planet.setDayNightEffectEnabled(enabled);
                 }
             });
+            
+            // Update Own Light controls in all planet panels
+            if (this.solarSystemControlPanel && this.solarSystemControlPanel.controlPanels) {
+                Object.values(this.solarSystemControlPanel.controlPanels).forEach(panel => {
+                    if (panel && typeof panel.updateOwnLightControlState === 'function') {
+                        panel.updateOwnLightControlState(enabled);
+                    }
+                });
+            }
         }
     }
 

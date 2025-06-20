@@ -15,6 +15,8 @@ class PlanetControlPanel extends ControlPanel {
         obrbitVisibilitySwitch:     '-panel-orbit-visibiliti-toggle',
         orbitOpacitySlider:         '-panel-orbit-opacity-slider',
 
+        ownLightSlider:             '-panel-own-light-slider',
+
         axisVisibilitySwitch:       '-panel-axis-visibility-toggle',
         nortPoleAxisSwitch:         'earth-panel-north-pole-axis-toggle',
         latitudeVisibilitySwitch:   '-panel-latitude-toggle',
@@ -29,11 +31,14 @@ class PlanetControlPanel extends ControlPanel {
     static defaultSideMarkersVisibility = false;
     static defaultOrbitPositionMarkersVisibility = false;
     static defaultSolarRadialLineVisibility = false;
+    static defaultDayNightEffectEnabled = true;
+    static defaultOwnLight = 0.5;
 
     constructor(planet) {
         super(`${planet.name} Controls`, { top: '20px', right: '20px' });
         this.planet = planet;
-        
+        this.solarSystem = planet.solarSystem;
+
         // Add planet icon to the header
         this.addPlanetIconToHeader();
 
@@ -43,7 +48,7 @@ class PlanetControlPanel extends ControlPanel {
         // Hide the panel by default
         this.hide();
     }
-    
+
     addPlanetIconToHeader() {
         // Find the header title element
         const header = this.consolePane.querySelector('h3');
@@ -54,10 +59,10 @@ class PlanetControlPanel extends ControlPanel {
             icon.style.width = '24px';
             icon.style.height = '24px';
             icon.style.marginRight = '8px';
-            
+
             // Insert icon before the text
             header.insertBefore(icon, header.firstChild);
-            
+
             // Make the header display as flex to align icon and text
             header.style.display = 'flex';
             header.style.alignItems = 'center';
@@ -80,7 +85,7 @@ class PlanetControlPanel extends ControlPanel {
     getDefaultOrbitPositionMarkersVisibility(){
         return PlanetControlPanel.defaultOrbitPositionMarkersVisibility;
     }
-    
+
     getDefaultSolarRadialLineVisibility(){
         return PlanetControlPanel.defaultSolarRadialLineVisibility;
     }
@@ -275,14 +280,32 @@ class PlanetControlPanel extends ControlPanel {
             sideMarkersVisibilityToggle.checked = visible;
         }
     }
-    
+
     setSolarRadialLineVisibility(visible){
         this.planet.toggleSolarRadialLine(visible);
-        
+
         // Update the solar radial line toggle in the Planet Controls panel
         const solarRadialLineToggle = document.getElementById(`${this.planet.id}${PlanetControlPanel.elementIds.solarRadialLineSwitch}`);
         if (solarRadialLineToggle && solarRadialLineToggle.checked !== visible) {
             solarRadialLineToggle.checked = visible;
+        }
+    }
+
+    /**
+     * Update the Own Light control based on day/night effect state
+     * @param {boolean} dayNightEnabled - Whether day/night effect is enabled
+     */
+    updateOwnLightControlState(dayNightEnabled) {
+        if (this.ownLightControl) {
+            if (dayNightEnabled) {
+                // Disable the control when day/night effect is ON
+                this.ownLightControl.container.style.opacity = '0.5';
+                this.ownLightControl.container.style.pointerEvents = 'none';
+            } else {
+                // Enable the control when day/night effect is OFF
+                this.ownLightControl.container.style.opacity = '1';
+                this.ownLightControl.container.style.pointerEvents = 'auto';
+            }
         }
     }
 
@@ -297,12 +320,12 @@ class PlanetControlPanel extends ControlPanel {
         sectionHeader.style.borderBottom = '1px solid #555';
         sectionHeader.style.paddingBottom = '5px';
         this.consoleContent.appendChild(sectionHeader);
-        
+
         // Create container for fact data
         const factContainer = document.createElement('div');
         factContainer.style.marginBottom = '15px';
         factContainer.style.fontSize = '0.9em';
-        
+
         // Add fact data from the planet
         if (this.planet.factData) {
             // Diameter
@@ -311,28 +334,28 @@ class PlanetControlPanel extends ControlPanel {
                 diameterRow.innerHTML = `<span style="font-weight:bold">Diameter:</span> ${this.planet.factData.diameter.toLocaleString()} km`;
                 factContainer.appendChild(diameterRow);
             }
-            
+
             // Orbit radius (distance from Sun)
             if (this.planet.factData.orbitRadius) {
                 const orbitRow = document.createElement('div');
                 orbitRow.innerHTML = `<span style="font-weight:bold">Distance from Sun:</span> ${(this.planet.factData.orbitRadius / 1000000).toLocaleString()} million km`;
                 factContainer.appendChild(orbitRow);
             }
-            
+
             // Rotation period
             if (this.planet.factData.rotationPeriod) {
                 const rotationRow = document.createElement('div');
                 rotationRow.innerHTML = `<span style="font-weight:bold">Rotation period:</span> ${this.planet.factData.rotationPeriod} hours`;
                 factContainer.appendChild(rotationRow);
             }
-            
+
             // Orbital period
             if (this.planet.factData.orbitalPeriod) {
                 const orbitalRow = document.createElement('div');
                 orbitalRow.innerHTML = `<span style="font-weight:bold">Orbital period:</span> ${this.planet.factData.orbitalPeriod} Earth days`;
                 factContainer.appendChild(orbitalRow);
             }
-            
+
             // Axial tilt
             if (this.planet.factData.axialTilt && this.planet.factData.axialTilt.z) {
                 const tiltRow = document.createElement('div');
@@ -340,7 +363,7 @@ class PlanetControlPanel extends ControlPanel {
                 factContainer.appendChild(tiltRow);
             }
         }
-        
+
         this.consoleContent.appendChild(factContainer);
     }
 
@@ -352,7 +375,7 @@ class PlanetControlPanel extends ControlPanel {
     createVisibilitySection() {
         // Create fact data section first
         this.createFactDataSection();
-        
+
         // Create visibility section header
         const sectionHeader = document.createElement('h4');
         sectionHeader.textContent = 'Visibility Controls';
@@ -374,6 +397,21 @@ class PlanetControlPanel extends ControlPanel {
         if (this.planet.orbitRadius > 0) {
             this.addOrbitLineControl();
         }
+
+        // Add own light control - only active when day/night effect is OFF
+        const ownLightControl = this.addOwnLightControl();
+
+        // Set initial state based on day/night effect
+        // By default, the day/night effect is enabled in the solar system
+        const dayNightEnabled = PlanetControlPanel.defaultDayNightEffectEnabled;
+
+        if (dayNightEnabled) {
+            ownLightControl.container.style.opacity = '0.5';
+            ownLightControl.container.style.pointerEvents = 'none';
+        }
+
+        // Store reference to update when day/night effect changes
+        this.ownLightControl = ownLightControl;
 
         // Add axis toggle
         this.addAxisToggle(this.getDefaultAxisVisibility());
@@ -397,7 +435,7 @@ class PlanetControlPanel extends ControlPanel {
 
         // Add orbit position markers toggle
         this.addOrbitPositionMarkersToggle();
-        
+
         // Add solar radial line toggle
         this.addSolarRadialLineToggle();
 
@@ -591,6 +629,47 @@ class PlanetControlPanel extends ControlPanel {
     }
 
     /**
+     * Add own light controls with slider and reset button
+     */
+    addOwnLightControl() {
+        const container = this.createSliderControllerComponent({
+            label: 'Own light: ',
+            slider: {
+                min: '0',
+                max: '1',
+                step: '0.01',
+                value: PlanetControlPanel.defaultOwnLight.toString(),
+                id: `${this.planet.id}${PlanetControlPanel.elementIds.ownLightSlider}`
+            },
+            resetButton: {
+                tooltip: "Reset to default light value",
+                resetValue: PlanetControlPanel.defaultOwnLight
+            },
+            toggle: {
+                tooltip: "",
+                checked: false,
+                required: false // Don't show the toggle
+            },
+            onSliderChange: (slider) => {
+                const lightValue = parseFloat(slider.value);
+                // The actual implementation will be handled by the caller
+                if (this.planet.setOwnLight && typeof this.planet.setOwnLight === 'function') {
+                    this.planet.setOwnLight(lightValue);
+                }
+            },
+            onReset: (slider, toggle, resetValue) => {
+                slider.value = resetValue.toString();
+                if (this.planet.setOwnLight && typeof this.planet.setOwnLight === 'function') {
+                    this.planet.setOwnLight(resetValue);
+                }
+            },
+            parent: this.consoleContent
+        });
+
+        return container;
+    }
+
+    /**
      * Add axis toggle
      */
     addAxisToggle(visibility) {
@@ -690,7 +769,7 @@ class PlanetControlPanel extends ControlPanel {
             parent: this.consoleContent
         });
     }
-    
+
     /**
      * Add solar radial line toggle
      */

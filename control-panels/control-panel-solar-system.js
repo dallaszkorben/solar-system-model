@@ -369,7 +369,7 @@ class SolarSystemControlPanel extends ControlPanel {
         return this.createToggleComponent({
             label: 'Enable All Day/Night: ',
             tooltip: 'Enable/Disable day/night effect on all planets',
-            checked: true,
+            checked: PlanetControlPanel.defaultDayNightEffectEnabled,
             id: SolarSystemControlPanel.elementIds.dayNigthEffectSwitch,
             onChange: (checked) => {
                 if (this.solarSystem) {

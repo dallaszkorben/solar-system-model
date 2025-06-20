@@ -97,6 +97,7 @@ class Planet {
         this.visible = true; // Visible by default
         this.orbitOpacity = Planet.orbitOpacity; // Default orbit line opacity
         this.dayNightEffectEnabled = true; // Default to enabled
+        this.ownLightValue = PlanetControlPanel.defaultOwnLight; // Default own light value
 
         // Add the group to the orbit group
         this.orbitGroup.add(this.group);
@@ -175,7 +176,7 @@ class Planet {
             // Store both materials for later switching
             this.standardMaterial = standardMaterial;
             this.basicMaterial = basicMaterial;
-            
+
             // Add click listener to the sphere
             this.addClickListener();
 
@@ -879,7 +880,6 @@ class Planet {
                     if (this.hasRing()){
                         this.setRingMaterial(this.getRingStandardMaterial());
                     }
-
                 }
             } else {
                 // Switch to basic material without lighting
@@ -890,6 +890,8 @@ class Planet {
                         this.setRingMaterial(this.getRingBasicMaterial());
                     }
 
+                    // Apply the current own light value when switching to basic material
+                    this.setOwnLight(this.ownLightValue);
                 }
             }
             this.sphere.material.needsUpdate = true;
@@ -903,7 +905,35 @@ class Planet {
     toggleDayNightEffect(enabled) {
         this.setDayNightEffectEnabled(enabled);
     }
-    
+
+    /**
+     * Sets the own light value for the planet (when day/night effect is disabled)
+     * @param {number} value - Light value between 0 and 1
+     */
+    setOwnLight(value) {
+        // Store the value
+        this.ownLightValue = value;
+
+        // Only apply when day/night effect is disabled
+        if (!this.dayNightEffectEnabled && this.sphere && this.sphere.material) {
+            // Update the emissive intensity and color based on the value
+            if (this.basicMaterial) {
+                // Scale emissive intensity from 0 to 1
+                this.basicMaterial.emissiveIntensity = value;
+
+                // Adjust color brightness based on value
+//                const colorValue = Math.max(0.5, 0.5 + value * 0.5);
+
+                const minValue = 0.1;
+                const colorValue = minValue + value * (1.0 - minValue);
+                this.basicMaterial.color.setRGB(colorValue, colorValue, colorValue);
+
+                // Update material
+                this.sphere.material.needsUpdate = true;
+            }
+        }
+    }
+
     /**
      * Add click event listener to planet sphere
      */
@@ -911,12 +941,12 @@ class Planet {
         if (this.sphere) {
             // Store reference to this for use in event handler
             const self = this;
-            
+
             // Add to the sphere's userData to identify it in raycasting
             this.sphere.userData.planetId = this.id;
             this.sphere.userData.isClickable = true;
             this.sphere.userData.planet = this; // Store direct reference to the planet
-            
+
             console.log(`Added click listener to ${this.name} sphere`);
         }
     }
