@@ -196,21 +196,41 @@ class Planet {
     // --- Axis ---
     // ------------
 
-    createAxis(color = 0xff0000) {
+    createAxis() {
+        // Create a group to hold both axis parts
+        this.axis = new THREE.Group();
+        
         const axisLength = this.diameter * 1.2;
+        const halfAxisLength = axisLength / 2;
         const cylinderRadius = this.diameter / 100;
-        const cylinderGeometry = new THREE.CylinderGeometry(cylinderRadius, cylinderRadius, axisLength, 16);
-        const cylinderMaterial = new THREE.MeshBasicMaterial({
-            color: color,
+        
+        // Create north (red) half of the axis
+        const northGeometry = new THREE.CylinderGeometry(cylinderRadius, cylinderRadius, halfAxisLength, 16);
+        const northMaterial = new THREE.MeshBasicMaterial({
+            color: 0xff0000, // Red for north
             depthTest: true,
         });
-        this.axis = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
+        const northAxis = new THREE.Mesh(northGeometry, northMaterial);
+        northAxis.position.y = halfAxisLength / 2; // Position in the upper half
+        
+        // Create south (blue) half of the axis
+        const southGeometry = new THREE.CylinderGeometry(cylinderRadius, cylinderRadius, halfAxisLength, 16);
+        const southMaterial = new THREE.MeshBasicMaterial({
+            color: 0x0000ff, // Blue for south
+            depthTest: true,
+        });
+        const southAxis = new THREE.Mesh(southGeometry, southMaterial);
+        southAxis.position.y = -halfAxisLength / 2; // Position in the lower half
+        
+        // Add both halves to the axis group
+        this.axis.add(northAxis);
+        this.axis.add(southAxis);
+        
         this.axis.renderOrder = 1;
         this.group.add(this.axis);
     }
 
     updateAxis() {
-
         // Store current visibility state
         const wasVisible = this.axis ? this.axis.visible : false;
 
