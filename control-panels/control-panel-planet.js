@@ -21,12 +21,14 @@ class PlanetControlPanel extends ControlPanel {
         localMarkerVisibilitySwitch:'-panel-local-marker-toggle',
         sideMarkerVisibilitySwitch: '-panel-side-marker-toggle',
         orbitPositionMarkersSwitch: '-panel-orbit-position-markers-toggle',
+        solarRadialLineSwitch:      '-panel-solar-radial-line-toggle',
     };
 
     static defaultAxisVisibility = true;
     static defaultLocalMarkersVisibility = true;
     static defaultSideMarkersVisibility = false;
     static defaultOrbitPositionMarkersVisibility = false;
+    static defaultSolarRadialLineVisibility = false;
 
     constructor(planet) {
         super(`${planet.name} Controls`, { top: '20px', right: '20px' });
@@ -54,6 +56,10 @@ class PlanetControlPanel extends ControlPanel {
 
     getDefaultOrbitPositionMarkersVisibility(){
         return PlanetControlPanel.defaultOrbitPositionMarkersVisibility;
+    }
+    
+    getDefaultSolarRadialLineVisibility(){
+        return PlanetControlPanel.defaultSolarRadialLineVisibility;
     }
 
 //--- bidirectional switches ---
@@ -246,6 +252,16 @@ class PlanetControlPanel extends ControlPanel {
             sideMarkersVisibilityToggle.checked = visible;
         }
     }
+    
+    setSolarRadialLineVisibility(visible){
+        this.planet.toggleSolarRadialLine(visible);
+        
+        // Update the solar radial line toggle in the Planet Controls panel
+        const solarRadialLineToggle = document.getElementById(`${this.planet.id}${PlanetControlPanel.elementIds.solarRadialLineSwitch}`);
+        if (solarRadialLineToggle && solarRadialLineToggle.checked !== visible) {
+            solarRadialLineToggle.checked = visible;
+        }
+    }
 
 //---
 
@@ -297,6 +313,9 @@ class PlanetControlPanel extends ControlPanel {
 
         // Add orbit position markers toggle
         this.addOrbitPositionMarkersToggle();
+        
+        // Add solar radial line toggle
+        this.addSolarRadialLineToggle();
 
     }
 
@@ -583,6 +602,22 @@ class PlanetControlPanel extends ControlPanel {
             onChange: (checked) => {
 //                this.planet.setOrbitPositionMarkersVisibility(checked);
                 this.setOrbitPositionMarkerVisibility(checked);
+            },
+            parent: this.consoleContent
+        });
+    }
+    
+    /**
+     * Add solar radial line toggle
+     */
+    addSolarRadialLineToggle() {
+        return this.createToggleComponent({
+            label: 'Solar Radial Line: ',
+            tooltip: `Show/Hide line between Sun and ${this.planet.name}`,
+            checked: this.getDefaultSolarRadialLineVisibility(),
+            id: `${this.planet.id}${PlanetControlPanel.elementIds.solarRadialLineSwitch}`,
+            onChange: (checked) => {
+                this.setSolarRadialLineVisibility(checked);
             },
             parent: this.consoleContent
         });

@@ -48,10 +48,10 @@ class ViewControlPanel extends ControlPanel {
 
         // Add radio buttons for global views with reset buttons
         this.addViewRadioButtonWithReset('Top View', 'view', 'topView', viewRadioGroup);
-        this.addViewRadioButtonWithReset('General View', 'view', 'generalView', viewRadioGroup);
         this.addViewRadioButtonWithReset('Side View', 'view', 'sideView', viewRadioGroup);
+        this.addViewRadioButtonWithReset('General View', 'view', 'generalView', viewRadioGroup);
     }
-    
+
     /**
      * Add a radio button with a reset button for global views
      */
@@ -82,19 +82,19 @@ class ViewControlPanel extends ControlPanel {
         radioLabel.textContent = label;
         radioLabel.style.flexGrow = '1';
         radioLabel.style.cursor = 'pointer';
-        
+
         // Create reset button cell
         const resetButtonCell = document.createElement('div');
         resetButtonCell.style.width = '24px';
         resetButtonCell.style.height = '24px';
-        
+
         // Create reset button as image (same as navigation controls)
         const resetButton = document.createElement('img');
         resetButton.src = 'icons/reset.png';
         resetButton.style.width = '24px';
         resetButton.style.height = '24px';
         resetButton.style.cursor = 'pointer';
-        
+
         // Add event listener for reset button
         resetButton.addEventListener('click', () => {
             if (this.activeView instanceof GlobalView && this.activeView.viewType === value) {
@@ -222,7 +222,7 @@ class ViewControlPanel extends ControlPanel {
         const previousView = this.activeView;
         const wasPlanetSideView = previousView instanceof PlanetSideView;
         const previousPlanetSideViewType = wasPlanetSideView ? previousView.viewType : null;
-        
+
         // Save camera state if we're coming from a Planet Side View
         let planetSideViewCameraState = null;
         if (wasPlanetSideView && viewName === 'generalView') {
@@ -243,7 +243,7 @@ class ViewControlPanel extends ControlPanel {
             // Global views
             this.globalView.setViewType(viewName);
             this.activeView = this.globalView;
-            
+
             // If switching to General View from a Planet Side View, apply the Planet Side View's camera state
             if (viewName === 'generalView' && wasPlanetSideView && planetSideViewCameraState) {
                 // Set the saved state for General View to match the Planet Side View's camera state

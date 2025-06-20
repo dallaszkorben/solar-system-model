@@ -57,6 +57,11 @@ class Planet {
         this.axis = null;
         this.sideViewMarker = null;
 
+        // Solar radial line properties
+        this.solarRadialLine = null;
+        this.solarRadialLineVisible = false;
+        this.solarRadialLineWidth = 3;
+
         // Location markers
         this.locationMarkers = [];
 
@@ -622,6 +627,84 @@ class Planet {
         return null;
     }
 
+    // -----------------------
+    // --- Solar Radial Line ---
+    // -----------------------
+
+    /**
+     * Create a solar radial line from sun to planet
+     */
+    createSolarRadialLine() {
+        // Create a line geometry
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(6); // 2 points × 3 coordinates
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+        // Create a red line material
+        const material = new THREE.LineBasicMaterial({
+            color: 0xff0000,
+            linewidth: this.solarRadialLineWidth,
+            depthTest: true
+        });
+
+        // Create the line
+        this.solarRadialLine = new THREE.Line(geometry, material);
+        this.solarRadialLine.renderOrder = 1000;
+        this.solarRadialLine.visible = this.solarRadialLineVisible;
+
+        // Add to scene
+        if (this.solarSystem && this.solarSystem.scene) {
+            this.solarSystem.scene.add(this.solarRadialLine);
+        }
+    }
+
+    /**
+     * Update the solar radial line position
+     */
+    updateSolarRadialLine() {
+        if (!this.solarRadialLine) {
+            this.createSolarRadialLine();
+        }
+
+        // Get planet position in world space
+        const planetPos = new THREE.Vector3();
+        this.sphere.getWorldPosition(planetPos);
+
+        // Sun is at origin (0,0,0)
+        const sunPos = new THREE.Vector3(0, 0, 0);
+
+        // Update line positions
+        const positions = this.solarRadialLine.geometry.attributes.position.array;
+
+        // Sun position
+        positions[0] = sunPos.x;
+        positions[1] = sunPos.y;
+        positions[2] = sunPos.z;
+
+        // Planet position
+        positions[3] = planetPos.x;
+        positions[4] = planetPos.y;
+        positions[5] = planetPos.z;
+
+        // Mark the attribute as needing an update
+        this.solarRadialLine.geometry.attributes.position.needsUpdate = true;
+    }
+
+    /**
+     * Toggle solar radial line visibility
+     */
+    toggleSolarRadialLine(visible) {
+        this.solarRadialLineVisible = visible;
+
+        if (!this.solarRadialLine) {
+            this.createSolarRadialLine();
+        }
+
+        if (this.solarRadialLine) {
+            this.solarRadialLine.visible = visible;
+        }
+    }
+
 
     // ---
 
@@ -687,6 +770,10 @@ class Planet {
             this.rings.visible = true;
             this.ringsVisible = true;
         }
+        // Show solar radial line if it was visible
+        if (this.solarRadialLine) {
+            this.solarRadialLine.visible = this.solarRadialLineVisible;
+        }
     }
 
     /**
@@ -721,6 +808,10 @@ class Planet {
         if (this.rings) {
             this.rings.visible = false;
             this.ringsVisible = false;
+        }
+        // Hide solar radial line
+        if (this.solarRadialLine) {
+            this.solarRadialLine.visible = false;
         }
     }
 
@@ -827,6 +918,7 @@ class Planet {
         if (this.rotationEnabled && this.rotationSpeed > 0) {
 
             // Apply rotation based on current rotation speed
+            // The orientation (-) means counterclockwise
             this.sphere.rotation.y += this.rotationSpeed;
         }
 
@@ -849,6 +941,11 @@ class Planet {
         // Update side view marker if present
         if (this.sideViewMarker) {
             this.sideViewMarker.update();
+        }
+
+        // Update solar radial line if visible
+        if (this.solarRadialLineVisible) {
+            this.updateSolarRadialLine();
         }
     }
 }
