@@ -48,6 +48,7 @@ class ViewControlPanel extends ControlPanel {
 
         // Add radio buttons for global views
         this.addViewRadioButton('Top View', 'view', 'topView', viewRadioGroup);
+        this.addViewRadioButton('General View', 'view', 'generalView', viewRadioGroup);
         this.addViewRadioButton('Side View', 'view', 'sideView', viewRadioGroup);
     }
 
@@ -156,7 +157,7 @@ class ViewControlPanel extends ControlPanel {
         }
 
         // Determine which view object to use based on the view name
-        if (viewName === 'topView' || viewName === 'sideView') {
+        if (viewName === 'topView' || viewName === 'sideView' || viewName === 'generalView') {
             // Global views
             this.globalView.setViewType(viewName);
             this.activeView = this.globalView;

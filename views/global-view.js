@@ -13,6 +13,8 @@ class GlobalView extends BaseView {
      */
     setViewType(viewType) {
         this.viewType = viewType;
+        // Update camera position for the new view type
+        this.updateCameraForNeptuneOrbit();
     }
 
     /**
@@ -22,24 +24,48 @@ class GlobalView extends BaseView {
         super.activate();
 
         console.log(`GlobalView: ${this.viewType} activated`);
-
+        
+        // Update camera position to ensure Neptune's orbit is visible
+        this.updateCameraForNeptuneOrbit();
+        
+        this.solarSystem.controls.enabled = true;
+    }
+    
+    /**
+     * Update camera position to ensure Neptune's orbit is visible at 90% of screen width
+     */
+    updateCameraForNeptuneOrbit() {
         const camera = this.solarSystem.camera;
         const controls = this.solarSystem.controls;
-
+        
+        if (!camera || !controls || !this.solarSystem.planetObjs.neptune) return;
+        
         // Get camera settings for this view type
         const cameraSettings = this.getCameraSettings(this.viewType);
-
-        // Access the rotateVerticalDefaultValue
+        
+        // Access the rotation angles
         const verticalAngle = cameraSettings.rotateVerticalDefaultValue;
         const horizontalAngle = cameraSettings.rotateHorizontalDefaultValue;
-
-        const outerMostOrbitRadius = this.solarSystem.planetObjs.neptune.orbitRadius;
+        
+        // Get Neptune's orbit radius
+        const neptuneOrbitRadius = this.solarSystem.planetObjs.neptune.orbitRadius;
+        
+        // Calculate camera distance to make Neptune's orbit 90% of screen width
         const fov = camera.fov * (Math.PI / 180);
-        const cameraDistance = 0.9 * outerMostOrbitRadius / Math.sin(fov / 2);
-
+        const aspectRatio = camera.aspect;
+        
+        // Calculate the distance needed to fit Neptune's orbit at 90% of screen width
+        // We need to consider the horizontal FOV for all views to ensure consistent sizing
+        let cameraDistance;
+        
+        // Calculate horizontal FOV based on aspect ratio
+        const horizontalFov = 2 * Math.atan(Math.tan(fov / 2) * aspectRatio);
+        
+        // For all views, we want Neptune's orbit to take up 90% of screen width
+        cameraDistance = neptuneOrbitRadius / (Math.sin(horizontalFov / 2) * 0.9);
+        
+        // Set the camera view with the calculated distance
         this.setCameraView(camera, controls, horizontalAngle, verticalAngle, cameraDistance);
-
-        controls.enabled = true;
     }
 
     /**

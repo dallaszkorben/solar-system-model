@@ -160,6 +160,11 @@ class SolarSystem {
         this.camera.aspect = window.innerWidth / window.innerHeight;
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
+        
+        // Update camera position for global views when window is resized
+        if (this.viewControlPanel && this.viewControlPanel.activeView instanceof GlobalView) {
+            this.viewControlPanel.activeView.updateCameraForNeptuneOrbit();
+        }
     }
 
     // Method to set global rotation speed factor (0-10)
@@ -209,6 +214,13 @@ class SolarSystem {
 
         // Also apply to the sky if needed
         this.applyScaleModeToObject(this.sky);
+        
+        // Notify active view to update camera position based on new scale
+        if (this.viewControlPanel && this.viewControlPanel.activeView) {
+            if (this.viewControlPanel.activeView instanceof GlobalView) {
+                this.viewControlPanel.activeView.updateCameraForNeptuneOrbit();
+            }
+        }
     }
 
     // Helper method to apply scale mode to a planet or sky

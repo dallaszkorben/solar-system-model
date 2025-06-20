@@ -30,6 +30,32 @@ class BaseView {
             traverseDepthMinValue: -10000,
             traverseDepthMaxValue: 10000
         },
+        
+        'generalView': {
+            rotateVerticalDefaultValue: Math.PI/4,
+            rotateVerticalMinValue: -Math.PI/2,
+            rotateVerticalMaxValue: Math.PI/2,
+
+            rotateHorizontalDefaultValue: 0,
+            rotateHorizontalMinValue: -Math.PI,
+            rotateHorizontalMaxValue: Math.PI,
+
+            rotateDepthDefaultValue: 0,
+            rotateDepthMinValue: -Math.PI/2,
+            rotateDepthMaxValue: Math.PI/2,
+
+            traverseVerticalDefaultValue: 5000,
+            traverseVerticalMinValue: 1000,
+            traverseVerticalMaxValue: 20000,
+
+            traverseHorizontalDefaultValue: 0,
+            traverseHorizontalMinValue: -10000,
+            traverseHorizontalMaxValue: 10000,
+
+            traverseDepthDefaultValue: 5000,
+            traverseDepthMinValue: 1000,
+            traverseDepthMaxValue: 20000
+        },
 
         'sideView': {
             rotateVerticalDefaultValue: 0,
