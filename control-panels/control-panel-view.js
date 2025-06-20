@@ -46,10 +46,77 @@ class ViewControlPanel extends ControlPanel {
         viewRadioGroup.style.marginBottom = '15px';
         this.consoleContent.appendChild(viewRadioGroup);
 
-        // Add radio buttons for global views
-        this.addViewRadioButton('Top View', 'view', 'topView', viewRadioGroup);
-        this.addViewRadioButton('General View', 'view', 'generalView', viewRadioGroup);
-        this.addViewRadioButton('Side View', 'view', 'sideView', viewRadioGroup);
+        // Add radio buttons for global views with reset buttons
+        this.addViewRadioButtonWithReset('Top View', 'view', 'topView', viewRadioGroup);
+        this.addViewRadioButtonWithReset('General View', 'view', 'generalView', viewRadioGroup);
+        this.addViewRadioButtonWithReset('Side View', 'view', 'sideView', viewRadioGroup);
+    }
+    
+    /**
+     * Add a radio button with a reset button for global views
+     */
+    addViewRadioButtonWithReset(label, name, value, container) {
+        const radioContainer = document.createElement('div');
+        radioContainer.style.marginBottom = '10px';
+        radioContainer.style.display = 'flex';
+        radioContainer.style.alignItems = 'center';
+
+        // Create radio button
+        const radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = name;
+        radio.value = value;
+        radio.id = `radio-${value}`;
+        radio.style.marginRight = '10px';
+
+        // Add event listener to handle view changes
+        radio.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                this.handleViewChange(value);
+            }
+        });
+
+        // Create label
+        const radioLabel = document.createElement('label');
+        radioLabel.htmlFor = `radio-${value}`;
+        radioLabel.textContent = label;
+        radioLabel.style.flexGrow = '1';
+        radioLabel.style.cursor = 'pointer';
+        
+        // Create reset button cell
+        const resetButtonCell = document.createElement('div');
+        resetButtonCell.style.width = '24px';
+        resetButtonCell.style.height = '24px';
+        
+        // Create reset button as image (same as navigation controls)
+        const resetButton = document.createElement('img');
+        resetButton.src = 'icons/reset.png';
+        resetButton.style.width = '24px';
+        resetButton.style.height = '24px';
+        resetButton.style.cursor = 'pointer';
+        
+        // Add event listener for reset button
+        resetButton.addEventListener('click', () => {
+            if (this.activeView instanceof GlobalView && this.activeView.viewType === value) {
+                // Reset the current view
+                this.activeView.resetView();
+            } else if (this.globalView) {
+                // If this view is not active, clear its saved state
+                GlobalView.lastCameraStates[value] = null;
+            }
+        });
+
+        // Add elements to container
+        resetButtonCell.appendChild(resetButton);
+        radioContainer.appendChild(radio);
+        radioContainer.appendChild(radioLabel);
+        radioContainer.appendChild(resetButtonCell);
+        container.appendChild(radioContainer);
+
+        // Store reference to the radio button
+        this.viewRadios[value] = radio;
+
+        return radio;
     }
 
     createPlanetSideViewsSection() {
@@ -151,6 +218,21 @@ class ViewControlPanel extends ControlPanel {
     handleViewChange(viewName) {
         console.log(`Changing view to: ${viewName}`);
 
+        // Store previous view information before deactivating
+        const previousView = this.activeView;
+        const wasPlanetSideView = previousView instanceof PlanetSideView;
+        const previousPlanetSideViewType = wasPlanetSideView ? previousView.viewType : null;
+        
+        // Save camera state if we're coming from a Planet Side View
+        let planetSideViewCameraState = null;
+        if (wasPlanetSideView && viewName === 'generalView') {
+            planetSideViewCameraState = {
+                position: this.solarSystem.camera.position.clone(),
+                up: this.solarSystem.camera.up.clone(),
+                target: this.solarSystem.controls.target.clone()
+            };
+        }
+
         // Deactivate current view if any
         if (this.activeView) {
             this.activeView.deactivate();
@@ -161,6 +243,12 @@ class ViewControlPanel extends ControlPanel {
             // Global views
             this.globalView.setViewType(viewName);
             this.activeView = this.globalView;
+            
+            // If switching to General View from a Planet Side View, apply the Planet Side View's camera state
+            if (viewName === 'generalView' && wasPlanetSideView && planetSideViewCameraState) {
+                // Set the saved state for General View to match the Planet Side View's camera state
+                GlobalView.lastCameraStates['generalView'] = planetSideViewCameraState;
+            }
         } else if (viewName.includes('SideView')) {
             // Planet side views
             this.planetSideView.setViewType(viewName);

@@ -149,6 +149,13 @@ class SolarSystem {
         // Update active view if any
         if (this.viewControlPanel && this.viewControlPanel.activeView) {
             this.viewControlPanel.activeView.update();
+            
+            // Save camera state periodically for global views
+            if (this.viewControlPanel.activeView instanceof GlobalView && 
+                this.controls.enabled && 
+                (this.controls.isDragging || this.controls.isZooming)) {
+                this.viewControlPanel.activeView.saveCameraState();
+            }
         }
 
         // Side view markers are now updated by the Earth planet
@@ -218,7 +225,19 @@ class SolarSystem {
         // Notify active view to update camera position based on new scale
         if (this.viewControlPanel && this.viewControlPanel.activeView) {
             if (this.viewControlPanel.activeView instanceof GlobalView) {
-                this.viewControlPanel.activeView.updateCameraForNeptuneOrbit();
+                // Check if we're using a default view (no saved state or at default position)
+                const activeView = this.viewControlPanel.activeView;
+                const viewType = activeView.viewType;
+                
+                // Reset all saved camera states to force recalculation
+                GlobalView.lastCameraStates = {
+                    'topView': null,
+                    'generalView': null,
+                    'sideView': null
+                };
+                
+                // Update camera position for Neptune orbit
+                activeView.updateCameraForNeptuneOrbit();
             }
         }
     }

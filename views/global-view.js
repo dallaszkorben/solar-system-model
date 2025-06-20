@@ -2,6 +2,13 @@
  * Global view for viewing the entire solar system
  */
 class GlobalView extends BaseView {
+    // Store last camera positions and orientations for each view type
+    static lastCameraStates = {
+        'topView': null,
+        'generalView': null,
+        'sideView': null
+    };
+    
     constructor(solarSystem) {
         super(solarSystem);
         this.viewType = 'topView'; // Default to top view
@@ -9,11 +16,56 @@ class GlobalView extends BaseView {
 
     /**
      * Set the specific global view type (top or side)
-     * @param {string} viewType - 'topView' or 'sideView'
+     * @param {string} viewType - 'topView', 'generalView', or 'sideView'
      */
     setViewType(viewType) {
         this.viewType = viewType;
-        // Update camera position for the new view type
+        
+        // Check if we have a saved camera state for this view
+        if (GlobalView.lastCameraStates[viewType]) {
+            this.restoreCameraState(GlobalView.lastCameraStates[viewType]);
+        } else {
+            // If no saved state, use default position
+            this.updateCameraForNeptuneOrbit();
+        }
+    }
+    
+    /**
+     * Save current camera state for the active view type
+     */
+    saveCameraState() {
+        if (!this.solarSystem.camera || !this.solarSystem.controls) return;
+        
+        GlobalView.lastCameraStates[this.viewType] = {
+            position: this.solarSystem.camera.position.clone(),
+            up: this.solarSystem.camera.up.clone(),
+            target: this.solarSystem.controls.target.clone()
+        };
+    }
+    
+    /**
+     * Restore camera to a saved state
+     */
+    restoreCameraState(state) {
+        if (!state || !this.solarSystem.camera || !this.solarSystem.controls) return;
+        
+        this.solarSystem.camera.position.copy(state.position);
+        this.solarSystem.camera.up.copy(state.up);
+        this.solarSystem.controls.target.copy(state.target);
+        
+        // Update the camera
+        this.solarSystem.camera.lookAt(this.solarSystem.controls.target);
+        this.solarSystem.controls.update();
+    }
+    
+    /**
+     * Reset the current view to default position
+     */
+    resetView() {
+        // Clear saved state for this view
+        GlobalView.lastCameraStates[this.viewType] = null;
+        
+        // Reset to default position
         this.updateCameraForNeptuneOrbit();
     }
 
@@ -25,10 +77,46 @@ class GlobalView extends BaseView {
 
         console.log(`GlobalView: ${this.viewType} activated`);
         
-        // Update camera position to ensure Neptune's orbit is visible
-        this.updateCameraForNeptuneOrbit();
+        // Check if we have a saved camera state for this view
+        if (GlobalView.lastCameraStates[this.viewType]) {
+            this.restoreCameraState(GlobalView.lastCameraStates[this.viewType]);
+        } else {
+            // If no saved state, use default position
+            this.updateCameraForNeptuneOrbit();
+        }
         
         this.solarSystem.controls.enabled = true;
+    }
+    
+    /**
+     * Deactivate this view
+     */
+    deactivate() {
+        // Save camera state before deactivating
+        this.saveCameraState();
+        super.deactivate();
+    }
+    
+    /**
+     * Update method called in animation loop
+     */
+    update() {
+        // Periodically save camera state if controls are being used
+        if (this.solarSystem.controls && this.solarSystem.controls.enabled) {
+            // Check if camera has moved since last save
+            const lastState = GlobalView.lastCameraStates[this.viewType];
+            if (lastState) {
+                const posChanged = !this.solarSystem.camera.position.equals(lastState.position);
+                const targetChanged = !this.solarSystem.controls.target.equals(lastState.target);
+                
+                if (posChanged || targetChanged) {
+                    this.saveCameraState();
+                }
+            } else {
+                // No saved state yet, save current
+                this.saveCameraState();
+            }
+        }
     }
     
     /**
