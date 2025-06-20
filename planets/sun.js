@@ -183,6 +183,9 @@ class Sun extends Planet {
             this.sphere = new THREE.Mesh(geometry, material);
             this.group.add(this.sphere);
 
+            // Add click listener to the sphere
+            this.addClickListener();
+
             console.log('Sun sphere created successfully');
         } catch (error) {
             console.error(`Error creating sun sphere with texture ${texturePath}:`, error);

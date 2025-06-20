@@ -33,12 +33,35 @@ class PlanetControlPanel extends ControlPanel {
     constructor(planet) {
         super(`${planet.name} Controls`, { top: '20px', right: '20px' });
         this.planet = planet;
+        
+        // Add planet icon to the header
+        this.addPlanetIconToHeader();
 
         // Create visibility controls section
         this.createVisibilitySection();
 
         // Hide the panel by default
         this.hide();
+    }
+    
+    addPlanetIconToHeader() {
+        // Find the header title element
+        const header = this.consolePane.querySelector('h3');
+        if (header) {
+            // Create icon element
+            const icon = document.createElement('img');
+            icon.src = `icons/${this.planet.id}.png`;
+            icon.style.width = '24px';
+            icon.style.height = '24px';
+            icon.style.marginRight = '8px';
+            
+            // Insert icon before the text
+            header.insertBefore(icon, header.firstChild);
+            
+            // Make the header display as flex to align icon and text
+            header.style.display = 'flex';
+            header.style.alignItems = 'center';
+        }
     }
 
 // TODO: check all default values
@@ -263,13 +286,74 @@ class PlanetControlPanel extends ControlPanel {
         }
     }
 
+    /**
+     * Create fact data section with planet's physical and orbital characteristics
+     */
+    createFactDataSection() {
+        // Create section header
+        const sectionHeader = document.createElement('h4');
+        sectionHeader.textContent = 'Planet Facts';
+        sectionHeader.style.margin = '0 0 10px 0';
+        sectionHeader.style.borderBottom = '1px solid #555';
+        sectionHeader.style.paddingBottom = '5px';
+        this.consoleContent.appendChild(sectionHeader);
+        
+        // Create container for fact data
+        const factContainer = document.createElement('div');
+        factContainer.style.marginBottom = '15px';
+        factContainer.style.fontSize = '0.9em';
+        
+        // Add fact data from the planet
+        if (this.planet.factData) {
+            // Diameter
+            if (this.planet.factData.diameter) {
+                const diameterRow = document.createElement('div');
+                diameterRow.innerHTML = `<span style="font-weight:bold">Diameter:</span> ${this.planet.factData.diameter.toLocaleString()} km`;
+                factContainer.appendChild(diameterRow);
+            }
+            
+            // Orbit radius (distance from Sun)
+            if (this.planet.factData.orbitRadius) {
+                const orbitRow = document.createElement('div');
+                orbitRow.innerHTML = `<span style="font-weight:bold">Distance from Sun:</span> ${(this.planet.factData.orbitRadius / 1000000).toLocaleString()} million km`;
+                factContainer.appendChild(orbitRow);
+            }
+            
+            // Rotation period
+            if (this.planet.factData.rotationPeriod) {
+                const rotationRow = document.createElement('div');
+                rotationRow.innerHTML = `<span style="font-weight:bold">Rotation period:</span> ${this.planet.factData.rotationPeriod} hours`;
+                factContainer.appendChild(rotationRow);
+            }
+            
+            // Orbital period
+            if (this.planet.factData.orbitalPeriod) {
+                const orbitalRow = document.createElement('div');
+                orbitalRow.innerHTML = `<span style="font-weight:bold">Orbital period:</span> ${this.planet.factData.orbitalPeriod} Earth days`;
+                factContainer.appendChild(orbitalRow);
+            }
+            
+            // Axial tilt
+            if (this.planet.factData.axialTilt && this.planet.factData.axialTilt.z) {
+                const tiltRow = document.createElement('div');
+                tiltRow.innerHTML = `<span style="font-weight:bold">Axial tilt:</span> ${this.planet.factData.axialTilt.z}°`;
+                factContainer.appendChild(tiltRow);
+            }
+        }
+        
+        this.consoleContent.appendChild(factContainer);
+    }
+
 //---
 
     /**
      * Create visibility controls section
      */
     createVisibilitySection() {
-        // Create section header
+        // Create fact data section first
+        this.createFactDataSection();
+        
+        // Create visibility section header
         const sectionHeader = document.createElement('h4');
         sectionHeader.textContent = 'Visibility Controls';
         sectionHeader.style.margin = '0 0 10px 0';

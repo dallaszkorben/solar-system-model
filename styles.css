@@ -6,6 +6,78 @@ body {
     font-family: Arial, sans-serif;
 }
 
+/* Planet Info Tooltip */
+.planet-tooltip {
+    position: absolute;
+    background-color: rgba(40, 40, 40, 0.9);
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    color: white;
+    width: 300px;
+    z-index: 1000;
+    display: none;
+    overflow: hidden;
+}
+
+.planet-tooltip-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(60, 60, 60, 0.9);
+    padding: 10px;
+    border-bottom: 1px solid #555;
+}
+
+.planet-tooltip-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.planet-tooltip-title img {
+    width: 24px;
+    height: 24px;
+}
+
+.planet-tooltip-title h3 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.planet-tooltip-close {
+    cursor: pointer;
+    font-size: 16px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+}
+
+.planet-tooltip-content {
+    padding: 10px;
+    font-size: 14px;
+}
+
+.planet-tooltip-content table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.planet-tooltip-content table tr td {
+    padding: 4px 0;
+}
+
+.planet-tooltip-content table tr td:first-child {
+    font-weight: bold;
+    width: 40%;
+}
+
+.planet-tooltip-content table tr td:last-child {
+    text-align: right;
+}
+
 canvas {
     display: block;
     width: 100%;

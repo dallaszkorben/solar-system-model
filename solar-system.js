@@ -33,6 +33,10 @@ class SolarSystem {
 
         // Initialize planets collection - used in SolarSystem
         this.planetObjs = {};
+        
+        // Raycaster for planet click detection
+        this.raycaster = new THREE.Raycaster();
+        this.mouse = new THREE.Vector2();
 
         this.init();
     }
@@ -69,6 +73,16 @@ class SolarSystem {
             this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
             this.controls.enableDamping = true;
             this.controls.dampingFactor = 0.05;
+            
+            // Configure controls to work better with our click handling
+            this.controls.enablePan = true;
+            this.controls.enableRotate = true;
+            this.controls.enableZoom = true;
+            this.controls.mouseButtons = {
+                LEFT: THREE.MOUSE.ROTATE,
+                MIDDLE: THREE.MOUSE.DOLLY,
+                RIGHT: THREE.MOUSE.PAN
+            };
 
             // Add directional light (sun-like)
             this.sunLight = new THREE.DirectionalLight(0xffffff, 1.0);
@@ -86,9 +100,15 @@ class SolarSystem {
 
             // Handle window resize
             window.addEventListener('resize', this.onWindowResize.bind(this));
-
+            
             // Start the animation loop
             this.animate();
+            
+            // Add click event listeners for planet selection after everything is initialized
+            // This ensures the canvas is fully set up
+            setTimeout(() => {
+                this.setupClickListeners();
+            }, 1000);
 
             console.log('Solar system initialization complete');
     }
@@ -171,6 +191,91 @@ class SolarSystem {
         // Update camera position for global views when window is resized
         if (this.viewControlPanel && this.viewControlPanel.activeView instanceof GlobalView) {
             this.viewControlPanel.activeView.updateCameraForNeptuneOrbit();
+        }
+    }
+    
+    /**
+     * Setup click event listeners for planet selection
+     */
+    setupClickListeners() {
+        // Add a simple debug message to confirm method is called
+        console.log("Setting up click listeners");
+        
+        // Get the canvas element directly
+        const canvas = document.getElementById('canvas');
+        if (!canvas) {
+            console.error("Canvas element not found");
+            return;
+        }
+        
+        // Store reference to this
+        const self = this;
+        
+        // Add click event listener directly to the canvas
+        canvas.onclick = function(event) {
+            console.log("Canvas clicked");
+            self.handleClick(event);
+        };
+        
+        console.log("Click listener attached to canvas");
+    }
+    
+    /**
+     * Handle click events for planet selection
+     */
+    handleClick(event) {
+        console.log("Handling click event");
+        
+        // Calculate mouse position in normalized device coordinates (-1 to +1)
+        const canvas = this.renderer.domElement;
+        const rect = canvas.getBoundingClientRect();
+        this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        
+        // Update the picking ray with the camera and mouse position
+        this.raycaster.setFromCamera(this.mouse, this.camera);
+        
+        // Check intersections with all objects in the scene
+        const intersects = this.raycaster.intersectObjects(this.scene.children, true);
+        
+        // Find the first intersection that has planet data
+        for (let i = 0; i < intersects.length; i++) {
+            const object = intersects[i].object;
+            
+            // Check if this is a planet sphere or part of one
+            let currentObj = object;
+            while (currentObj) {
+                if (currentObj.userData && currentObj.userData.planetId) {
+                    const planetId = currentObj.userData.planetId;
+                    console.log(`Found planet with ID: ${planetId}`);
+                    
+                    // Get the planet object
+                    const planet = this.planetObjs[planetId];
+                    if (planet) {
+                        // Get the control panel for this planet
+                        const controlPanel = this.solarSystemControlPanel.controlPanels[planetId];
+                        if (controlPanel) {
+                            // Position the control panel near the click position
+                            controlPanel.consolePane.style.top = `${event.clientY}px`;
+                            controlPanel.consolePane.style.left = `${event.clientX}px`;
+                            
+                            // Show the control panel
+                            controlPanel.show();
+                            
+                            // Update the toggle in the Solar System Control panel
+                            const toggle = document.getElementById(`${planetId}-controls-toggle`);
+                            if (toggle) {
+                                toggle.checked = true;
+                            }
+                            
+                            return; // Exit after showing control panel
+                        }
+                    }
+                }
+                
+                // Move up the parent chain
+                currentObj = currentObj.parent;
+            }
         }
     }
 

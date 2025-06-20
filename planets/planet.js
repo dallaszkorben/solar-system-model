@@ -175,6 +175,9 @@ class Planet {
             // Store both materials for later switching
             this.standardMaterial = standardMaterial;
             this.basicMaterial = basicMaterial;
+            
+            // Add click listener to the sphere
+            this.addClickListener();
 
             console.log(`Sphere created for texture: ${texturePath}`);
 
@@ -899,6 +902,23 @@ class Planet {
      */
     toggleDayNightEffect(enabled) {
         this.setDayNightEffectEnabled(enabled);
+    }
+    
+    /**
+     * Add click event listener to planet sphere
+     */
+    addClickListener() {
+        if (this.sphere) {
+            // Store reference to this for use in event handler
+            const self = this;
+            
+            // Add to the sphere's userData to identify it in raycasting
+            this.sphere.userData.planetId = this.id;
+            this.sphere.userData.isClickable = true;
+            this.sphere.userData.planet = this; // Store direct reference to the planet
+            
+            console.log(`Added click listener to ${this.name} sphere`);
+        }
     }
 
     getObject() {
