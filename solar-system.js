@@ -149,10 +149,10 @@ class SolarSystem {
         // Update active view if any
         if (this.viewControlPanel && this.viewControlPanel.activeView) {
             this.viewControlPanel.activeView.update();
-            
+
             // Save camera state periodically for global views
-            if (this.viewControlPanel.activeView instanceof GlobalView && 
-                this.controls.enabled && 
+            if (this.viewControlPanel.activeView instanceof GlobalView &&
+                this.controls.enabled &&
                 (this.controls.isDragging || this.controls.isZooming)) {
                 this.viewControlPanel.activeView.saveCameraState();
             }
@@ -167,7 +167,7 @@ class SolarSystem {
         this.camera.aspect = window.innerWidth / window.innerHeight;
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
-        
+
         // Update camera position for global views when window is resized
         if (this.viewControlPanel && this.viewControlPanel.activeView instanceof GlobalView) {
             this.viewControlPanel.activeView.updateCameraForNeptuneOrbit();
@@ -212,6 +212,29 @@ class SolarSystem {
         this.scaleModeState = state;
         console.log(`Scale mode set to: ${state}`);
 
+        // Update camera clipping planes based on scale mode
+        if (state === 'full-scale') {
+            this.camera.near = 0.1;
+            this.camera.far = 10000000000; // 10 billion - much larger for full scale
+            Planet.orbitSegments = 1024; // More segments for full scale
+        } else if (state === 'distance-scale') {
+            this.camera.near = 0.01;
+            this.camera.far = 1000000000; // 1 billion
+            Planet.orbitSegments = 512; // Medium segments for distance scale
+        } else {
+            this.camera.near = 0.01;
+            this.camera.far = 100000000; // Original value
+            Planet.orbitSegments = 128; // Fewer segments for no/size scale
+        }
+        this.camera.updateProjectionMatrix();
+
+        // Apply the appropriate scale mode data to all planets
+        if (this.planetObjs) {
+            Object.values(this.planetObjs).forEach(planet => {
+                this.applyScaleModeToObject(planet);
+            });
+        }
+
         // Apply the appropriate scale mode data to all planets
         if (this.planetObjs) {
             Object.values(this.planetObjs).forEach(planet => {
@@ -221,21 +244,21 @@ class SolarSystem {
 
         // Also apply to the sky if needed
         this.applyScaleModeToObject(this.sky);
-        
+
         // Notify active view to update camera position based on new scale
         if (this.viewControlPanel && this.viewControlPanel.activeView) {
             if (this.viewControlPanel.activeView instanceof GlobalView) {
                 // Check if we're using a default view (no saved state or at default position)
                 const activeView = this.viewControlPanel.activeView;
                 const viewType = activeView.viewType;
-                
+
                 // Reset all saved camera states to force recalculation
                 GlobalView.lastCameraStates = {
                     'topView': null,
                     'generalView': null,
                     'sideView': null
                 };
-                
+
                 // Update camera position for Neptune orbit
                 activeView.updateCameraForNeptuneOrbit();
             }
@@ -309,7 +332,11 @@ class SolarSystem {
 
             // Align Orbit Position Markers
             object.updateOrbitPositionMarkers();
-
+            
+            // Update North Pole Axis for Earth
+            if (object.id === 'earth' && typeof object.updateNorthPoleAxis === 'function') {
+                object.updateNorthPoleAxis();
+            }
         }
     }
 }

@@ -264,7 +264,7 @@ class Sky extends Planet {
         const material = new THREE.LineBasicMaterial({
             color: color,
             linewidth: 3,
-            depthTest: false
+            depthTest: true
         });
 
         // Make the axis extend through the entire sky sphere

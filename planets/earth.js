@@ -201,13 +201,30 @@ class Earth extends Planet {
         const material = new THREE.LineBasicMaterial({
             color: 0xff0000, // Red color
             linewidth: 3, // Thicker line
-            depthTest: false // Ensure it's always visible
+            depthTest: true // Ensure it's always visible
         });
 
         this.northPoleAxis = new THREE.Line(geometry, material);
         this.northPoleAxis.renderOrder = 1000; // Ensure it renders on top
         this.northPoleAxis.visible = false; // Hidden by default
         this.group.add(this.northPoleAxis);
+    }
+
+    // Update the north pole axis when planet size changes
+    updateNorthPoleAxis() {
+        if (!this.northPoleAxis) return;
+
+        // Store current visibility state
+        const wasVisible = this.northPoleAxis.visible;
+
+        // Remove existing north pole axis
+        this.group.remove(this.northPoleAxis);
+
+        // Create new north pole axis with current radius
+        this.createNorthPoleAxis();
+
+        // Restore visibility state
+        this.northPoleAxis.visible = wasVisible;
     }
 
     // Add Earth-specific location markers toggle

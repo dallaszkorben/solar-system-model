@@ -18,6 +18,7 @@ class Planet {
     static maxRotationFactor = 10.0;
 
     static orbitOpacity = 0.3;
+    static orbitSegments = 128; // Default segment count for orbit lines
 
     // Earth reference data for relative calculations
     static referenceData = {
@@ -365,29 +366,47 @@ class Planet {
     // -------------
 
     createOrbit() {
-        const segments = 128;
+        // Use the static segment count for orbit lines
+        const segments = Planet.orbitSegments;
+
+        // Create a line segments geometry (more robust for large distances)
         const orbitGeometry = new THREE.BufferGeometry();
         const vertices = [];
+        const indices = [];
 
+        // Create vertices for the orbit circle
         for (let i = 0; i <= segments; i++) {
             const theta = (i / segments) * Math.PI * 2;
             const x = this.orbitRadius * Math.cos(theta);
             const z = this.orbitRadius * Math.sin(theta);
             vertices.push(x, 0, z);
+
+            // Create line segments (connect each point to the next)
+            if (i < segments) {
+                indices.push(i, i + 1);
+            }
         }
 
-        orbitGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+        // Connect the last point to the first to close the circle
+        indices.push(segments, 0);
 
+        // Set attributes
+        orbitGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+        orbitGeometry.setIndex(indices);
+
+        // Create material with special properties for visibility at large distances
         const orbitMaterial = new THREE.LineBasicMaterial({
             color: 0xffffff,
             transparent: true,
-            opacity: this.orbitOpacity, // Use the orbit opacity property
-            depthTest: true, // Disable depth testing to make orbit lines always visible
+            opacity: this.orbitOpacity,
+            depthTest: true,
             depthWrite: false
         });
 
-        this.orbitLine = new THREE.Line(orbitGeometry, orbitMaterial);
-        this.orbitLine.renderOrder = 1;
+        // Use LineSegments for better performance with large numbers of segments
+        this.orbitLine = new THREE.LineSegments(orbitGeometry, orbitMaterial);
+        this.orbitLine.frustumCulled = false; // Disable frustum culling
+        this.orbitLine.renderOrder = -10; // Render before other objects
 
         this.group.position.x = this.orbitRadius;
         this.orbitGroup.add(this.orbitLine);
@@ -399,22 +418,35 @@ class Planet {
             return;
         }
 
-        // Update orbit line geometry
-        const segments = 128;
+        // Use the static segment count for orbit lines
+        const segments = Planet.orbitSegments;
         const vertices = [];
+        const indices = [];
 
+        // Create vertices for the orbit circle
         for (let i = 0; i <= segments; i++) {
             const theta = (i / segments) * Math.PI * 2;
             const x = this.orbitRadius * Math.cos(theta);
             const z = this.orbitRadius * Math.sin(theta);
             vertices.push(x, 0, z);
+
+            // Create line segments (connect each point to the next)
+            if (i < segments) {
+                indices.push(i, i + 1);
+            }
         }
+
+        // Connect the last point to the first to close the circle
+        indices.push(segments, 0);
 
         // Update orbit line geometry
         this.orbitLine.geometry.setAttribute(
             'position',
             new THREE.Float32BufferAttribute(vertices, 3)
         );
+
+        // Update indices
+        this.orbitLine.geometry.setIndex(indices);
 
         // Update object position
         this.group.position.x = this.orbitRadius;
