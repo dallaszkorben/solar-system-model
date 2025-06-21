@@ -23,6 +23,18 @@ An interactive 3D solar system model built with Three.js that allows users to ex
 - **Right Mouse Button (Click)**: Open planet control panel when clicking on a planet
 - **Right Mouse Button (Drag)**: Pan the camera view
 
+## Solar System Controls
+
+The main control panel provides system-wide settings:
+
+- **Planet Visibility**: Toggle visibility of individual planets
+- **Planet Control Panels**: Open control panels for specific planets
+- **Global Rotation Speed**: Adjust rotation speed for all planets simultaneously
+- **Day/Night Effect**: Toggle realistic lighting effects across the solar system
+- **Scale Mode**: Switch between different scale representations of the solar system
+
+![Solar System Controls](wiki/screenshots/solar-system-controls.jpg)
+
 ## Planet Control Panels
 
 Right-click on any planet to open its control panel, which provides options for:
