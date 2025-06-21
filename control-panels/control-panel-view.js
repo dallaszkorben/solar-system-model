@@ -306,8 +306,8 @@ class ViewControlPanel extends ControlPanel {
         horizontalRotationIcon.style.width = '24px';
         horizontalRotationIcon.style.height = '24px';
         horizontalRotationIconCell.appendChild(horizontalRotationIcon);
-
-        // Second column - Slider
+        
+        // Second column - Slider container
         const horizontalRotationSliderCell = document.createElement('td');
         horizontalRotationSliderCell.style.padding = '0 10px';
 
@@ -318,7 +318,9 @@ class ViewControlPanel extends ControlPanel {
         horizontalRotationSlider.value = '0';
         horizontalRotationSlider.style.width = '100%';
         horizontalRotationSlider.id = 'navigation-horizontal-rotation-slider';
-
+        
+        horizontalRotationSliderCell.appendChild(horizontalRotationSlider);
+        
         // Add event listener to update the camera position when slider changes
         horizontalRotationSlider.addEventListener('input', (e) => {
             if (this.activeView instanceof PlanetSideView) {
@@ -352,7 +354,7 @@ class ViewControlPanel extends ControlPanel {
             }
         });
 
-        horizontalRotationSliderCell.appendChild(horizontalRotationSlider);
+        // Slider is already appended to horizontalRotationSliderCell via horizontalControlsContainer
 
         // Third column - Reset button
         const horizontalRotationResetCell = document.createElement('td');
@@ -437,9 +439,20 @@ class ViewControlPanel extends ControlPanel {
         verticalRotationIcon.style.height = '24px';
         verticalRotationIconCell.appendChild(verticalRotationIcon);
 
-        // Second column - Slider
+        // Second column - Slider and switch container
         const verticalRotationSliderCell = document.createElement('td');
         verticalRotationSliderCell.style.padding = '0 10px';
+        
+        // Create a container for the slider and switch
+        const verticalControlsContainer = document.createElement('div');
+        verticalControlsContainer.style.display = 'flex';
+        verticalControlsContainer.style.alignItems = 'center';
+        verticalControlsContainer.style.width = '100%';
+        
+        // Create slider div to contain the slider
+        const sliderDiv = document.createElement('div');
+        sliderDiv.style.flexGrow = '1';
+        sliderDiv.style.marginRight = '10px';
 
         const verticalRotationSlider = document.createElement('input');
         verticalRotationSlider.type = 'range';
@@ -448,6 +461,70 @@ class ViewControlPanel extends ControlPanel {
         verticalRotationSlider.value = '0';
         verticalRotationSlider.style.width = '100%';
         verticalRotationSlider.id = 'navigation-vertical-rotation-slider';
+        
+        sliderDiv.appendChild(verticalRotationSlider);
+        
+        // Create switch container
+        const switchContainer = document.createElement('div');
+        switchContainer.style.marginLeft = '5px';
+        switchContainer.style.display = 'flex';
+        switchContainer.style.alignItems = 'center';
+        
+        // Create switch label
+        const switchLabel = document.createElement('label');
+        switchLabel.className = 'switch';
+        switchLabel.style.marginRight = '5px';
+        
+        // Create switch input
+        const switchInput = document.createElement('input');
+        switchInput.type = 'checkbox';
+        switchInput.id = 'plane-switch';
+        switchInput.checked = PlanetSideView.recentCameraType === PlanetSideView.cameraTypes.EQUATOR_PLANE;
+        
+        // Create slider span
+        const sliderSpan = document.createElement('span');
+        sliderSpan.className = 'slider';
+        
+        // Assemble switch
+        switchLabel.appendChild(switchInput);
+        switchLabel.appendChild(sliderSpan);
+        
+        // Add label text
+        const labelText = document.createElement('span');
+        labelText.textContent = 'Equator';
+        labelText.style.fontSize = '0.8em';
+        
+        // Add switch and label to container
+        switchContainer.appendChild(switchLabel);
+        switchContainer.appendChild(labelText);
+        
+        // Add event listener to the switch
+        switchInput.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                PlanetSideView.recentCameraType = PlanetSideView.cameraTypes.EQUATOR_PLANE;
+            } else {
+                PlanetSideView.recentCameraType = PlanetSideView.cameraTypes.ORBIT_PLANE;
+            }
+            
+            // Update camera position if in planet side view
+            if (this.activeView instanceof PlanetSideView) {
+                const viewType = this.activeView.viewType;
+                const planetName = viewType.replace('SideView', '');
+                
+                if (this.planetSliderValues[planetName]) {
+                    const verticalValue = this.planetSliderValues[planetName].vertical || 0;
+                    const horizontalValue = this.planetSliderValues[planetName].horizontal || 0;
+                    const depthValue = this.planetSliderValues[planetName].depth || 2;
+                    
+                    this.activeView.positionSideViewCamera(verticalValue, horizontalValue, depthValue);
+                }
+            }
+        });
+        
+        // Add slider and switch to container
+        verticalControlsContainer.appendChild(sliderDiv);
+        verticalControlsContainer.appendChild(switchContainer);
+        verticalRotationSliderCell.appendChild(verticalControlsContainer);
 
         // Add event listener to update the camera position when slider changes
         verticalRotationSlider.addEventListener('input', (e) => {
@@ -482,7 +559,7 @@ class ViewControlPanel extends ControlPanel {
             }
         });
 
-        verticalRotationSliderCell.appendChild(verticalRotationSlider);
+        // Slider is already appended to verticalRotationSliderCell via verticalControlsContainer
 
         // Third column - Reset button
         const verticalRotationResetCell = document.createElement('td');
@@ -785,6 +862,8 @@ class ViewControlPanel extends ControlPanel {
             horizontalRotationRow: horizontalRotationRow,
             horizontalRotationSlider: horizontalRotationSlider,
             horizontalRotationResetButton: horizontalRotationResetButton,
+            planeSwitch: switchInput,
+            planeSwitchContainer: switchContainer,
             verticalRotationRow: verticalRotationRow,
             verticalRotationSlider: verticalRotationSlider,
             verticalRotationResetButton: verticalRotationResetButton,
@@ -1125,6 +1204,7 @@ class ViewControlPanel extends ControlPanel {
 
             // Show the slider thumbs based on view type
             const isLocalView = this.activeView instanceof LocalView;
+            const isPlanetSideView = this.activeView instanceof PlanetSideView;
 
             this.navigationControls.horizontalRotationSlider.style.opacity = '1';
             this.navigationControls.verticalRotationSlider.style.opacity = '1';
@@ -1136,6 +1216,18 @@ class ViewControlPanel extends ControlPanel {
             this.navigationControls.verticalRotationResetButton.style.opacity = '1';
             this.navigationControls.depthTranslateResetButton.style.opacity = isLocalView ? '0.5' : '1';
             this.navigationControls.verticalTranslateResetButton.style.opacity = isLocalView ? '1' : '0.5';
+            
+            // Show/hide plane switch based on view type
+            if (this.navigationControls.planeSwitchContainer) {
+                this.navigationControls.planeSwitchContainer.style.opacity = isPlanetSideView ? '1' : '0.5';
+                this.navigationControls.planeSwitchContainer.style.pointerEvents = isPlanetSideView ? 'auto' : 'none';
+                
+                // Update switch state based on current camera type
+                if (isPlanetSideView && this.navigationControls.planeSwitch) {
+                    this.navigationControls.planeSwitch.checked = 
+                        PlanetSideView.recentCameraType === PlanetSideView.cameraTypes.EQUATOR_PLANE;
+                }
+            }
         } else {
             // Reset and hide slider thumbs when inactive
             this.navigationControls.horizontalRotationSlider.min = 0;
