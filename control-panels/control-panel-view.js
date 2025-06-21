@@ -787,20 +787,75 @@ class ViewControlPanel extends ControlPanel {
 
         // Set visibility based on enabled state and view type
         const isLocalView = this.activeView instanceof LocalView;
+        const isPlanetSideView = this.activeView instanceof PlanetSideView;
 
-        // Rotation controls enabled for all view types
-        this.navigationControls.horizontalRotationSlider.style.opacity = enabled ? '1' : '0.5';
-        this.navigationControls.horizontalRotationSlider.style.pointerEvents = enabled ? 'auto' : 'none';
-        this.navigationControls.verticalRotationSlider.style.opacity = enabled ? '1' : '0.5';
-        this.navigationControls.verticalRotationSlider.style.pointerEvents = enabled ? 'auto' : 'none';
+        // Use the setActive method for each slider component
+        const horizontalSliderComponent = {
+            slider: this.navigationControls.horizontalRotationSlider,
+            resetButton: this.navigationControls.horizontalRotationResetButton,
+            setActive: (active) => {
+                this.navigationControls.horizontalRotationSlider.disabled = !active;
+                this.navigationControls.horizontalRotationSlider.style.opacity = active ? '1' : '0.5';
+                this.navigationControls.horizontalRotationSlider.style.pointerEvents = active ? 'auto' : 'none';
+                this.navigationControls.horizontalRotationResetButton.style.opacity = active ? '1' : '0.5';
+                this.navigationControls.horizontalRotationResetButton.style.pointerEvents = active ? 'auto' : 'none';
+            }
+        };
 
-        // Depth translate enabled only for non-local views
-        this.navigationControls.depthTranslateSlider.style.opacity = (enabled && !isLocalView) ? '1' : '0.5';
-        this.navigationControls.depthTranslateSlider.style.pointerEvents = (enabled && !isLocalView) ? 'auto' : 'none';
+        const verticalSliderComponent = {
+            slider: this.navigationControls.verticalRotationSlider,
+            resetButton: this.navigationControls.verticalRotationResetButton,
+            toggle: this.navigationControls.planeSwitch,
+            setActive: (active) => {
+                this.navigationControls.verticalRotationSlider.disabled = !active;
+                this.navigationControls.verticalRotationSlider.style.opacity = active ? '1' : '0.5';
+                this.navigationControls.verticalRotationSlider.style.pointerEvents = active ? 'auto' : 'none';
+                this.navigationControls.verticalRotationResetButton.style.opacity = active ? '1' : '0.5';
+                this.navigationControls.verticalRotationResetButton.style.pointerEvents = active ? 'auto' : 'none';
 
-        // Vertical translate enabled only for local views
-        this.navigationControls.verticalTranslateSlider.style.opacity = (enabled && isLocalView) ? '1' : '0.5';
-        this.navigationControls.verticalTranslateSlider.style.pointerEvents = (enabled && isLocalView) ? 'auto' : 'none';
+                // Also handle the plane switch toggle
+                if (this.navigationControls.planeSwitch) {
+                    this.navigationControls.planeSwitch.disabled = !active;
+                    const toggleParent = this.navigationControls.planeSwitch.parentElement;
+                    if (toggleParent) {
+                        toggleParent.style.opacity = (active && isPlanetSideView) ? '1' : '0.5';
+                        toggleParent.style.pointerEvents = (active && isPlanetSideView) ? 'auto' : 'none';
+                    }
+                }
+            }
+        };
+
+        const depthSliderComponent = {
+            slider: this.navigationControls.depthTranslateSlider,
+            resetButton: this.navigationControls.depthTranslateResetButton,
+            setActive: (active) => {
+                const isActiveForDepth = active && !isLocalView;
+                this.navigationControls.depthTranslateSlider.disabled = !isActiveForDepth;
+                this.navigationControls.depthTranslateSlider.style.opacity = isActiveForDepth ? '1' : '0.5';
+                this.navigationControls.depthTranslateSlider.style.pointerEvents = isActiveForDepth ? 'auto' : 'none';
+                this.navigationControls.depthTranslateResetButton.style.opacity = isActiveForDepth ? '1' : '0.5';
+                this.navigationControls.depthTranslateResetButton.style.pointerEvents = isActiveForDepth ? 'auto' : 'none';
+            }
+        };
+
+        const verticalTranslateComponent = {
+            slider: this.navigationControls.verticalTranslateSlider,
+            resetButton: this.navigationControls.verticalTranslateResetButton,
+            setActive: (active) => {
+                const isActiveForVertical = active && isLocalView;
+                this.navigationControls.verticalTranslateSlider.disabled = !isActiveForVertical;
+                this.navigationControls.verticalTranslateSlider.style.opacity = isActiveForVertical ? '1' : '0.5';
+                this.navigationControls.verticalTranslateSlider.style.pointerEvents = isActiveForVertical ? 'auto' : 'none';
+                this.navigationControls.verticalTranslateResetButton.style.opacity = isActiveForVertical ? '1' : '0.5';
+                this.navigationControls.verticalTranslateResetButton.style.pointerEvents = isActiveForVertical ? 'auto' : 'none';
+            }
+        };
+
+        // Set active state for all components
+        horizontalSliderComponent.setActive(enabled);
+        verticalSliderComponent.setActive(enabled);
+        depthSliderComponent.setActive(enabled);
+        verticalTranslateComponent.setActive(enabled);
 
         // Configure slider appearance
         if (enabled) {

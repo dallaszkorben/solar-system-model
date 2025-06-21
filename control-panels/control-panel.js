@@ -228,7 +228,7 @@ class ControlPanel {
      * @param {Function} [config.onReset] - Function to call when reset button is clicked
      * @param {Function} [config.onToggleChange] - Function to call when toggle state changes
      * @param {HTMLElement} [config.parent] - Parent element to append the control to
-     * @returns {Object} - Object containing the container, slider, valueDisplay, resetButton and toggle elements
+     * @returns {Object} - Object containing the container, slider, valueDisplay, resetButton, toggle elements and setActive method
      *
      * @example
      * // Basic slider with label and unit
@@ -253,6 +253,18 @@ class ControlPanel {
      *     parent: this.consoleContent
      * });
      *
+     * @example
+     * // Using the setActive method to enable/disable all components
+     * const controls = this.createSliderControllerComponent({
+     *     // ... configuration ...
+     * });
+     * 
+     * // Disable all components
+     * controls.setActive(false);
+     * 
+     * // Enable all components
+     * controls.setActive(true);
+     * 
      * @example
      * // Advanced slider with all options
      * const rotationControls = this.createSliderControllerComponent({
@@ -614,6 +626,46 @@ class ControlPanel {
         if (config.toggle) {
             controlsContainer.appendChild(switchLabel);
         }
+        
+        // Method to set active/inactive state for all components
+        const setComponentsActive = (active) => {
+            // Set slider state
+            slider.disabled = !active;
+            slider.style.opacity = active ? '1' : '0.5';
+            
+            // Set value display state if it exists
+            if (config.slider.unit !== undefined) {
+                valueDisplay.style.opacity = active ? '1' : '0.5';
+            }
+            
+            // Set reset button state if it exists
+            if (config.resetButton) {
+                resetButton.style.opacity = active ? '1' : '0.5';
+                resetButton.style.pointerEvents = active ? 'auto' : 'none';
+            }
+            
+            // Set toggle state if it exists
+            if (config.toggle) {
+                toggle.disabled = !active;
+                switchLabel.style.opacity = active ? '1' : '0.5';
+                if (active) {
+                    // Only restore pointer events if the toggle is required
+                    switchLabel.style.pointerEvents = config.toggle.required !== false ? 'auto' : 'none';
+                } else {
+                    switchLabel.style.pointerEvents = 'none';
+                }
+            }
+        };
+        
+        // Add the setActive method to the returned object
+        const returnObj = {
+            container,
+            slider,
+            valueDisplay,
+            resetButton,
+            toggle,
+            setActive: setComponentsActive
+        };
 
         // Add to control panel if parent is provided
         if (config.parent) {
@@ -625,7 +677,8 @@ class ControlPanel {
             slider,
             valueDisplay,
             resetButton,
-            toggle
+            toggle,
+            setActive: setComponentsActive
         };
     }
 
