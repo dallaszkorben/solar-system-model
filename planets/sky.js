@@ -182,11 +182,11 @@ class Sky extends Planet {
                         console.log('Constellation texture loaded successfully');
 
                         // Create a second sphere for the constellation overlay
-                        const constellationGeometry = new THREE.SphereGeometry(this.radius * 0.99, 64, 32);
+                        //const constellationGeometry = new THREE.SphereGeometry(this.radius * 0.99, 64, 32);
+                        const constellationGeometry = new THREE.SphereGeometry(this.radius, 64, 32);
                         const constellationMaterial = new THREE.MeshBasicMaterial({
                             map: constellationTexture,
                             transparent: true,
-//                            opacity: this.currentConstellationBrightness !== undefined ? this.currentConstellationBrightness : this.defaultConstellationBrightness,
                             opacity: this.currentConstellationBrightness,
                             side: THREE.BackSide,
                             depthWrite: false

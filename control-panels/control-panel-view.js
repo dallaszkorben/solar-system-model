@@ -29,6 +29,7 @@ class ViewControlPanel extends ControlPanel {
         this.createLocalViewsSection();
         this.createNavigationSection();
         this.createCameraSection();
+        this.createStereographicSection();
     }
 
     createGlobalViewsSection() {
@@ -799,6 +800,50 @@ class ViewControlPanel extends ControlPanel {
         this.updateNavigationControls();
     }
 
+    createStereographicSection() {
+        // Create Stereographic section header
+        const stereoHeader = document.createElement('h4');
+        stereoHeader.textContent = 'Stereographic Image';
+        stereoHeader.style.margin = '20px 0 10px 0';
+        stereoHeader.style.borderBottom = '1px solid #555';
+        stereoHeader.style.paddingBottom = '5px';
+        this.consoleContent.appendChild(stereoHeader);
+        
+        // Create button container
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.justifyContent = 'center';
+        buttonContainer.style.marginBottom = '15px';
+        
+        // Create button
+        const stereoButton = document.createElement('button');
+        stereoButton.textContent = 'Take Stereographic Image';
+        stereoButton.style.padding = '8px 12px';
+        stereoButton.style.cursor = 'pointer';
+        stereoButton.style.backgroundColor = '#2196F3';
+        stereoButton.style.color = 'white';
+        stereoButton.style.border = 'none';
+        stereoButton.style.borderRadius = '4px';
+        
+        // Add event listener
+        stereoButton.addEventListener('click', () => {
+            if (this.solarSystem) {
+                stereoButton.disabled = true;
+                stereoButton.textContent = 'Processing...';
+                
+                // Use setTimeout to allow the UI to update before processing
+                setTimeout(() => {
+                    this.solarSystem.takeStereographicScreenshot();
+                    stereoButton.disabled = false;
+                    stereoButton.textContent = 'Take Stereographic Image';
+                }, 100);
+            }
+        });
+        
+        buttonContainer.appendChild(stereoButton);
+        this.consoleContent.appendChild(buttonContainer);
+    }
+    
     createCameraSection() {
         // Create Camera section header
         const cameraHeader = document.createElement('h4');

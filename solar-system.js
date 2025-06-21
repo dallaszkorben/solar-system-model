@@ -33,7 +33,7 @@ class SolarSystem {
 
         // Initialize planets collection - used in SolarSystem
         this.planetObjs = {};
-        
+
         // Raycaster for planet click detection
         this.raycaster = new THREE.Raycaster();
         this.mouse = new THREE.Vector2();
@@ -73,7 +73,7 @@ class SolarSystem {
             this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
             this.controls.enableDamping = true;
             this.controls.dampingFactor = 0.05;
-            
+
             // Configure controls to work better with our click handling
             this.controls.enablePan = true;
             this.controls.enableRotate = true;
@@ -100,10 +100,10 @@ class SolarSystem {
 
             // Handle window resize
             window.addEventListener('resize', this.onWindowResize.bind(this));
-            
+
             // Start the animation loop
             this.animate();
-            
+
             // Add click event listeners for planet selection after everything is initialized
             // This ensures the canvas is fully set up
             setTimeout(() => {
@@ -193,62 +193,62 @@ class SolarSystem {
             this.viewControlPanel.activeView.updateCameraForNeptuneOrbit();
         }
     }
-    
+
     /**
      * Setup click event listeners for planet selection
      */
     setupClickListeners() {
         // Add a simple debug message to confirm method is called
         console.log("Setting up click listeners");
-        
+
         // Get the canvas element directly
         const canvas = document.getElementById('canvas');
         if (!canvas) {
             console.error("Canvas element not found");
             return;
         }
-        
+
         // Store reference to this
         const self = this;
-        
+
         // Add click event listener directly to the canvas
         canvas.onclick = function(event) {
             console.log("Canvas clicked");
             self.handleClick(event);
         };
-        
+
         console.log("Click listener attached to canvas");
     }
-    
+
     /**
      * Handle click events for planet selection
      */
     handleClick(event) {
         console.log("Handling click event");
-        
+
         // Calculate mouse position in normalized device coordinates (-1 to +1)
         const canvas = this.renderer.domElement;
         const rect = canvas.getBoundingClientRect();
         this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-        
+
         // Update the picking ray with the camera and mouse position
         this.raycaster.setFromCamera(this.mouse, this.camera);
-        
+
         // Check intersections with all objects in the scene
         const intersects = this.raycaster.intersectObjects(this.scene.children, true);
-        
+
         // Find the first intersection that has planet data
         for (let i = 0; i < intersects.length; i++) {
             const object = intersects[i].object;
-            
+
             // Check if this is a planet sphere or part of one
             let currentObj = object;
             while (currentObj) {
                 if (currentObj.userData && currentObj.userData.planetId) {
                     const planetId = currentObj.userData.planetId;
                     console.log(`Found planet with ID: ${planetId}`);
-                    
+
                     // Get the planet object
                     const planet = this.planetObjs[planetId];
                     if (planet) {
@@ -258,21 +258,21 @@ class SolarSystem {
                             // Position the control panel near the click position
                             controlPanel.consolePane.style.top = `${event.clientY}px`;
                             controlPanel.consolePane.style.left = `${event.clientX}px`;
-                            
+
                             // Show the control panel
                             controlPanel.show();
-                            
+
                             // Update the toggle in the Solar System Control panel
                             const toggle = document.getElementById(`${planetId}-controls-toggle`);
                             if (toggle) {
                                 toggle.checked = true;
                             }
-                            
+
                             return; // Exit after showing control panel
                         }
                     }
                 }
-                
+
                 // Move up the parent chain
                 currentObj = currentObj.parent;
             }
@@ -308,7 +308,7 @@ class SolarSystem {
                     planet.setDayNightEffectEnabled(enabled);
                 }
             });
-            
+
             // Update Own Light controls in all planet panels
             if (this.solarSystemControlPanel && this.solarSystemControlPanel.controlPanels) {
                 Object.values(this.solarSystemControlPanel.controlPanels).forEach(panel => {
@@ -320,6 +320,80 @@ class SolarSystem {
         }
     }
 
+    // Take a stereographic screenshot
+    takeStereographicScreenshot(eyeSeparation = 0.05) {
+        // Create directory if it doesn't exist
+        try {
+            // Store original camera position
+            const originalPosition = this.camera.position.clone();
+            
+            // Create a new renderer for offscreen rendering
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            const renderTarget = new THREE.WebGLRenderTarget(width, height);
+            
+            // Left eye view (shift camera left)
+            this.camera.position.x = originalPosition.x - eyeSeparation;
+            this.renderer.setRenderTarget(renderTarget);
+            this.renderer.render(this.scene, this.camera);
+            const leftImageData = new Uint8Array(width * height * 4);
+            this.renderer.readRenderTargetPixels(renderTarget, 0, 0, width, height, leftImageData);
+            
+            // Right eye view (shift camera right)
+            this.camera.position.x = originalPosition.x + eyeSeparation;
+            this.renderer.render(this.scene, this.camera);
+            const rightImageData = new Uint8Array(width * height * 4);
+            this.renderer.readRenderTargetPixels(renderTarget, 0, 0, width, height, rightImageData);
+            
+            // Reset camera position and render target
+            this.camera.position.copy(originalPosition);
+            this.renderer.setRenderTarget(null);
+            
+            // Create a canvas to combine the images
+            const canvas = document.createElement('canvas');
+            canvas.width = width * 2;  // Side by side format
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            
+            // Create ImageData objects for left and right images
+            const leftImg = new ImageData(new Uint8ClampedArray(leftImageData), width, height);
+            const rightImg = new ImageData(new Uint8ClampedArray(rightImageData), width, height);
+            
+            // Create temporary canvases to draw the images
+            const tempCanvas1 = document.createElement('canvas');
+            tempCanvas1.width = width;
+            tempCanvas1.height = height;
+            const tempCtx1 = tempCanvas1.getContext('2d');
+            tempCtx1.putImageData(leftImg, 0, 0);
+            
+            const tempCanvas2 = document.createElement('canvas');
+            tempCanvas2.width = width;
+            tempCanvas2.height = height;
+            const tempCtx2 = tempCanvas2.getContext('2d');
+            tempCtx2.putImageData(rightImg, 0, 0);
+            
+            // Draw the images side by side
+            ctx.drawImage(tempCanvas1, 0, 0);
+            ctx.drawImage(tempCanvas2, width, 0);
+            
+            // Convert to data URL and trigger download
+            const dataURL = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+            link.download = `stereograph-${timestamp}.png`;
+            link.href = dataURL;
+            link.click();
+            
+            // Clean up
+            renderTarget.dispose();
+            
+            return dataURL;
+        } catch (error) {
+            console.error('Error creating stereographic image:', error);
+            return null;
+        }
+    }
+    
     // Method to set the scale mode state
     setScaleMode(state) {
         this.scaleModeState = state;
@@ -435,7 +509,7 @@ class SolarSystem {
 
             // Align Orbit Position Markers
             object.updateOrbitPositionMarkers();
-            
+
             // Update North Pole Axis for Earth
             if (object.id === 'earth' && typeof object.updateNorthPoleAxis === 'function') {
                 object.updateNorthPoleAxis();
