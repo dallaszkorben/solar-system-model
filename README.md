@@ -2,7 +2,7 @@
 
 An interactive 3D solar system model built with Three.js that allows users to explore the planets, their orbits, and various astronomical features.
 
-![Solar System Overview](wiki/screenshots/solar-system-overview.png)
+![Solar System Overview](wiki/screenshots/scale_no-start_position.jpg)
 
 ## Features
 
@@ -33,7 +33,7 @@ Right-click on any planet to open its control panel, which provides options for:
 - Displaying latitude circles and axis lines
 - Viewing planet facts and data
 
-![Planet Control Panel](wiki/screenshots/planet-control-panel.png)
+![Planet Control Panel](wiki/screenshots/planet-control-panel.jpg)
 
 ## View Controls
 
@@ -43,7 +43,7 @@ The View Control Panel allows you to switch between different perspectives:
 - **Planet Side Views**: View from the side of any planet
 - **Local Views**: View from the surface of planets
 
-![View Controls](wiki/screenshots/view-controls.png)
+![View Controls](wiki/screenshots/view-controls.jpg)
 
 ## System Requirements
 
