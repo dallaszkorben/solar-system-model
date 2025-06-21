@@ -200,42 +200,221 @@ class ControlPanel {
      * Creates a control group with a slider, optional value display, reset button, and toggle switch
      *
      * @param {Object} config - Configuration object for the control
-     * @param {string} config.label - Label text for the control
+     * @param {string|Object} config.label - Label text or configuration
+     * @param {string} [config.label.text] - Label text when using object format
+     * @param {number} [config.label.width] - Width of label in pixels (default: 100px)
+     * @param {Object} [config.icon] - Icon configuration
+     * @param {string} [config.icon.src] - Source URL for the icon
+     * @param {number} [config.icon.width] - Width of icon in pixels (default: 20px)
      * @param {Object} config.slider - Slider configuration
      * @param {string} config.slider.min - Minimum value for slider
      * @param {string} config.slider.max - Maximum value for slider
      * @param {string} config.slider.step - Step value for slider
      * @param {string} config.slider.value - Initial value for slider
      * @param {string} config.slider.id - ID for the slider element
-     * @param {string} config.slider.unit - Unit to display after value (if empty string, show value without unit; if null/undefined, hide value)
-     * @param {Object} config.resetButton - Reset button configuration
-     * @param {string} config.resetButton.tooltip - Tooltip for reset button
-     * @param {number} config.resetButton.resetValue - Value to set when reset button is clicked
-     * @param {Object} config.toggle - Toggle switch configuration
-     * @param {string} config.toggle.tooltip - Tooltip for toggle switch
-     * @param {boolean} config.toggle.checked - Initial state of toggle
-     * @param {string} config.toggle.id - ID for the toggle element
-     * @param {Function} config.onSliderChange - Function to call when slider value changes
-     * @param {Function} config.onReset - Function to call when reset button is clicked
-     * @param {Function} config.onToggleChange - Function to call when toggle state changes
+     * @param {string|Object} [config.slider.unit] - Unit configuration
+     * @param {string} [config.slider.unit.value] - Unit text to display after value
+     * @param {number} [config.slider.unit.width] - Width for value display in pixels (default: 40px)
+     * @param {Object} [config.resetButton] - Reset button configuration
+     * @param {string} [config.resetButton.tooltip] - Tooltip for reset button
+     * @param {number|string} [config.resetButton.resetValue] - Value to set when reset button is clicked (use 'none' to hide icon)
+     * @param {number} [config.resetButton.width] - Width of reset button in pixels (default: 23px)
+     * @param {Object} [config.toggle] - Toggle switch configuration
+     * @param {string} [config.toggle.tooltip] - Tooltip for toggle switch
+     * @param {boolean} [config.toggle.checked] - Initial state of toggle
+     * @param {string} [config.toggle.id] - ID for the toggle element
+     * @param {boolean} [config.toggle.required] - Whether to show the toggle (false = hidden but space reserved)
+     * @param {Function} [config.onSliderChange] - Function to call when slider value changes
+     * @param {Function} [config.onReset] - Function to call when reset button is clicked
+     * @param {Function} [config.onToggleChange] - Function to call when toggle state changes
+     * @param {HTMLElement} [config.parent] - Parent element to append the control to
      * @returns {Object} - Object containing the container, slider, valueDisplay, resetButton and toggle elements
+     *
+     * @example
+     * // Basic slider with label and unit
+     * const fovControls = this.createSliderControllerComponent({
+     *     label: 'Field of View',
+     *     slider: {
+     *         min: '20',
+     *         max: '100',
+     *         step: '1',
+     *         value: '40',
+     *         id: 'camera-fov-slider',
+     *         unit: '°'  // Simple string unit
+     *     },
+     *     resetButton: {
+     *         tooltip: 'Reset to default',
+     *         resetValue: 40
+     *     },
+     *     onSliderChange: (slider) => {
+     *         camera.fov = parseFloat(slider.value);
+     *         camera.updateProjectionMatrix();
+     *     },
+     *     parent: this.consoleContent
+     * });
+     *
+     * @example
+     * // Advanced slider with all options
+     * const rotationControls = this.createSliderControllerComponent({
+     *     label: {
+     *         text: 'Rotation',
+     *         width: 80
+     *     },
+     *     icon: {
+     *         src: 'icons/rotate.png',
+     *         width: 24
+     *     },
+     *     slider: {
+     *         min: '0',
+     *         max: '10',
+     *         step: '0.1',
+     *         value: '1.0',
+     *         id: 'rotation-slider',
+     *         unit: {
+     *             value: 'x',
+     *             width: 50
+     *         }
+     *     },
+     *     resetButton: {
+     *         tooltip: 'Reset to default speed',
+     *         resetValue: 1.0,
+     *         width: 24
+     *     },
+     *     toggle: {
+     *         tooltip: 'Enable rotation',
+     *         checked: true,
+     *         id: 'rotation-toggle',
+     *         required: true
+     *     },
+     *     onSliderChange: (slider, toggle) => {
+     *         const speed = parseFloat(slider.value);
+     *         setRotationSpeed(speed);
+     *     },
+     *     onReset: (slider) => {
+     *         slider.value = '1.0';
+     *         setRotationSpeed(1.0);
+     *     },
+     *     onToggleChange: (checked) => {
+     *         setRotationEnabled(checked);
+     *     },
+     *     parent: this.consoleContent
+     * });
      */
     createSliderControllerComponent(config) {
+        const defaultIconWidth = 20;
+        const defaultResetButtonWidth = 23;
+        const defaultLabelWidth = 100;
+        const defaultUnitWidth = 50;
+
+        // Helper function to format value to fit within width
+        const formatValueToFit = (value, unitStr, maxWidth) => {
+            // Approximate character width in pixels (this is an estimate)
+            const charWidth = 8;
+
+            // Calculate how many characters we can fit
+            const maxChars = Math.floor(maxWidth / charWidth) - unitStr.length;
+
+            if (maxChars <= 0) return '';
+
+            // Convert value to string
+            let valueStr = parseFloat(value).toString();
+
+            // If value already fits, return it
+            if (valueStr.length + unitStr.length <= maxChars) {
+                return valueStr;
+            }
+
+            // Handle negative numbers
+            const isNegative = valueStr.startsWith('-');
+            if (isNegative) {
+                valueStr = valueStr.substring(1);
+            }
+
+            // Split into integer and decimal parts
+            const parts = valueStr.split('.');
+            const intPart = parts[0];
+            const decimalPart = parts.length > 1 ? parts[1] : '';
+
+            // Calculate available space for decimal digits
+            let availableChars = maxChars - (isNegative ? 1 : 0) - intPart.length;
+            if (decimalPart) availableChars--; // For decimal point
+
+            // If we can't even fit the integer part with sign, truncate it
+            if (availableChars < 0) {
+                return (isNegative ? '-' : '') + intPart.substring(0, maxChars - (isNegative ? 1 : 0));
+            }
+
+            // If no decimal part or no space for it, return just the integer part
+            if (!decimalPart || availableChars <= 0) {
+                return (isNegative ? '-' : '') + intPart;
+            }
+
+            // Return formatted number with truncated decimal part
+            return (isNegative ? '-' : '') + intPart + '.' + decimalPart.substring(0, availableChars);
+        };
+
         const container = document.createElement('div');
         container.style.marginBottom = '15px';
 
-        // Add label
-        const controlLabel = document.createElement('label');
-        controlLabel.textContent = config.label;
-        controlLabel.style.display = 'block';
-        controlLabel.style.marginBottom = '5px';
-        container.appendChild(controlLabel);
-
-        // Create controls container for slider, value display, reset button and toggle
+        // Create controls container for all elements in a single line
         const controlsContainer = document.createElement('div');
         controlsContainer.style.display = 'flex';
         controlsContainer.style.alignItems = 'center';
         controlsContainer.style.gap = '10px';
+
+        // Add icon or empty space for icon if configured
+        if (config.icon) {
+            const iconWidth = config.icon.width || defaultIconWidth;
+            const iconContainer = document.createElement('div');
+            iconContainer.style.width = `${iconWidth}px`;
+            iconContainer.style.height = `${iconWidth}px`;
+            iconContainer.style.flexShrink = '0';
+
+            // Only add the actual icon if src is provided and not null/empty
+            if (config.icon.src) {
+                const icon = document.createElement('img');
+                icon.src = config.icon.src;
+                icon.style.width = '100%';
+                icon.style.height = '100%';
+                iconContainer.appendChild(icon);
+            }
+            controlsContainer.appendChild(iconContainer);
+        }
+
+        // Add label if provided
+        if (config.label) {
+            const labelContainer = document.createElement('div');
+            labelContainer.style.flexShrink = '0';
+
+            // Handle different label formats
+            let labelText = '';
+            let labelWidth = defaultLabelWidth;
+
+            if (typeof config.label === 'string') {
+                // Simple string label
+                labelText = config.label;
+            } else if (config.label && typeof config.label === 'object') {
+                // Object format with text and/or width
+                if (config.label.text !== undefined) {
+                    labelText = config.label.text;
+                }
+                if (config.label.width !== undefined) {
+                    labelWidth = config.label.width;
+                }
+            }
+
+            // Set fixed width for the label container
+            labelContainer.style.width = `${labelWidth}px`;
+
+            // Create and add the label element
+            const controlLabel = document.createElement('label');
+            controlLabel.textContent = labelText;
+            labelContainer.appendChild(controlLabel);
+
+            controlsContainer.appendChild(labelContainer);
+        }
+
+        container.appendChild(controlsContainer);
 
         // Create slider
         const slider = document.createElement('input');
@@ -246,90 +425,195 @@ class ControlPanel {
         slider.value = config.slider.value;
         slider.style.flexGrow = '1';
         slider.id = config.slider.id;
-        
+
         // Create value display if unit is specified
         const valueDisplay = document.createElement('span');
+
+        // Handle unit configuration
         if (config.slider.unit !== undefined) {
-            valueDisplay.style.minWidth = '40px';
+            let unitValue = '';
+            let unitWidth = defaultUnitWidth;
+            let showValue = true;
+
+            // Handle different unit formats
+            if (typeof config.slider.unit === 'string') {
+                // Simple string unit
+                unitValue = config.slider.unit;
+            } else if (config.slider.unit && typeof config.slider.unit === 'object') {
+                // Object format with value and/or width
+                if (config.slider.unit.value !== undefined) {
+                    unitValue = config.slider.unit.value;
+                }
+                if (config.slider.unit.width !== undefined) {
+                    unitWidth = config.slider.unit.width;
+                }
+                // If neither value nor width is specified, use defaults
+                showValue = config.slider.unit.value !== undefined ||
+                           Object.keys(config.slider.unit).length === 0;
+            }
+
+            // Set width and alignment
+            valueDisplay.style.minWidth = `${unitWidth}px`;
             valueDisplay.style.textAlign = 'right';
-            valueDisplay.textContent = `${slider.value}${config.slider.unit || ''}`;
+            valueDisplay.style.flexShrink = '0';
+
+            // Set content if showing value
+            if (showValue) {
+                const formattedValue = formatValueToFit(slider.value, unitValue, unitWidth);
+                valueDisplay.textContent = `${formattedValue}${unitValue}`;
+            }
         } else {
+            // No unit specified, don't show value display
             valueDisplay.style.display = 'none';
         }
 
-        // Create reset button
+        // Create reset button if configured
         const resetButton = document.createElement('img');
-        resetButton.src = 'icons/reset.png';
-        resetButton.style.width = '24px';
-        resetButton.style.height = '24px';
-        resetButton.style.cursor = 'pointer';
-        resetButton.title = config.resetButton.tooltip;
 
-        // Create switch container
+        if (config.resetButton) {
+            const resetButtonWidth = config.resetButton.width || defaultResetButtonWidth;
+            resetButton.style.width = `${resetButtonWidth}px`;
+            resetButton.style.height = `${resetButtonWidth}px`;
+            resetButton.style.cursor = 'pointer';
+
+            // Only add the actual reset icon if resetValue is provided and not null
+            if (config.resetButton.resetValue !== undefined &&
+                config.resetButton.resetValue !== null &&
+                config.resetButton.resetValue !== 'none') {
+                resetButton.src = 'icons/reset.png';
+            }
+
+            if (config.resetButton.tooltip) {
+                resetButton.title = config.resetButton.tooltip;
+            }
+        }
+
+        // Create switch container and toggle elements only if toggle is configured
         const switchLabel = document.createElement('label');
-        switchLabel.className = 'switch';
-        switchLabel.title = config.toggle.tooltip;
-
-        // Create toggle input
         const toggle = document.createElement('input');
-        toggle.type = 'checkbox';
-        toggle.checked = config.toggle.checked;
-        toggle.id = config.toggle.id;
-
-        // Create slider span
         const sliderSpan = document.createElement('span');
-        sliderSpan.className = 'slider';
 
-        // Assemble the switch
-        switchLabel.appendChild(toggle);
-        switchLabel.appendChild(sliderSpan);
+        if (config.toggle) {
+            switchLabel.className = 'switch';
+            if (config.toggle.tooltip) {
+                switchLabel.title = config.toggle.tooltip;
+            }
+
+            // Create toggle input
+            toggle.type = 'checkbox';
+            toggle.checked = config.toggle.checked || false;
+            if (config.toggle.id) {
+                toggle.id = config.toggle.id;
+            }
+
+            // Create slider span
+            sliderSpan.className = 'slider';
+
+            // Assemble the switch
+            switchLabel.appendChild(toggle);
+            switchLabel.appendChild(sliderSpan);
+
+            // Hide the toggle if required is false
+            if (config.toggle.required === false) {
+                switchLabel.style.visibility = 'hidden';
+            }
+        }
 
         // Add event listener for slider
         slider.addEventListener('input', () => {
-            // Update value display if visible
+            // Update value display if visible and showing values
             if (config.slider.unit !== undefined) {
-                valueDisplay.textContent = `${slider.value}${config.slider.unit || ''}`;
+                let unitValue = '';
+                let showValue = true;
+                let unitWidth = defaultUnitWidth;
+
+                // Handle different unit formats
+                if (typeof config.slider.unit === 'string') {
+                    unitValue = config.slider.unit;
+                } else if (config.slider.unit && typeof config.slider.unit === 'object') {
+                    if (config.slider.unit.value !== undefined) {
+                        unitValue = config.slider.unit.value;
+                    }
+                    if (config.slider.unit.width !== undefined) {
+                        unitWidth = config.slider.unit.width;
+                    }
+                    // Only show value if value property exists or object is empty
+                    showValue = config.slider.unit.value !== undefined ||
+                               Object.keys(config.slider.unit).length === 0;
+                }
+
+                if (showValue) {
+                    const formattedValue = formatValueToFit(slider.value, unitValue, unitWidth);
+                    valueDisplay.textContent = `${formattedValue}${unitValue}`;
+                }
             }
-            
+
             if (config.onSliderChange) {
                 config.onSliderChange(slider, toggle);
             }
         });
 
-        // Add event listener for reset button
-        resetButton.addEventListener('click', () => {
-            slider.value = config.resetButton.resetValue;
-            
-            // Update value display if visible
-            if (config.slider.unit !== undefined) {
-                valueDisplay.textContent = `${slider.value}${config.slider.unit || ''}`;
-            }
-            
-            if (config.onReset) {
-                config.onReset(slider, toggle, config.resetButton.resetValue);
-            }
-        });
+        // Add event listener for reset button if it has a reset value
+        if (config.resetButton &&
+            config.resetButton.resetValue !== undefined &&
+            config.resetButton.resetValue !== null &&
+            config.resetButton.resetValue !== 'none') {
+            resetButton.addEventListener('click', () => {
+                slider.value = config.resetButton.resetValue;
 
-        // Add event listener for toggle
-        toggle.addEventListener('change', (e) => {
-            if (config.onToggleChange) {
+                // Update value display if visible
+                if (config.slider.unit !== undefined) {
+                    let unitValue = '';
+                    let showValue = true;
+                    let unitWidth = defaultUnitWidth;
+
+                    // Handle different unit formats
+                    if (typeof config.slider.unit === 'string') {
+                        unitValue = config.slider.unit;
+                    } else if (config.slider.unit && typeof config.slider.unit === 'object') {
+                        if (config.slider.unit.value !== undefined) {
+                            unitValue = config.slider.unit.value;
+                        }
+                        if (config.slider.unit.width !== undefined) {
+                            unitWidth = config.slider.unit.width;
+                        }
+                        // Only show value if value property exists or object is empty
+                        showValue = config.slider.unit.value !== undefined ||
+                                   Object.keys(config.slider.unit).length === 0;
+                    }
+
+                    if (showValue) {
+                        const formattedValue = formatValueToFit(slider.value, unitValue, unitWidth);
+                        valueDisplay.textContent = `${formattedValue}${unitValue}`;
+                    }
+                }
+
+                if (config.onReset) {
+                    config.onReset(slider, toggle, config.resetButton.resetValue);
+                }
+            });
+        }
+
+        // Add event listener for toggle if it's configured
+        if (config.toggle && config.onToggleChange) {
+            toggle.addEventListener('change', (e) => {
                 config.onToggleChange(e.target.checked, slider);
-            }
-        });
+            });
+        }
 
-        // Add components to controls container
+        // Add slider and other components to controls container
         controlsContainer.appendChild(slider);
         if (config.slider.unit !== undefined) {
             controlsContainer.appendChild(valueDisplay);
         }
-        controlsContainer.appendChild(resetButton);
-        // Only add toggle if it's required
-        if (config.toggle && config.toggle.required !== false) {
+        // Only add reset button if it's configured
+        if (config.resetButton) {
+            controlsContainer.appendChild(resetButton);
+        }
+        // Add toggle if it's configured (visible or hidden)
+        if (config.toggle) {
             controlsContainer.appendChild(switchLabel);
         }
-
-        // Add controls container to main container
-        container.appendChild(controlsContainer);
 
         // Add to control panel if parent is provided
         if (config.parent) {
@@ -502,6 +786,4 @@ class ControlPanel {
 
         return container;
     }
-    
-
 }

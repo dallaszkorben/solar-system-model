@@ -3,7 +3,10 @@
  */
 class ViewControlPanel extends ControlPanel {
     constructor(solarSystem) {
-        super('View Controls', { top: '20px', left: '340px' });
+        super('View Controls', { top: '20px', left: '380px' });
+
+        // Make the panel the same width as the Solar System Controls panel
+        this.consolePane.style.width = '350px';
         this.solarSystem = solarSystem;
 
         // Store references to radio buttons
@@ -288,589 +291,366 @@ class ViewControlPanel extends ControlPanel {
         navigationHeader.style.paddingBottom = '5px';
         this.consoleContent.appendChild(navigationHeader);
 
-        // Create table for navigation controls
-        const navigationTable = document.createElement('table');
-        navigationTable.style.width = '100%';
-        navigationTable.style.borderCollapse = 'collapse';
+        // Create a custom slider component with icon for horizontal rotation
+        const horizontalSliderComponent = this.createSliderControllerComponent({
+            label: '',
+            icon: {
+                src: 'icons/rotate-horizontal.png'
+            },
+            slider: {
+                min: '0',
+                max: '0',
+                step: '0.01',
+                value: '0',
+                id: 'navigation-horizontal-rotation-slider',
+            },
+            resetButton: {
+                tooltip: 'Reset to default',
+                resetValue: 0
+            },
+            toggle: {
+                required: false // No toggle for horizontal slider
+            },
 
-        // Create table row for horizontal rotation angle control
-        const horizontalRotationRow = document.createElement('tr');
+            onSliderChange: (slider) => {
+                if (this.activeView instanceof PlanetSideView) {
+                    const viewType = this.activeView.viewType;
+                    const planetName = viewType.replace('SideView', '');
+                    const value = parseFloat(slider.value);
 
-        // First column - Horizontal rotation icon
-        const horizontalRotationIconCell = document.createElement('td');
-        horizontalRotationIconCell.style.width = '24px';
-        horizontalRotationIconCell.style.height = '24px';
+                    // Store the current value for this planet
+                    if (!this.planetSliderValues[planetName]) {
+                        this.planetSliderValues[planetName] = {};
+                    }
+                    this.planetSliderValues[planetName].horizontal = value;
 
-        const horizontalRotationIcon = document.createElement('img');
-        horizontalRotationIcon.src = 'icons/rotate-horizontal.png';
-        horizontalRotationIcon.style.width = '24px';
-        horizontalRotationIcon.style.height = '24px';
-        horizontalRotationIconCell.appendChild(horizontalRotationIcon);
-        
-        // Second column - Slider container
-        const horizontalRotationSliderCell = document.createElement('td');
-        horizontalRotationSliderCell.style.padding = '0 10px';
+                    // Update the camera position
+                    if (this.activeView.positionSideViewCamera) {
+                        const verticalValue = this.planetSliderValues[planetName].vertical || 0;
+                        this.activeView.positionSideViewCamera(verticalValue, value);
+                    }
+                } else if (this.activeView instanceof LocalView) {
+                    const viewType = this.activeView.viewType;
+                    const value = parseFloat(slider.value);
 
-        const horizontalRotationSlider = document.createElement('input');
-        horizontalRotationSlider.type = 'range';
-        horizontalRotationSlider.min = '0';
-        horizontalRotationSlider.max = '0';
-        horizontalRotationSlider.value = '0';
-        horizontalRotationSlider.style.width = '100%';
-        horizontalRotationSlider.id = 'navigation-horizontal-rotation-slider';
-        
-        horizontalRotationSliderCell.appendChild(horizontalRotationSlider);
-        
-        // Add event listener to update the camera position when slider changes
-        horizontalRotationSlider.addEventListener('input', (e) => {
-            if (this.activeView instanceof PlanetSideView) {
-                const viewType = this.activeView.viewType;
-                const planetName = viewType.replace('SideView', '');
-                const value = parseFloat(e.target.value);
+                    // Store the current value for this location
+                    if (!this.planetSliderValues[viewType]) {
+                        this.planetSliderValues[viewType] = {};
+                    }
+                    this.planetSliderValues[viewType].horizontal = value;
 
-                // Store the current value for this planet
-                if (!this.planetSliderValues[planetName]) {
-                    this.planetSliderValues[planetName] = {};
+                    // Update the camera position
+                    this.activeView.setHorizontalAngle(value);
                 }
-                this.planetSliderValues[planetName].horizontal = value;
+            },
+            onReset: (slider) => {
+                if (this.activeView instanceof PlanetSideView) {
+                    const viewType = this.activeView.viewType;
+                    const locationName = viewType.replace('SideView', '');
 
-                // Update the camera position
-                if (this.activeView.positionSideViewCamera) {
-                    const verticalValue = this.planetSliderValues[planetName].vertical || 0;
-                    this.activeView.positionSideViewCamera(verticalValue, value);
+                    // Get default value
+                    let defaultValue = 0;
+                    if (PlanetSideView.viewCameras &&
+                        PlanetSideView.viewCameras[viewType] &&
+                        PlanetSideView.viewCameras[viewType].rotateHorizontalDefaultValue !== undefined) {
+                        defaultValue = PlanetSideView.viewCameras[viewType].rotateHorizontalDefaultValue;
+                    }
+
+                    // Update slider and camera
+                    slider.value = defaultValue;
+                    if (!this.planetSliderValues[locationName]) {
+                        this.planetSliderValues[locationName] = {};
+                    }
+                    this.planetSliderValues[locationName].horizontal = defaultValue;
+
+                    if (this.activeView.positionSideViewCamera) {
+                        const verticalValue = this.planetSliderValues[locationName].vertical || 0;
+                        this.activeView.positionSideViewCamera(verticalValue, defaultValue);
+                    }
+                } else if (this.activeView instanceof LocalView) {
+                    const viewType = this.activeView.viewType;
+
+                    // Get default value
+                    let defaultValue = 0;
+                    if (LocalView.viewCameras &&
+                        LocalView.viewCameras[viewType] &&
+                        LocalView.viewCameras[viewType].rotateHorizontalDefaultValue !== undefined) {
+                        defaultValue = LocalView.viewCameras[viewType].rotateHorizontalDefaultValue;
+                    }
+
+                    // Update slider and camera
+                    slider.value = defaultValue;
+                    if (!this.planetSliderValues[viewType]) {
+                        this.planetSliderValues[viewType] = {};
+                    }
+                    this.planetSliderValues[viewType].horizontal = defaultValue;
+
+                    // Update the camera position
+                    this.activeView.setHorizontalAngle(defaultValue);
                 }
-            } else if (this.activeView instanceof LocalView) {
-                const viewType = this.activeView.viewType;
-                const value = parseFloat(e.target.value);
-
-                // Store the current value for this location
-                if (!this.planetSliderValues[viewType]) {
-                    this.planetSliderValues[viewType] = {};
-                }
-                this.planetSliderValues[viewType].horizontal = value;
-
-                // Update the camera position
-                this.activeView.setHorizontalAngle(value);
-            }
+            },
+            parent: this.consoleContent
         });
 
-        // Slider is already appended to horizontalRotationSliderCell via horizontalControlsContainer
+        // Create a custom slider component with icon for vertical rotation
+        const verticalRotComp = this.createSliderControllerComponent({
+            label: '',
+            icon: {
+                src: 'icons/rotate-vertical.png'
+            },
+            slider: {
+                min: '0',
+                max: '0',
+                step: '0.01',
+                value: '0',
+                id: 'navigation-vertical-rotation-slider'
+            },
+            resetButton: {
+                tooltip: 'Reset to default',
+                resetValue: 0
+            },
+            toggle: {
+                tooltip: 'Toggle between Equator and Orbit plane',
+                checked: PlanetSideView.recentCameraType === PlanetSideView.cameraTypes.EQUATOR_PLANE,
+                id: 'plane-switch'
+            },
+            onSliderChange: (slider) => {
+                if (this.activeView instanceof PlanetSideView) {
+                    const viewType = this.activeView.viewType;
+                    const planetName = viewType.replace('SideView', '');
+                    const value = parseFloat(slider.value);
 
-        // Third column - Reset button
-        const horizontalRotationResetCell = document.createElement('td');
-        horizontalRotationResetCell.style.width = '24px';
-        horizontalRotationResetCell.style.height = '24px';
+                    // Store the current value for this planet
+                    if (!this.planetSliderValues[planetName]) {
+                        this.planetSliderValues[planetName] = {};
+                    }
+                    this.planetSliderValues[planetName].vertical = value;
 
-        const horizontalRotationResetButton = document.createElement('img');
-        horizontalRotationResetButton.src = 'icons/reset.png';
-        horizontalRotationResetButton.style.width = '24px';
-        horizontalRotationResetButton.style.height = '24px';
-        horizontalRotationResetButton.style.cursor = 'pointer';
+                    // Update the camera position
+                    if (this.activeView.positionSideViewCamera) {
+                        const horizontalValue = this.planetSliderValues[planetName].horizontal || 0;
+                        this.activeView.positionSideViewCamera(value, horizontalValue);
+                    }
+                } else if (this.activeView instanceof LocalView) {
+                    const viewType = this.activeView.viewType;
+                    const value = parseFloat(slider.value);
 
-        // Add event listener to reset the slider to default value
-        horizontalRotationResetButton.addEventListener('click', () => {
-            if (this.activeView instanceof PlanetSideView) {
-                const viewType = this.activeView.viewType;
-                const locationName = viewType.replace('SideView', '');
+                    // Store the current value for this location
+                    if (!this.planetSliderValues[viewType]) {
+                        this.planetSliderValues[viewType] = {};
+                    }
+                    this.planetSliderValues[viewType].vertical = value;
 
-                // Get default value
-                let defaultValue = 0;
-                if (PlanetSideView.viewCameras &&
-                    PlanetSideView.viewCameras[viewType] &&
-                    PlanetSideView.viewCameras[viewType].rotateHorizontalDefaultValue !== undefined) {
-                    defaultValue = PlanetSideView.viewCameras[viewType].rotateHorizontalDefaultValue;
+                    // Update the camera position
+                    this.activeView.setVerticalAngle(value);
+                }
+            },
+            onToggleChange: (checked) => {
+                if (checked) {
+                    PlanetSideView.recentCameraType = PlanetSideView.cameraTypes.EQUATOR_PLANE;
+                } else {
+                    PlanetSideView.recentCameraType = PlanetSideView.cameraTypes.ORBIT_PLANE;
                 }
 
-                // Update slider and camera
-                horizontalRotationSlider.value = defaultValue;
-                if (!this.planetSliderValues[locationName]) {
-                    this.planetSliderValues[locationName] = {};
-                }
-                this.planetSliderValues[locationName].horizontal = defaultValue;
+                // Update camera position if in planet side view
+                if (this.activeView instanceof PlanetSideView) {
+                    const viewType = this.activeView.viewType;
+                    const planetName = viewType.replace('SideView', '');
 
-                if (this.activeView.positionSideViewCamera) {
-                    const verticalValue = this.planetSliderValues[locationName].vertical || 0;
-                    this.activeView.positionSideViewCamera(verticalValue, defaultValue);
-                }
-            } else if (this.activeView instanceof LocalView) {
-                const viewType = this.activeView.viewType;
+                    if (this.planetSliderValues[planetName]) {
+                        const verticalValue = this.planetSliderValues[planetName].vertical || 0;
+                        const horizontalValue = this.planetSliderValues[planetName].horizontal || 0;
+                        const depthValue = this.planetSliderValues[planetName].depth || 2;
 
-                // Get default value
-                let defaultValue = 0;
-                if (LocalView.viewCameras &&
-                    LocalView.viewCameras[viewType] &&
-                    LocalView.viewCameras[viewType].rotateHorizontalDefaultValue !== undefined) {
-                    defaultValue = LocalView.viewCameras[viewType].rotateHorizontalDefaultValue;
+                        this.activeView.positionSideViewCamera(verticalValue, horizontalValue, depthValue);
+                    }
                 }
-
-                // Update slider and camera
-                horizontalRotationSlider.value = defaultValue;
-                if (!this.planetSliderValues[viewType]) {
-                    this.planetSliderValues[viewType] = {};
-                }
-                this.planetSliderValues[viewType].horizontal = defaultValue;
-
-                // Update the camera position
-                this.activeView.setHorizontalAngle(defaultValue);
-            }
+            },
+            parent: this.consoleContent
         });
 
-        horizontalRotationResetCell.appendChild(horizontalRotationResetButton);
+        // Create a custom slider component with icon for depth translate
+        const depthTranslateComp = this.createSliderControllerComponent({
+            label: '',
+            icon: {
+                src: 'icons/translate-depth.png'
+            },
+            slider: {
+                min: '0',
+                max: '0',
+                step: '0.01',
+                value: '0',
+                id: 'navigation-depth-translate-slider'
+            },
+            resetButton: {
+                tooltip: 'Reset to default',
+                resetValue: 0
+            },
+            toggle: {
+                required: false
+            },
+            onSliderChange: (slider) => {
+                if (this.activeView instanceof PlanetSideView) {
+                    const viewType = this.activeView.viewType;
+                    const planetName = viewType.replace('SideView', '');
+                    const value = parseFloat(slider.value);
 
-        // Add cells to row
-        horizontalRotationRow.appendChild(horizontalRotationIconCell);
-        horizontalRotationRow.appendChild(horizontalRotationSliderCell);
-        horizontalRotationRow.appendChild(horizontalRotationResetCell);
+                    // Store the current value for this planet
+                    if (!this.planetSliderValues[planetName]) {
+                        this.planetSliderValues[planetName] = {};
+                    }
+                    this.planetSliderValues[planetName].depth = value;
 
-        // Add row to table
-        navigationTable.appendChild(horizontalRotationRow);
+                    // Update the camera position
+                    if (this.activeView.positionSideViewCamera) {
+                        const verticalValue = this.planetSliderValues[planetName].vertical || 0;
+                        const horizontalValue = this.planetSliderValues[planetName].horizontal || 0;
+                        this.activeView.positionSideViewCamera(verticalValue, horizontalValue, value);
+                    }
+                } else if (this.activeView instanceof LocalView) {
+                    const viewType = this.activeView.viewType;
+                    const value = parseFloat(slider.value);
 
-        // Create table row for vertical rotation angle control
-        const verticalRotationRow = document.createElement('tr');
+                    // Store the current value for this location
+                    if (!this.planetSliderValues[viewType]) {
+                        this.planetSliderValues[viewType] = {};
+                    }
+                    this.planetSliderValues[viewType].depth = value;
 
-        // First column - Vertical rotation icon
-        const verticalRotationIconCell = document.createElement('td');
-        verticalRotationIconCell.style.width = '24px';
-        verticalRotationIconCell.style.height = '24px';
-
-        const verticalRotationIcon = document.createElement('img');
-        verticalRotationIcon.src = 'icons/rotate-vertical.png';
-        verticalRotationIcon.style.width = '24px';
-        verticalRotationIcon.style.height = '24px';
-        verticalRotationIconCell.appendChild(verticalRotationIcon);
-
-        // Second column - Slider and switch container
-        const verticalRotationSliderCell = document.createElement('td');
-        verticalRotationSliderCell.style.padding = '0 10px';
-        
-        // Create a container for the slider and switch
-        const verticalControlsContainer = document.createElement('div');
-        verticalControlsContainer.style.display = 'flex';
-        verticalControlsContainer.style.alignItems = 'center';
-        verticalControlsContainer.style.width = '100%';
-        
-        // Create slider div to contain the slider
-        const sliderDiv = document.createElement('div');
-        sliderDiv.style.flexGrow = '1';
-        sliderDiv.style.marginRight = '10px';
-
-        const verticalRotationSlider = document.createElement('input');
-        verticalRotationSlider.type = 'range';
-        verticalRotationSlider.min = '0';
-        verticalRotationSlider.max = '0';
-        verticalRotationSlider.value = '0';
-        verticalRotationSlider.style.width = '100%';
-        verticalRotationSlider.id = 'navigation-vertical-rotation-slider';
-        
-        sliderDiv.appendChild(verticalRotationSlider);
-        
-        // Create switch container
-        const switchContainer = document.createElement('div');
-        switchContainer.style.marginLeft = '5px';
-        switchContainer.style.display = 'flex';
-        switchContainer.style.alignItems = 'center';
-        
-        // Create switch label
-        const switchLabel = document.createElement('label');
-        switchLabel.className = 'switch';
-        switchLabel.style.marginRight = '5px';
-        
-        // Create switch input
-        const switchInput = document.createElement('input');
-        switchInput.type = 'checkbox';
-        switchInput.id = 'plane-switch';
-        switchInput.checked = PlanetSideView.recentCameraType === PlanetSideView.cameraTypes.EQUATOR_PLANE;
-        
-        // Create slider span
-        const sliderSpan = document.createElement('span');
-        sliderSpan.className = 'slider';
-        
-        // Assemble switch
-        switchLabel.appendChild(switchInput);
-        switchLabel.appendChild(sliderSpan);
-        
-        // Add label text
-        const labelText = document.createElement('span');
-        labelText.textContent = 'Equator';
-        labelText.style.fontSize = '0.8em';
-        
-        // Add switch and label to container
-        switchContainer.appendChild(switchLabel);
-        switchContainer.appendChild(labelText);
-        
-        // Add event listener to the switch
-        switchInput.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                PlanetSideView.recentCameraType = PlanetSideView.cameraTypes.EQUATOR_PLANE;
-            } else {
-                PlanetSideView.recentCameraType = PlanetSideView.cameraTypes.ORBIT_PLANE;
-            }
-            
-            // Update camera position if in planet side view
-            if (this.activeView instanceof PlanetSideView) {
-                const viewType = this.activeView.viewType;
-                const planetName = viewType.replace('SideView', '');
-                
-                if (this.planetSliderValues[planetName]) {
-                    const verticalValue = this.planetSliderValues[planetName].vertical || 0;
-                    const horizontalValue = this.planetSliderValues[planetName].horizontal || 0;
-                    const depthValue = this.planetSliderValues[planetName].depth || 2;
-                    
-                    this.activeView.positionSideViewCamera(verticalValue, horizontalValue, depthValue);
+                    // Update the camera position
+                    this.activeView.setCameraElevation(value);
                 }
-            }
-        });
-        
-        // Add slider and switch to container
-        verticalControlsContainer.appendChild(sliderDiv);
-        verticalControlsContainer.appendChild(switchContainer);
-        verticalRotationSliderCell.appendChild(verticalControlsContainer);
+            },
+            onReset: (slider) => {
+                if (this.activeView instanceof PlanetSideView) {
+                    const viewType = this.activeView.viewType;
+                    const locationName = viewType.replace('SideView', '');
 
-        // Add event listener to update the camera position when slider changes
-        verticalRotationSlider.addEventListener('input', (e) => {
-            if (this.activeView instanceof PlanetSideView) {
-                const viewType = this.activeView.viewType;
-                const planetName = viewType.replace('SideView', '');
-                const value = parseFloat(e.target.value);
+                    // Get default value
+                    let defaultValue = 0;
+                    if (PlanetSideView.viewCameras &&
+                        PlanetSideView.viewCameras[viewType] &&
+                        PlanetSideView.viewCameras[viewType].traverseDepthDefaultValue !== undefined) {
+                        defaultValue = PlanetSideView.viewCameras[viewType].traverseDepthDefaultValue;
+                    }
 
-                // Store the current value for this planet
-                if (!this.planetSliderValues[planetName]) {
-                    this.planetSliderValues[planetName] = {};
+                    // Update slider and camera
+                    slider.value = defaultValue;
+                    if (!this.planetSliderValues[locationName]) {
+                        this.planetSliderValues[locationName] = {};
+                    }
+                    this.planetSliderValues[locationName].depth = defaultValue;
+
+                    if (this.activeView.positionSideViewCamera) {
+                        const verticalValue = this.planetSliderValues[locationName].vertical || 0;
+                        const horizontalValue = this.planetSliderValues[locationName].horizontal || 0;
+                        this.activeView.positionSideViewCamera(verticalValue, horizontalValue, defaultValue);
+                    }
+                } else if (this.activeView instanceof LocalView) {
+                    const viewType = this.activeView.viewType;
+
+                    // Get default value
+                    let defaultValue = 0.01;
+                    if (LocalView.viewCameras &&
+                        LocalView.viewCameras[viewType] &&
+                        LocalView.viewCameras[viewType].traverseVerticalDefaultValue !== undefined) {
+                        defaultValue = LocalView.viewCameras[viewType].traverseVerticalDefaultValue;
+                    }
+
+                    // Update slider and camera
+                    slider.value = defaultValue;
+                    if (!this.planetSliderValues[viewType]) {
+                        this.planetSliderValues[viewType] = {};
+                    }
+                    this.planetSliderValues[viewType].depth = defaultValue;
+
+                    // Update the camera position
+                    this.activeView.setCameraElevation(defaultValue);
                 }
-                this.planetSliderValues[planetName].vertical = value;
-
-                // Update the camera position
-                if (this.activeView.positionSideViewCamera) {
-                    const horizontalValue = this.planetSliderValues[planetName].horizontal || 0;
-                    this.activeView.positionSideViewCamera(value, horizontalValue);
-                }
-            } else if (this.activeView instanceof LocalView) {
-                const viewType = this.activeView.viewType;
-                const value = parseFloat(e.target.value);
-
-                // Store the current value for this location
-                if (!this.planetSliderValues[viewType]) {
-                    this.planetSliderValues[viewType] = {};
-                }
-                this.planetSliderValues[viewType].vertical = value;
-
-                // Update the camera position
-                this.activeView.setVerticalAngle(value);
-            }
+            },
+            parent: this.consoleContent
         });
 
-        // Slider is already appended to verticalRotationSliderCell via verticalControlsContainer
+        // Create a custom slider component with icon for vertical translate
+        const verticalTranslateComp = this.createSliderControllerComponent({
+            label: '',
+            icon: {
+                src: 'icons/translate-vertical.png'
+            },
+            slider: {
+                min: '0',
+                max: '0',
+                step: '0.01',
+                value: '0',
+                id: 'navigation-vertical-translate-slider'
+            },
+            resetButton: {
+                tooltip: 'Reset to default',
+                resetValue: 0
+            },
+            toggle: {
+                required: false
+            },
+            onSliderChange: (slider) => {
+                if (this.activeView instanceof LocalView) {
+                    const viewType = this.activeView.viewType;
+                    const value = parseFloat(slider.value);
 
-        // Third column - Reset button
-        const verticalRotationResetCell = document.createElement('td');
-        verticalRotationResetCell.style.width = '24px';
-        verticalRotationResetCell.style.height = '24px';
+                    // Store the current value for this location
+                    if (!this.planetSliderValues[viewType]) {
+                        this.planetSliderValues[viewType] = {};
+                    }
+                    this.planetSliderValues[viewType].verticalTranslate = value;
 
-        const verticalRotationResetButton = document.createElement('img');
-        verticalRotationResetButton.src = 'icons/reset.png';
-        verticalRotationResetButton.style.width = '24px';
-        verticalRotationResetButton.style.height = '24px';
-        verticalRotationResetButton.style.cursor = 'pointer';
-
-        // Add event listener to reset the slider to default value
-        verticalRotationResetButton.addEventListener('click', () => {
-            if (this.activeView instanceof PlanetSideView) {
-                const viewType = this.activeView.viewType;
-                const locationName = viewType.replace('SideView', '');
-
-                // Get default value
-                let defaultValue = 0;
-                if (PlanetSideView.viewCameras &&
-                    PlanetSideView.viewCameras[viewType] &&
-                    PlanetSideView.viewCameras[viewType].rotateVerticalDefaultValue !== undefined) {
-                    defaultValue = PlanetSideView.viewCameras[viewType].rotateVerticalDefaultValue;
+                    // Update the camera position
+                    this.activeView.setVerticalTranslate(value);
                 }
+            },
+            onReset: (slider) => {
+                if (this.activeView instanceof LocalView) {
+                    const viewType = this.activeView.viewType;
 
-                // Update slider and camera
-                verticalRotationSlider.value = defaultValue;
-                if (!this.planetSliderValues[locationName]) {
-                    this.planetSliderValues[locationName] = {};
+                    // Get default value
+                    let defaultValue = 0.01;
+                    if (LocalView.viewCameras &&
+                        LocalView.viewCameras[viewType] &&
+                        LocalView.viewCameras[viewType].traverseVerticalDefaultValue !== undefined) {
+                        defaultValue = LocalView.viewCameras[viewType].traverseVerticalDefaultValue;
+                    }
+
+                    // Update slider and camera
+                    slider.value = defaultValue;
+                    if (!this.planetSliderValues[viewType]) {
+                        this.planetSliderValues[viewType] = {};
+                    }
+                    this.planetSliderValues[viewType].verticalTranslate = defaultValue;
+
+                    // Update the camera position
+                    this.activeView.setVerticalTranslate(defaultValue);
                 }
-                this.planetSliderValues[locationName].vertical = defaultValue;
-
-                if (this.activeView.positionSideViewCamera) {
-                    const horizontalValue = this.planetSliderValues[locationName].horizontal || 0;
-                    this.activeView.positionSideViewCamera(defaultValue, horizontalValue);
-                }
-            } else if (this.activeView instanceof LocalView) {
-                const viewType = this.activeView.viewType;
-
-                // Get default value
-                let defaultValue = 0;
-                if (LocalView.viewCameras &&
-                    LocalView.viewCameras[viewType] &&
-                    LocalView.viewCameras[viewType].rotateVerticalDefaultValue !== undefined) {
-                    defaultValue = LocalView.viewCameras[viewType].rotateVerticalDefaultValue;
-                }
-
-                // Update slider and camera
-                verticalRotationSlider.value = defaultValue;
-                if (!this.planetSliderValues[viewType]) {
-                    this.planetSliderValues[viewType] = {};
-                }
-                this.planetSliderValues[viewType].vertical = defaultValue;
-
-                // Update the camera position
-                this.activeView.setVerticalAngle(defaultValue);
-            }
+            },
+            parent: this.consoleContent
         });
 
-        verticalRotationResetCell.appendChild(verticalRotationResetButton);
-
-        // Add cells to row
-        verticalRotationRow.appendChild(verticalRotationIconCell);
-        verticalRotationRow.appendChild(verticalRotationSliderCell);
-        verticalRotationRow.appendChild(verticalRotationResetCell);
-
-        // Add row to table
-        navigationTable.appendChild(verticalRotationRow);
-
-        // Create table row for depth translate control
-        const depthTranslateRow = document.createElement('tr');
-
-        // First column - Depth translate icon
-        const depthTranslateIconCell = document.createElement('td');
-        depthTranslateIconCell.style.width = '24px';
-        depthTranslateIconCell.style.height = '24px';
-
-        const depthTranslateIcon = document.createElement('img');
-        depthTranslateIcon.src = 'icons/translate-depth.png';
-        depthTranslateIcon.style.width = '24px';
-        depthTranslateIcon.style.height = '24px';
-        depthTranslateIconCell.appendChild(depthTranslateIcon);
-
-        // Second column - Slider
-        const depthTranslateSliderCell = document.createElement('td');
-        depthTranslateSliderCell.style.padding = '0 10px';
-
-        const depthTranslateSlider = document.createElement('input');
-        depthTranslateSlider.type = 'range';
-        depthTranslateSlider.min = '0';
-        depthTranslateSlider.max = '0';
-        depthTranslateSlider.value = '0';
-        depthTranslateSlider.style.width = '100%';
-        depthTranslateSlider.id = 'navigation-depth-translate-slider';
-
-        // Add event listener to update the camera position when slider changes
-        depthTranslateSlider.addEventListener('input', (e) => {
-            if (this.activeView instanceof PlanetSideView) {
-                const viewType = this.activeView.viewType;
-                const planetName = viewType.replace('SideView', '');
-                const value = parseFloat(e.target.value);
-
-                // Store the current value for this planet
-                if (!this.planetSliderValues[planetName]) {
-                    this.planetSliderValues[planetName] = {};
-                }
-                this.planetSliderValues[planetName].depth = value;
-
-                // Update the camera position
-                if (this.activeView.positionSideViewCamera) {
-                    const verticalValue = this.planetSliderValues[planetName].vertical || 0;
-                    const horizontalValue = this.planetSliderValues[planetName].horizontal || 0;
-                    this.activeView.positionSideViewCamera(verticalValue, horizontalValue, value);
-                }
-            } else if (this.activeView instanceof LocalView) {
-                const viewType = this.activeView.viewType;
-                const value = parseFloat(e.target.value);
-
-                // Store the current value for this location
-                if (!this.planetSliderValues[viewType]) {
-                    this.planetSliderValues[viewType] = {};
-                }
-                this.planetSliderValues[viewType].depth = value;
-
-                // Update the camera position
-                this.activeView.setCameraElevation(value);
-            }
-        });
-
-        depthTranslateSliderCell.appendChild(depthTranslateSlider);
-
-        // Third column - Reset button
-        const depthTranslateResetCell = document.createElement('td');
-        depthTranslateResetCell.style.width = '24px';
-        depthTranslateResetCell.style.height = '24px';
-
-        const depthTranslateResetButton = document.createElement('img');
-        depthTranslateResetButton.src = 'icons/reset.png';
-        depthTranslateResetButton.style.width = '24px';
-        depthTranslateResetButton.style.height = '24px';
-        depthTranslateResetButton.style.cursor = 'pointer';
-
-        // Add event listener to reset the slider to default value
-        depthTranslateResetButton.addEventListener('click', () => {
-            if (this.activeView instanceof PlanetSideView) {
-                const viewType = this.activeView.viewType;
-                const locationName = viewType.replace('SideView', '');
-
-                // Get default value
-                let defaultValue = 0;
-                if (PlanetSideView.viewCameras &&
-                    PlanetSideView.viewCameras[viewType] &&
-                    PlanetSideView.viewCameras[viewType].traverseDepthDefaultValue !== undefined) {
-                    defaultValue = PlanetSideView.viewCameras[viewType].traverseDepthDefaultValue;
-                }
-
-                // Update slider and camera
-                depthTranslateSlider.value = defaultValue;
-                if (!this.planetSliderValues[locationName]) {
-                    this.planetSliderValues[locationName] = {};
-                }
-                this.planetSliderValues[locationName].depth = defaultValue;
-
-                if (this.activeView.positionSideViewCamera) {
-                    const verticalValue = this.planetSliderValues[locationName].vertical || 0;
-                    const horizontalValue = this.planetSliderValues[locationName].horizontal || 0;
-                    this.activeView.positionSideViewCamera(verticalValue, horizontalValue, defaultValue);
-                }
-            } else if (this.activeView instanceof LocalView) {
-                const viewType = this.activeView.viewType;
-
-                // Get default value
-                let defaultValue = 0.01;
-                if (LocalView.viewCameras &&
-                    LocalView.viewCameras[viewType] &&
-                    LocalView.viewCameras[viewType].traverseVerticalDefaultValue !== undefined) {
-                    defaultValue = LocalView.viewCameras[viewType].traverseVerticalDefaultValue;
-                }
-
-                // Update slider and camera
-                depthTranslateSlider.value = defaultValue;
-                if (!this.planetSliderValues[viewType]) {
-                    this.planetSliderValues[viewType] = {};
-                }
-                this.planetSliderValues[viewType].depth = defaultValue;
-
-                // Update the camera position
-                this.activeView.setCameraElevation(defaultValue);
-            }
-        });
-
-        depthTranslateResetCell.appendChild(depthTranslateResetButton);
-
-        // Add cells to row
-        depthTranslateRow.appendChild(depthTranslateIconCell);
-        depthTranslateRow.appendChild(depthTranslateSliderCell);
-        depthTranslateRow.appendChild(depthTranslateResetCell);
-
-        // Add row to table
-        navigationTable.appendChild(depthTranslateRow);
-
-        // Create table row for vertical translate control
-        const verticalTranslateRow = document.createElement('tr');
-
-        // First column - Vertical translate icon
-        const verticalTranslateIconCell = document.createElement('td');
-        verticalTranslateIconCell.style.width = '24px';
-        verticalTranslateIconCell.style.height = '24px';
-
-        const verticalTranslateIcon = document.createElement('img');
-        verticalTranslateIcon.src = 'icons/translate-vertical.png';
-        verticalTranslateIcon.style.width = '24px';
-        verticalTranslateIcon.style.height = '24px';
-        verticalTranslateIconCell.appendChild(verticalTranslateIcon);
-
-        // Second column - Slider
-        const verticalTranslateSliderCell = document.createElement('td');
-        verticalTranslateSliderCell.style.padding = '0 10px';
-
-        const verticalTranslateSlider = document.createElement('input');
-        verticalTranslateSlider.type = 'range';
-        verticalTranslateSlider.min = '0';
-        verticalTranslateSlider.max = '0';
-        verticalTranslateSlider.value = '0';
-        verticalTranslateSlider.style.width = '100%';
-        verticalTranslateSlider.id = 'navigation-vertical-translate-slider';
-
-        // Add event listener to update the camera position when slider changes
-        verticalTranslateSlider.addEventListener('input', (e) => {
-            if (this.activeView instanceof LocalView) {
-                const viewType = this.activeView.viewType;
-                const value = parseFloat(e.target.value);
-
-                // Store the current value for this location
-                if (!this.planetSliderValues[viewType]) {
-                    this.planetSliderValues[viewType] = {};
-                }
-                this.planetSliderValues[viewType].verticalTranslate = value;
-
-                // Update the camera position
-                this.activeView.setVerticalTranslate(value);
-            }
-        });
-
-        verticalTranslateSliderCell.appendChild(verticalTranslateSlider);
-
-        // Third column - Reset button
-        const verticalTranslateResetCell = document.createElement('td');
-        verticalTranslateResetCell.style.width = '24px';
-        verticalTranslateResetCell.style.height = '24px';
-
-        const verticalTranslateResetButton = document.createElement('img');
-        verticalTranslateResetButton.src = 'icons/reset.png';
-        verticalTranslateResetButton.style.width = '24px';
-        verticalTranslateResetButton.style.height = '24px';
-        verticalTranslateResetButton.style.cursor = 'pointer';
-
-        // Add event listener to reset the slider to default value
-        verticalTranslateResetButton.addEventListener('click', () => {
-            if (this.activeView instanceof LocalView) {
-                const viewType = this.activeView.viewType;
-
-                // Get default value
-                let defaultValue = 0.01;
-                if (LocalView.viewCameras &&
-                    LocalView.viewCameras[viewType] &&
-                    LocalView.viewCameras[viewType].traverseVerticalDefaultValue !== undefined) {
-                    defaultValue = LocalView.viewCameras[viewType].traverseVerticalDefaultValue;
-                }
-
-                // Update slider and camera
-                verticalTranslateSlider.value = defaultValue;
-                if (!this.planetSliderValues[viewType]) {
-                    this.planetSliderValues[viewType] = {};
-                }
-                this.planetSliderValues[viewType].verticalTranslate = defaultValue;
-
-                // Update the camera position
-                this.activeView.setVerticalTranslate(defaultValue);
-            }
-        });
-
-        verticalTranslateResetCell.appendChild(verticalTranslateResetButton);
-
-        // Add cells to row
-        verticalTranslateRow.appendChild(verticalTranslateIconCell);
-        verticalTranslateRow.appendChild(verticalTranslateSliderCell);
-        verticalTranslateRow.appendChild(verticalTranslateResetCell);
-
-        // Add row to table
-        navigationTable.appendChild(verticalTranslateRow);
-
-        // Add table to content
-        this.consoleContent.appendChild(navigationTable);
+        // Store reference to the sliders and reset buttons
+        const horizontalRotationSlider = horizontalSliderComponent.slider;
+        const horizontalRotationResetButton = horizontalSliderComponent.resetButton;
+        const verticalRotationSlider = verticalRotComp.slider;
+        const verticalRotationResetButton = verticalRotComp.resetButton;
+        const depthTranslateSlider = depthTranslateComp.slider;
+        const depthTranslateResetButton = depthTranslateComp.resetButton;
+        const verticalTranslateSlider = verticalTranslateComp.slider;
+        const verticalTranslateResetButton = verticalTranslateComp.resetButton;
 
         // Store references to navigation elements
         this.navigationControls = {
-            table: navigationTable,
-            horizontalRotationRow: horizontalRotationRow,
             horizontalRotationSlider: horizontalRotationSlider,
             horizontalRotationResetButton: horizontalRotationResetButton,
-            planeSwitch: switchInput,
-            planeSwitchContainer: switchContainer,
-            verticalRotationRow: verticalRotationRow,
+            planeSwitch: verticalRotComp.toggle,
             verticalRotationSlider: verticalRotationSlider,
             verticalRotationResetButton: verticalRotationResetButton,
-            depthTranslateRow: depthTranslateRow,
             depthTranslateSlider: depthTranslateSlider,
             depthTranslateResetButton: depthTranslateResetButton,
-            verticalTranslateRow: verticalTranslateRow,
             verticalTranslateSlider: verticalTranslateSlider,
             verticalTranslateResetButton: verticalTranslateResetButton
         };
@@ -879,50 +659,6 @@ class ViewControlPanel extends ControlPanel {
         this.updateNavigationControls();
     }
 
-    createStereographicSection() {
-        // Create Stereographic section header
-        const stereoHeader = document.createElement('h4');
-        stereoHeader.textContent = 'Stereographic Image';
-        stereoHeader.style.margin = '20px 0 10px 0';
-        stereoHeader.style.borderBottom = '1px solid #555';
-        stereoHeader.style.paddingBottom = '5px';
-        this.consoleContent.appendChild(stereoHeader);
-        
-        // Create button container
-        const buttonContainer = document.createElement('div');
-        buttonContainer.style.display = 'flex';
-        buttonContainer.style.justifyContent = 'center';
-        buttonContainer.style.marginBottom = '15px';
-        
-        // Create button
-        const stereoButton = document.createElement('button');
-        stereoButton.textContent = 'Take Stereographic Image';
-        stereoButton.style.padding = '8px 12px';
-        stereoButton.style.cursor = 'pointer';
-        stereoButton.style.backgroundColor = '#2196F3';
-        stereoButton.style.color = 'white';
-        stereoButton.style.border = 'none';
-        stereoButton.style.borderRadius = '4px';
-        
-        // Add event listener
-        stereoButton.addEventListener('click', () => {
-            if (this.solarSystem) {
-                stereoButton.disabled = true;
-                stereoButton.textContent = 'Processing...';
-                
-                // Use setTimeout to allow the UI to update before processing
-                setTimeout(() => {
-                    this.solarSystem.takeStereographicScreenshot();
-                    stereoButton.disabled = false;
-                    stereoButton.textContent = 'Take Stereographic Image';
-                }, 100);
-            }
-        });
-        
-        buttonContainer.appendChild(stereoButton);
-        this.consoleContent.appendChild(buttonContainer);
-    }
-    
     createCameraSection() {
         // Create Camera section header
         const cameraHeader = document.createElement('h4');
@@ -999,6 +735,50 @@ class ViewControlPanel extends ControlPanel {
         };
     }
 
+    createStereographicSection() {
+        // Create Stereographic section header
+        const stereoHeader = document.createElement('h4');
+        stereoHeader.textContent = 'Stereographic Image';
+        stereoHeader.style.margin = '20px 0 10px 0';
+        stereoHeader.style.borderBottom = '1px solid #555';
+        stereoHeader.style.paddingBottom = '5px';
+        this.consoleContent.appendChild(stereoHeader);
+
+        // Create button container
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.justifyContent = 'center';
+        buttonContainer.style.marginBottom = '15px';
+
+        // Create button
+        const stereoButton = document.createElement('button');
+        stereoButton.textContent = 'Take Stereographic Image';
+        stereoButton.style.padding = '8px 12px';
+        stereoButton.style.cursor = 'pointer';
+        stereoButton.style.backgroundColor = '#2196F3';
+        stereoButton.style.color = 'white';
+        stereoButton.style.border = 'none';
+        stereoButton.style.borderRadius = '4px';
+
+        // Add event listener
+        stereoButton.addEventListener('click', () => {
+            if (this.solarSystem) {
+                stereoButton.disabled = true;
+                stereoButton.textContent = 'Processing...';
+
+                // Use setTimeout to allow the UI to update before processing
+                setTimeout(() => {
+                    this.solarSystem.takeStereographicScreenshot();
+                    stereoButton.disabled = false;
+                    stereoButton.textContent = 'Take Stereographic Image';
+                }, 100);
+            }
+        });
+
+        buttonContainer.appendChild(stereoButton);
+        this.consoleContent.appendChild(buttonContainer);
+    }
+
     updateNavigationControls() {
         if (!this.navigationControls) return;
 
@@ -1009,18 +789,18 @@ class ViewControlPanel extends ControlPanel {
         const isLocalView = this.activeView instanceof LocalView;
 
         // Rotation controls enabled for all view types
-        this.navigationControls.horizontalRotationRow.style.opacity = enabled ? '1' : '0.5';
-        this.navigationControls.horizontalRotationRow.style.pointerEvents = enabled ? 'auto' : 'none';
-        this.navigationControls.verticalRotationRow.style.opacity = enabled ? '1' : '0.5';
-        this.navigationControls.verticalRotationRow.style.pointerEvents = enabled ? 'auto' : 'none';
+        this.navigationControls.horizontalRotationSlider.style.opacity = enabled ? '1' : '0.5';
+        this.navigationControls.horizontalRotationSlider.style.pointerEvents = enabled ? 'auto' : 'none';
+        this.navigationControls.verticalRotationSlider.style.opacity = enabled ? '1' : '0.5';
+        this.navigationControls.verticalRotationSlider.style.pointerEvents = enabled ? 'auto' : 'none';
 
         // Depth translate enabled only for non-local views
-        this.navigationControls.depthTranslateRow.style.opacity = (enabled && !isLocalView) ? '1' : '0.5';
-        this.navigationControls.depthTranslateRow.style.pointerEvents = (enabled && !isLocalView) ? 'auto' : 'none';
+        this.navigationControls.depthTranslateSlider.style.opacity = (enabled && !isLocalView) ? '1' : '0.5';
+        this.navigationControls.depthTranslateSlider.style.pointerEvents = (enabled && !isLocalView) ? 'auto' : 'none';
 
         // Vertical translate enabled only for local views
-        this.navigationControls.verticalTranslateRow.style.opacity = (enabled && isLocalView) ? '1' : '0.5';
-        this.navigationControls.verticalTranslateRow.style.pointerEvents = (enabled && isLocalView) ? 'auto' : 'none';
+        this.navigationControls.verticalTranslateSlider.style.opacity = (enabled && isLocalView) ? '1' : '0.5';
+        this.navigationControls.verticalTranslateSlider.style.pointerEvents = (enabled && isLocalView) ? 'auto' : 'none';
 
         // Configure slider appearance
         if (enabled) {
@@ -1202,29 +982,25 @@ class ViewControlPanel extends ControlPanel {
             this.navigationControls.verticalTranslateSlider.step = verticalTranslateConfig.step;
             this.navigationControls.verticalTranslateSlider.value = verticalTranslateConfig.value;
 
-            // Show the slider thumbs based on view type
-            const isLocalView = this.activeView instanceof LocalView;
-            const isPlanetSideView = this.activeView instanceof PlanetSideView;
-
-            this.navigationControls.horizontalRotationSlider.style.opacity = '1';
-            this.navigationControls.verticalRotationSlider.style.opacity = '1';
-            this.navigationControls.depthTranslateSlider.style.opacity = isLocalView ? '0.5' : '1';
-            this.navigationControls.verticalTranslateSlider.style.opacity = isLocalView ? '1' : '0.5';
-
             // Show reset buttons based on view type
             this.navigationControls.horizontalRotationResetButton.style.opacity = '1';
             this.navigationControls.verticalRotationResetButton.style.opacity = '1';
             this.navigationControls.depthTranslateResetButton.style.opacity = isLocalView ? '0.5' : '1';
             this.navigationControls.verticalTranslateResetButton.style.opacity = isLocalView ? '1' : '0.5';
-            
+
             // Show/hide plane switch based on view type
-            if (this.navigationControls.planeSwitchContainer) {
-                this.navigationControls.planeSwitchContainer.style.opacity = isPlanetSideView ? '1' : '0.5';
-                this.navigationControls.planeSwitchContainer.style.pointerEvents = isPlanetSideView ? 'auto' : 'none';
-                
+            if (this.navigationControls.planeSwitch) {
+                // Get the parent element that contains the toggle
+                const toggleParent = this.navigationControls.planeSwitch.parentElement;
+                if (toggleParent) {
+                    const isPlanetSideView = this.activeView instanceof PlanetSideView;
+                    toggleParent.style.opacity = isPlanetSideView ? '1' : '0.5';
+                    toggleParent.style.pointerEvents = isPlanetSideView ? 'auto' : 'none';
+                }
+
                 // Update switch state based on current camera type
-                if (isPlanetSideView && this.navigationControls.planeSwitch) {
-                    this.navigationControls.planeSwitch.checked = 
+                if (this.activeView instanceof PlanetSideView) {
+                    this.navigationControls.planeSwitch.checked =
                         PlanetSideView.recentCameraType === PlanetSideView.cameraTypes.EQUATOR_PLANE;
                 }
             }

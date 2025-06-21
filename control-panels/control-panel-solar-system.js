@@ -31,6 +31,8 @@ class SolarSystemControlPanel extends ControlPanel {
 
     constructor(solarSystem) {
         super('Solar System Controls', { top: '20px', left: '20px' });
+
+        this.consolePane.style.width = '350px';
         this.solarSystem = solarSystem;
 
         // Make solarSystem globally accessible for cross-panel communication
