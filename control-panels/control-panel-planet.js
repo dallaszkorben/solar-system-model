@@ -36,6 +36,8 @@ class PlanetControlPanel extends ControlPanel {
 
     constructor(planet) {
         super(`${planet.name} Controls`, { top: '20px', right: '20px' });
+
+        this.consolePane.style.width = '360px';
         this.planet = planet;
         this.solarSystem = planet.solarSystem;
 
@@ -462,7 +464,10 @@ class PlanetControlPanel extends ControlPanel {
      */
     addRotationSpeedControl() {
         const container = this.createSliderControllerComponent({
-            label: 'Rotation: ',
+            label: {
+                text: 'Rotation: ',
+                width: 75
+            },
             slider: {
                 min: '0',
                 max: Planet.maxRotationFactor,
@@ -516,7 +521,10 @@ class PlanetControlPanel extends ControlPanel {
      */
     addOrbitSpeedControl() {
         const container = this.createSliderControllerComponent({
-            label: 'Orbit: ',
+            label: {
+                text: 'Orbit: ',
+                width: 75
+            },
             slider: {
                 min: '0',
                 max: Planet.maxOrbitFactor,
@@ -570,7 +578,10 @@ class PlanetControlPanel extends ControlPanel {
      */
     addOrbitLineControl() {
         const container = this.createSliderControllerComponent({
-            label: 'Orbit Line: ',
+            label: {
+                text: 'Orbit Line: ',
+                width: 75
+            },
             slider: {
                 min: '0',
                 max: '1',
@@ -633,7 +644,10 @@ class PlanetControlPanel extends ControlPanel {
      */
     addOwnLightControl() {
         const container = this.createSliderControllerComponent({
-            label: 'Own light: ',
+            label: {
+                text: 'Own light: ',
+                width: 75
+            },
             slider: {
                 min: '0',
                 max: '1',

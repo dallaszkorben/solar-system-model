@@ -367,12 +367,17 @@ class ControlPanel {
 
         const container = document.createElement('div');
         container.style.marginBottom = '15px';
+        container.style.width = '100%';
+        container.style.boxSizing = 'border-box';
 
         // Create controls container for all elements in a single line
         const controlsContainer = document.createElement('div');
         controlsContainer.style.display = 'flex';
         controlsContainer.style.alignItems = 'center';
         controlsContainer.style.gap = '10px';
+        controlsContainer.style.width = '100%';
+        controlsContainer.style.boxSizing = 'border-box';
+        controlsContainer.style.overflow = 'hidden';
 
         // Add icon or empty space for icon if configured
         if (config.icon) {
@@ -417,6 +422,10 @@ class ControlPanel {
 
             // Set fixed width for the label container
             labelContainer.style.width = `${labelWidth}px`;
+            labelContainer.style.flexShrink = '0';
+            labelContainer.style.overflow = 'hidden';
+            labelContainer.style.textOverflow = 'ellipsis';
+            labelContainer.style.whiteSpace = 'nowrap';
 
             // Create and add the label element
             const controlLabel = document.createElement('label');
@@ -436,6 +445,8 @@ class ControlPanel {
         slider.step = config.slider.step;
         slider.value = config.slider.value;
         slider.style.flexGrow = '1';
+        slider.style.flexShrink = '1';
+        slider.style.minWidth = '50px'; // Minimum width to keep slider usable
         slider.id = config.slider.id;
 
         // Create value display if unit is specified
@@ -465,9 +476,13 @@ class ControlPanel {
             }
 
             // Set width and alignment
+            valueDisplay.style.width = `${unitWidth}px`;
             valueDisplay.style.minWidth = `${unitWidth}px`;
             valueDisplay.style.textAlign = 'right';
             valueDisplay.style.flexShrink = '0';
+            valueDisplay.style.overflow = 'hidden';
+            valueDisplay.style.textOverflow = 'ellipsis';
+            valueDisplay.style.whiteSpace = 'nowrap';
 
             // Set content if showing value
             if (showValue) {
@@ -686,72 +701,96 @@ class ControlPanel {
      * Creates a control with label and one or more toggle switches
      *
      * @param {Object} config - Configuration object for the control
-     * @param {string} config.label - Label text for the control
-     * @param {Object} config.icon - Optional icon configuration
-     * @param {string} config.icon.src - Source URL for the icon
-     * @param {Array} config.toggles - Array of toggle configurations
-     * @param {string} config.toggles[].tooltip - Tooltip for the toggle switch
-     * @param {boolean} config.toggles[].checked - Initial state of toggle
-     * @param {string} config.toggles[].id - ID for the toggle element
-     * @param {Function} config.toggles[].onChange - Function to call when toggle state changes
-     * @param {number} config.toggles[].marginRight - Optional right margin in pixels
-     * @param {HTMLElement} config.parent - Parent element to append the control to
-     * @returns {HTMLElement} - The created container element
+     * @param {string|Object} config.label - Label text or configuration
+     * @param {string} [config.label.text] - Label text when using object format
+     * @param {number} [config.label.width] - Width of label in pixels (default: 100px)
+     * @param {Object} [config.icon] - Icon configuration
+     * @param {string} [config.icon.src] - Source URL for the icon
+     * @param {number} [config.icon.width] - Width of icon in pixels (default: 24px)
+     * @param {Array} [config.toggles] - Array of toggle configurations
+     * @param {string} [config.toggles[].tooltip] - Tooltip for the toggle switch
+     * @param {boolean} [config.toggles[].checked] - Initial state of toggle
+     * @param {string} [config.toggles[].id] - ID for the toggle element
+     * @param {boolean} [config.toggles[].required] - Whether to show the toggle (false = hidden but space reserved)
+     * @param {Function} [config.toggles[].onChange] - Function to call when toggle state changes
+     * @param {number} [config.toggles[].marginRight] - Optional right margin in pixels
+     * @param {string} [config.tooltip] - Tooltip for single toggle (backward compatibility)
+     * @param {boolean} [config.checked] - Initial state for single toggle (backward compatibility)
+     * @param {string} [config.id] - ID for single toggle (backward compatibility)
+     * @param {Function} [config.onChange] - Function for single toggle (backward compatibility)
+     * @param {HTMLElement} [config.parent] - Parent element to append the control to
+     * @returns {Object} - Object containing the container, toggles array, and setActive method
+     * 
+     * @example
+     * // Using the setActive method to enable/disable all toggles
+     * const controls = this.createToggleComponent({
+     *     // ... configuration ...
+     * });
+     * 
+     * // Disable all toggles
+     * controls.setActive(false);
+     * 
+     * // Enable all toggles
+     * controls.setActive(true);
      *
-     * Example for sigle toggle:
-     *    addAxisToggle(visibility) {
-     *        return this.createToggleComponent({
-     *            label: 'Rotation Axis: ',
-     *            tooltip: 'Show/Hide Rotation Axis',
-     *            checked: visibility,
-     *            id: `${this.planet.id}-axis-toggle`,
-     *            onChange: (checked) => {
-     *                if (this.planet.axis) {
-     *                    this.planet.axis.visible = checked;
-     *                }
-     *            },
-     *            parent: this.consoleContent
-     *        });
-     *    }
+     * @example
+     * // Basic single toggle
+     * const axisToggle = this.createToggleComponent({
+     *     label: 'Rotation Axis: ',
+     *     tooltip: 'Show/Hide Rotation Axis',
+     *     checked: visibility,
+     *     id: `${this.planet.id}-axis-toggle`,
+     *     onChange: (checked) => {
+     *         if (this.planet.axis) {
+     *             this.planet.axis.visible = checked;
+     *         }
+     *     },
+     *     parent: this.consoleContent
+     * });
      *
-     * Example for multiple toggles:
-     *
-     *    createCelestialBodyControl(body) {
-     *        return this.createToggleComponent({
-     *            label: body.name,
-     *            icon: {
-     *                src: `icons/${body.id}.png`
-     *            },
-     *            toggles: [
-     *                {
-     *                    tooltip: `Show/Hide ${body.name}`,
-     *                    checked: true,
-     *                    id: `${body.id}${SolarSystemControlPanel.elementIds.planetVisibilitySwitch}`,
-     *                    onChange: (checked) => {
-     *                        if (this.solarSystem && this.solarSystem.planetObjs && this.solarSystem.planetObjs[body.id]) {
-     *                            this.controlPanels[body.id].setPlanetVisibility(checked);
-     *                        }
-     *                    },
-     *                    marginRight: 10
-     *                },
-     *                {
-     *                    tooltip: `Show/Hide ${body.name} Controls`,
-     *                    checked: false,
-     *                    id: `${body.id}-controls-toggle`,
-     *                    onChange: (checked) => {
-     *                        if (checked) {
-     *                            this.controlPanels[body.id].show();
-     *                        } else {
-     *                            this.controlPanels[body.id].hide();
-     *                        }
-     *                    }
-     *                }
-     *            ],
-     *            parent: this.consoleContent
-     *        });
-     *    }
+     * @example
+     * // Advanced toggle with all options
+     * const controls = this.createToggleComponent({
+     *     label: {
+     *         text: 'Planet Controls',
+     *         width: 120
+     *     },
+     *     icon: {
+     *         src: 'icons/planet.png',
+     *         width: 32
+     *     },
+     *     toggles: [
+     *         {
+     *             tooltip: 'Show/Hide Planet',
+     *             checked: true,
+     *             id: 'planet-visibility-toggle',
+     *             required: true,
+     *             onChange: (checked) => {
+     *                 setPlanetVisibility(checked);
+     *             },
+     *             marginRight: 10
+     *         },
+     *         {
+     *             tooltip: 'Show/Hide Controls',
+     *             checked: false,
+     *             id: 'controls-toggle',
+     *             required: false,
+     *             onChange: (checked) => {
+     *                 if (checked) {
+     *                     showControls();
+     *                 } else {
+     *                     hideControls();
+     *                 }
+     *             }
+     *         }
+     *     ],
+     *     parent: this.consoleContent
+     * });
      */
     createToggleComponent(config) {
+        const defaultIconWidth = 24;
+        const defaultLabelWidth = 100;
+        
         const container = document.createElement('div');
         container.style.marginBottom = '10px';
         container.style.display = 'flex';
@@ -766,23 +805,53 @@ class ControlPanel {
 
         // Add icon if provided
         if (config.icon) {
+            const iconWidth = config.icon.width || defaultIconWidth;
             const iconContainer = document.createElement('div');
-            iconContainer.style.width = '24px';
-            iconContainer.style.height = '24px';
+            iconContainer.style.width = `${iconWidth}px`;
+            iconContainer.style.height = `${iconWidth}px`;
+            iconContainer.style.flexShrink = '0';
             iconContainer.style.marginRight = '8px';
 
-            const icon = document.createElement('img');
-            icon.src = config.icon.src;
-            icon.style.width = '100%';
-            icon.style.height = '100%';
-            iconContainer.appendChild(icon);
+            // Only add the actual icon if src is provided and not null/empty
+            if (config.icon.src) {
+                const icon = document.createElement('img');
+                icon.src = config.icon.src;
+                icon.style.width = '100%';
+                icon.style.height = '100%';
+                iconContainer.appendChild(icon);
+            }
             labelContainer.appendChild(iconContainer);
         }
 
-        // Add label
-        const labelElem = document.createElement('label');
-        labelElem.textContent = config.label;
-        labelContainer.appendChild(labelElem);
+        // Add label if provided
+        if (config.label) {
+            const labelContainer2 = document.createElement('div');
+            labelContainer2.style.flexShrink = '0';
+            
+            // Handle different label formats
+            let labelText = '';
+            let labelWidth = defaultLabelWidth;
+            
+            if (typeof config.label === 'string') {
+                // Simple string label
+                labelText = config.label;
+            } else if (config.label && typeof config.label === 'object') {
+                // Object format with text and/or width
+                if (config.label.text !== undefined) {
+                    labelText = config.label.text;
+                }
+                if (config.label.width !== undefined) {
+                    labelWidth = config.label.width;
+                }
+            }
+            
+            // Create and add the label element
+            const labelElem = document.createElement('label');
+            labelElem.textContent = labelText;
+            labelContainer2.appendChild(labelElem);
+            
+            labelContainer.appendChild(labelContainer2);
+        }
 
         // Add elements to container
         container.appendChild(labelContainer);
@@ -792,15 +861,21 @@ class ControlPanel {
             tooltip: config.tooltip,
             checked: config.checked,
             id: config.id,
-            onChange: config.onChange
+            onChange: config.onChange,
+            required: config.required
         }];
+
+        // Store created toggle elements
+        const toggleElements = [];
 
         // Add all toggles
         toggles.forEach((toggleConfig, index) => {
             // Create switch container
             const switchLabel = document.createElement('label');
             switchLabel.className = 'switch';
-            switchLabel.title = toggleConfig.tooltip;
+            if (toggleConfig.tooltip) {
+                switchLabel.title = toggleConfig.tooltip;
+            }
 
             // Add margin if specified or if not the last toggle
             if (toggleConfig.marginRight || index < toggles.length - 1) {
@@ -811,8 +886,10 @@ class ControlPanel {
             // Create toggle input
             const toggle = document.createElement('input');
             toggle.type = 'checkbox';
-            toggle.checked = toggleConfig.checked;
-            toggle.id = toggleConfig.id;
+            toggle.checked = toggleConfig.checked || false;
+            if (toggleConfig.id) {
+                toggle.id = toggleConfig.id;
+            }
 
             // Add event listener
             toggle.addEventListener('change', (e) => {
@@ -828,15 +905,39 @@ class ControlPanel {
             // Assemble the switch
             switchLabel.appendChild(toggle);
             switchLabel.appendChild(sliderSpan);
+            
+            // Hide the toggle if required is false
+            if (toggleConfig.required === false) {
+                switchLabel.style.visibility = 'hidden';
+            }
 
             container.appendChild(switchLabel);
+            
+            // Store the toggle elements
+            toggleElements.push({
+                toggle,
+                switchLabel
+            });
         });
+        
+        // Method to set active/inactive state for all toggles
+        const setComponentsActive = (active) => {
+            toggleElements.forEach(elem => {
+                elem.toggle.disabled = !active;
+                elem.switchLabel.style.opacity = active ? '1' : '0.5';
+                elem.switchLabel.style.pointerEvents = active ? 'auto' : 'none';
+            });
+        };
 
         // Add to parent if provided
         if (config.parent) {
             config.parent.appendChild(container);
         }
 
-        return container;
+        return {
+            container,
+            toggles: toggleElements,
+            setActive: setComponentsActive
+        };
     }
 }

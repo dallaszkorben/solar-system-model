@@ -677,14 +677,14 @@ class ViewControlPanel extends ControlPanel {
                 step: '1',
                 value: this.solarSystem.camera ? this.solarSystem.camera.fov.toString() : '40',
                 id: 'camera-fov-slider',
-                unit: '°' // Show value with degree symbol
+                unit: {
+                    value: '°', // Show value with degree symbol
+                    width: 35   // Adjust width as needed
+                }
             },
             resetButton: {
                 tooltip: 'Reset to default',
                 resetValue: 40
-            },
-            toggle: {
-                required: false // Don't show toggle switch
             },
             onSliderChange: (slider) => {
                 this.solarSystem.camera.fov = parseFloat(slider.value);
@@ -706,14 +706,14 @@ class ViewControlPanel extends ControlPanel {
                 step: '0.1',
                 value: this.solarSystem.camera ? this.solarSystem.camera.zoom.toString() : '1.0',
                 id: 'camera-zoom-slider',
-                unit: 'X' // Show value with X suffix
+                unit: {
+                    value: 'X', // Show value with X suffix
+                    width: 35   // Adjust width as needed
+                }
             },
             resetButton: {
                 tooltip: 'Reset to default',
                 resetValue: 1.0
-            },
-            toggle: {
-                required: false // Don't show toggle switch
             },
             onSliderChange: (slider) => {
                 this.solarSystem.camera.zoom = parseFloat(slider.value);
