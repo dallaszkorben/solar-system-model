@@ -10,7 +10,7 @@ class SkyControlPanel extends PlanetControlPanel {
         super(sky); // Call parent constructor
 
 
-//        this.createSkyRotationSection();
+        this.createSkyRotationSection();
     }
 
     getDefaultAxisVisibility(){
@@ -377,7 +377,7 @@ class SkyControlPanel extends PlanetControlPanel {
         slider.type = 'range';
         slider.min = '-180';
         slider.max = '180';
-        slider.step = '1.0'; // 1 degree per step
+        slider.step = '0.01'; // 1 degree per step
         slider.value = defaultDegrees.toString(); // Set to the provided default value
         slider.style.flexGrow = '1';
         slider.id = `sky-${id}-rotation-slider`;

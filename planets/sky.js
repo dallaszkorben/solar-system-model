@@ -9,9 +9,9 @@ class Sky extends Planet {
 
     // Planet rotations in degree
     static axialTilt = {
-        x: 0,
-        y: 0,
-        z: 23.93,   // Same as Earth
+        x: -23.93,
+        y: 90,
+        z: 0,   // Same as Earth
     }
 
     // Create minimal fact data for the sky with Earth's axial tilt
@@ -109,6 +109,9 @@ class Sky extends Planet {
 
             // Create latitude circles (just equator for sky)
             this.createLatitudeCircles(this.getLatitudeCircleList());
+
+            // Initialize rotation angles for quaternion-based rotation
+            this.initRotationAngles();
 
             console.log('Sky object created successfully');
 
@@ -284,22 +287,63 @@ class Sky extends Planet {
         this.customRotationSpeed = speed;
     }
 
-    // Methods to set rotation around specific axes
+    // Initialize rotation angles
+    initRotationAngles() {
+        // Track rotation angles for sliders
+        this.rotationAngles = {
+            pitch: 0,  // X-axis
+            yaw: 0,    // Y-axis
+            roll: 0    // Z-axis
+        };
+    }
+
+    // Methods to set rotation around specific axes using quaternions
     setPitchRotation(angle) {
         if (this.group) {
-            this.group.rotation.x = angle;
+            // Store the angle
+            this.rotationAngles.pitch = angle;
+
+            // Apply all rotations together
+            this.applyRotations();
         }
     }
 
     setYawRotation(angle) {
         if (this.group) {
-            this.group.rotation.y = angle;
+            // Store the angle
+            this.rotationAngles.yaw = angle;
+
+            // Apply all rotations together
+            this.applyRotations();
         }
     }
 
     setRollRotation(angle) {
         if (this.group) {
-            this.group.rotation.z = angle;
+            // Store the angle
+            this.rotationAngles.roll = angle;
+
+            // Apply all rotations together
+            this.applyRotations();
+        }
+    }
+
+    // Apply all rotations together to avoid gimbal lock
+    applyRotations() {
+        if (this.group) {
+            // Reset quaternion
+            this.group.quaternion.set(0, 0, 0, 1);
+
+            // Create quaternions for each axis
+            const pitchQ = new THREE.Quaternion().setFromAxisAngle(
+                new THREE.Vector3(1, 0, 0), this.rotationAngles.pitch);
+            const yawQ = new THREE.Quaternion().setFromAxisAngle(
+                new THREE.Vector3(0, 1, 0), this.rotationAngles.yaw);
+            const rollQ = new THREE.Quaternion().setFromAxisAngle(
+                new THREE.Vector3(0, 0, 1), this.rotationAngles.roll);
+
+            // Apply rotations in sequence: first roll, then pitch, then yaw
+            this.group.quaternion.multiply(yawQ).multiply(pitchQ).multiply(rollQ);
         }
     }
 
